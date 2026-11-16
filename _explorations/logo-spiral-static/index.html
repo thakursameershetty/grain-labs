@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Grain — Governed AI Execution</title>
+  <meta name="description" content="Grain turns a request, its files and its rules into a tracked, governed AI workflow." />
+  <link rel="stylesheet" href="css/styles.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-in">
+      <a class="wordmark" href="#top" aria-label="Grain home">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <defs><linearGradient id="lg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#8f3a30"/><stop offset="1" stop-color="#e6a493"/></linearGradient></defs>
+          <path d="M3 21V3h18v18H9V9h6v6" fill="none" stroke="url(#lg)" stroke-width="3" stroke-linejoin="round"/>
+        </svg>
+        Grain
+      </a>
+      <nav class="nav-links" aria-label="Sections">
+        <a href="#how">How it runs</a>
+        <a href="#capabilities">Capabilities</a>
+        <a href="#uses">Use cases</a>
+        <a href="#trust">Trust</a>
+      </nav>
+      <a class="btn" href="https://www.grainlabs.ai/contact.html">Start a workflow <span aria-hidden="true">↗</span></a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="top">
+      <div class="wrap hero-top">
+        <h1>AI operations your team can trust to run.</h1>
+        <p class="hero-sub">Grain turns a request, its files and its rules into a tracked workflow. It routes the right agent, runs every step, pauses for your decisions and hands back finished work with the evidence attached.</p>
+      </div>
+
+      <div class="stage" id="stage">
+        <div class="bigword" aria-hidden="true">GRAIN</div>
+        <canvas id="box" aria-label="The Grain spiral logo in 3D. It unfolds into a ramp that a task travels from the outer edge to the center, through five steps."></canvas>
+        <svg class="leaders" id="leaders" aria-hidden="true"></svg>
+        <ol class="layer-labels" id="labels" aria-hidden="true">
+          <li><span class="n">01</span><span class="t">Intake</span><span class="d">Request, files and rules</span></li>
+          <li><span class="n">02</span><span class="t">Route</span><span class="d">Versioned agent profile</span></li>
+          <li><span class="n">03</span><span class="t">Execute</span><span class="d">Checkpoints and retries</span></li>
+          <li><span class="n">04</span><span class="t">Approve</span><span class="d">A person signs off</span></li>
+          <li><span class="n">05</span><span class="t">Inspect</span><span class="d">Evidence and lineage</span></li>
+        </ol>
+        <p class="stage-hint mono" id="hint">Hover to unfold</p>
+      </div>
+
+      <div class="wrap hero-bottom">
+        <div class="specs">
+          <div class="spec">
+            <b>Durable tasks</b>
+            <span>Long work resumes from its last checkpoint.</span>
+            <em class="mono">
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10a6 6 0 1 0 2-4.5M4 3.5v3h3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Resume, not restart
+            </em>
+          </div>
+          <div class="spec">
+            <b>Human approvals</b>
+            <span>Consequential steps wait for a named person.</span>
+            <em class="mono">
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.5 3.5 5v4.5c0 4 2.8 6.9 6.5 8 3.7-1.1 6.5-4 6.5-8V5z M7 10l2 2 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Every decision logged
+            </em>
+          </div>
+        </div>
+
+        <a class="scroll-badge" href="#how" aria-label="Scroll to how it runs">
+          <svg class="ring" viewBox="0 0 120 120" aria-hidden="true">
+            <defs><path id="circ" d="M60,60 m-48,0 a48,48 0 1,1 96,0 a48,48 0 1,1 -96,0"/></defs>
+            <text><textPath href="#circ">NOT A BLACK BOX ■ GOVERNED EXECUTION ■ </textPath></text>
+          </svg>
+          <span class="arrow" aria-hidden="true">↓</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="next" id="how">
+      <div class="wrap mono">Next section: How it runs (coming next)</div>
+    </section>
+  </main>
+
+  <script src="js/hero3d.js"></script>
+</body>
+</html>

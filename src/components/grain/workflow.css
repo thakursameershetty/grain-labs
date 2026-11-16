@@ -1,0 +1,223 @@
+/* Animated workflow graph — looks like a real workflow builder, in Grain's colours.
+   Rounded nodes with an icon tile, node type and name, ports where wires attach, rich previews.
+   Lives inside .hw, so it uses that section's surface variables (--s-*). */
+
+.grain-hero .wf { position: relative; width: 100%; }
+
+/* ───── role colours (Orion-style colour coding, warm palette, no blue) ─────
+   input = amber · action = coral · approval = rose · output = sage green.
+   Bright on the near-black surface; deeper on the paper surface (dark theme). */
+.grain-hero .wf {
+  --c-input: #8b93ff; --c-action: #c39bff; --c-gate: #ff4f93; --c-output: #22d3ee;
+}
+.grain-hero[data-theme="dark"] .wf {
+  --c-input: #8b93ff; --c-action: #c39bff; --c-gate: #ff4f93; --c-output: #22d3ee;
+}
+.grain-hero .wf-node.k-input  { --c: var(--c-input); }
+.grain-hero .wf-node.k-action { --c: var(--c-action); }
+.grain-hero .wf-node.k-gate   { --c: var(--c-gate); }
+.grain-hero .wf-node.k-output { --c: var(--c-output); }
+.grain-hero .wf-edges g.k-input  { --c: var(--c-input); }
+.grain-hero .wf-edges g.k-action { --c: var(--c-action); }
+.grain-hero .wf-edges g.k-gate   { --c: var(--c-gate); }
+.grain-hero .wf-edges g.k-output { --c: var(--c-output); }
+.grain-hero .wf-edges { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.grain-hero .wf-rail { fill: none; stroke: var(--s-line); stroke-width: 1.2; stroke-dasharray: 3 5; }
+/* nothing is drawn ahead of the run: each port appears with its own node, and a wire
+   (with its dashed guide) only once the run reaches it */
+.grain-hero .wf-rail { opacity: 0; transition: opacity .4s ease; }
+.grain-hero .wf-edges g.on .wf-rail { opacity: 1; }   /* the guide appears only as the wire draws in, never pointing at empty space */
+.grain-hero .wf-port { opacity: 0; transition: opacity .35s ease; }
+.grain-hero .wf-port.shown { opacity: 1; }
+.grain-hero .wf-line { fill: none; stroke: var(--c, var(--s-accent)); stroke-width: 1.5; stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset .75s var(--ease); }
+.grain-hero .wf-edges g.on .wf-line { stroke-dashoffset: 0; }
+.grain-hero .wf-dot { fill: var(--c, var(--s-accent)); }
+.grain-hero .wf-port { fill: var(--s-node); stroke: var(--s-line-strong); stroke-width: 1.3; transition: stroke .4s ease, fill .4s ease; }
+.grain-hero .wf-edges g.on .wf-port { stroke: var(--c, var(--s-accent)); fill: var(--c, var(--s-accent)); }
+
+/* ───── node ───── */
+.grain-hero .wf-node {
+  position: absolute; z-index: 1;
+  border: 1px solid var(--s-line); border-radius: 16px; background: var(--s-node);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--s-ink) 4%, transparent) inset, 0 18px 40px -28px rgba(0, 0, 0, .55);
+  padding: 12px 12px 12px;
+  opacity: 0; transform: translateY(10px) scale(.985);
+  transition: opacity .5s var(--ease), transform .6s var(--ease), border-color .4s ease;
+}
+.grain-hero .wf-node.shown { opacity: 1; transform: none; }
+.grain-hero .wf-node.running { border-color: color-mix(in srgb, var(--c) 75%, transparent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 14%, transparent), 0 18px 40px -28px rgba(0, 0, 0, .55); }
+/* the role tab sits on top of the node, like a folder tab */
+.grain-hero .wf-role {
+  position: absolute; left: 14px; top: -23px; height: 23px; padding: 0 10px 0 9px;
+  display: inline-flex; align-items: center; gap: 6px;
+  border-radius: 9px 9px 0 0; background: color-mix(in srgb, var(--c) 20%, var(--s-canvas));
+  color: var(--c); font-size: 12px; font-weight: 500; letter-spacing: -0.005em;
+}
+.grain-hero .wf-role::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.grain-hero .wf-node.running .wf-role::before { animation: wf-blink 1s steps(2) infinite; }
+@keyframes wf-blink { 50% { opacity: .2; } }
+.grain-hero .wf-node.k-gate { border-color: color-mix(in srgb, var(--c) 50%, transparent); }
+
+.grain-hero .wf-head { display: flex; align-items: center; gap: 10px; }
+.grain-hero .wf-ico {
+  flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 10px;
+  background: color-mix(in srgb, var(--c) 18%, transparent); color: var(--c);
+}
+.grain-hero .wf-anim { display: grid; place-items: center; }
+/* Material Symbols file-type glyph */
+.grain-hero .msym {
+  font-family: "Material Symbols Outlined"; font-weight: normal; font-style: normal; line-height: 1;
+  letter-spacing: normal; text-transform: none; white-space: nowrap; direction: ltr;
+  font-feature-settings: "liga"; -webkit-font-feature-settings: "liga"; -webkit-font-smoothing: antialiased;
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 20; font-size: 20px; display: inline-block; overflow: hidden;
+}
+.grain-hero .wf-ico .msym { font-size: 21px; }
+.grain-hero .pv-chip .msym { font-size: 13px; margin-right: 1px; text-transform: none; }
+.grain-hero .pv-files-list .msym { font-size: 15px; color: var(--c-action); }
+.grain-hero .wf-anim svg { stroke-width: 1.8; }
+.grain-hero .wf-ht { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.grain-hero .wf-type { font-family: var(--mono); font-size: 9.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--s-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.grain-hero .wf-title { margin-top: 2px; font-size: 14.5px; font-weight: 500; letter-spacing: -0.01em; line-height: 1.2; }
+.grain-hero .wf-status { flex: none; align-self: flex-start; margin-top: 2px; font-family: var(--mono); font-size: 10px; letter-spacing: .05em; text-transform: uppercase; color: var(--s-dim); }
+.grain-hero .wf-status.spin { color: var(--c); font-size: 12px; }
+.grain-hero .wf-status.gate-waiting, .grain-hero .wf-status.gate-held { color: var(--wait); }
+.grain-hero .wf-status.gate-approved { color: var(--ok); }
+
+/* time / status pill: normal font, animated timer icon */
+.grain-hero .wf-pill {
+  flex: none; align-self: flex-start; display: inline-flex; align-items: center; gap: 5px;
+  height: 24px; padding: 0 9px 0 7px; border-radius: 999px;
+  border: 1px solid var(--s-line); background: var(--s-inset);
+  font: 500 12px/1 var(--sans); letter-spacing: 0; color: var(--s-body);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+  transition: background .3s ease, border-color .3s ease, color .3s ease;
+}
+.grain-hero .wf-pill-ico { display: grid; place-items: center; color: var(--s-dim); }
+.grain-hero .wf-pill-ico svg { stroke-width: 2; }
+.grain-hero .wf-pill.live { border-color: color-mix(in srgb, var(--c) 45%, transparent); background: color-mix(in srgb, var(--c) 12%, transparent); color: var(--s-ink); }
+.grain-hero .wf-pill.live .wf-pill-ico { color: var(--c); }
+.grain-hero .wf-pill.word { padding: 0 10px; }
+.grain-hero .wf-pill.word::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); }
+.grain-hero .wf-pill.gate { padding: 0 10px; }
+.grain-hero .wf-pill.gate::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.grain-hero .wf-pill.gate-waiting, .grain-hero .wf-pill.gate-held { color: var(--wait); border-color: color-mix(in srgb, var(--wait) 45%, transparent); background: color-mix(in srgb, var(--wait) 12%, transparent); }
+.grain-hero .wf-pill.gate-waiting::before { animation: wf-blink 1s steps(2) infinite; }
+.grain-hero .wf-pill.gate-approved { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 40%, transparent); background: color-mix(in srgb, var(--ok) 12%, transparent); }
+
+.grain-hero .wf-body { margin-top: 12px; }
+.grain-hero .wf-items { list-style: none; margin: 12px 0 0; padding: 10px 2px 0; border-top: 1px solid var(--s-line); display: grid; gap: 7px; }
+.grain-hero .wf-items li { display: grid; grid-template-columns: 14px 1fr; gap: 6px; font-size: 12.5px; line-height: 1.35; color: var(--s-dim); transition: color .3s ease; }
+.grain-hero .wf-items li.run { color: var(--s-ink); }
+.grain-hero .wf-items li.done { color: var(--s-body); }
+.grain-hero .wf-mark { font-family: var(--mono); font-size: 12px; color: var(--s-dim); }
+.grain-hero .wf-items li.run .wf-mark { color: var(--c); }
+.grain-hero .wf-items li.done .wf-mark { color: var(--ok); }
+.grain-hero .wf-items li.t-warn.done span:last-child, .grain-hero .wf-items li.t-review span:last-child { color: var(--bad); }
+.grain-hero .wf-items li.t-warn.done .wf-mark { color: var(--bad); }
+.grain-hero .wf-meta { margin-top: 10px; font-family: var(--mono); font-size: 9.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--s-dim); }
+
+/* the gate's action slot: buttons and record share one grid cell and cross-fade; height never changes */
+.grain-hero .wf-gate { display: grid; margin-top: 12px; min-height: 36px; align-items: center; }
+.grain-hero .wf-gate > * { grid-area: 1 / 1; transition: opacity .45s ease, transform .45s cubic-bezier(.2, .7, .2, 1); }
+.grain-hero .wf-gate-btns { display: flex; gap: 8px; }
+.grain-hero .wf-gate .wf-record { margin: 0; opacity: 0; transform: translateY(6px); pointer-events: none; }
+.grain-hero .wf-gate.g-approved .wf-gate-btns, .grain-hero .wf-gate.g-held .wf-gate-btns { opacity: 0; transform: translateY(-6px); pointer-events: none; transition-delay: .18s; }
+.grain-hero .wf-gate.g-approved .wf-record, .grain-hero .wf-gate.g-held .wf-record { opacity: 1; transform: none; pointer-events: auto; transition-delay: .32s; }
+.grain-hero .wf-gate.g-idle .wf-btn { opacity: .55; animation: none; }
+.grain-hero .wf-btn:disabled { cursor: default; }
+.grain-hero .wf-btn {
+  padding: 8px 16px; border-radius: 999px; border: 1px solid var(--c); background: var(--c); color: var(--s-bg);
+  font: 500 13px var(--sans); cursor: pointer; transition: transform .18s ease; animation: wf-nudge 1.6s ease-in-out infinite;
+}
+.grain-hero .wf-btn.line { background: transparent; color: var(--s-ink); border-color: var(--s-line-strong); animation: none; }
+.grain-hero .wf-btn:hover { transform: translateY(-1px); }
+@keyframes wf-nudge { 50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--c) 24%, transparent); } }
+.grain-hero .wf-record { margin-top: 12px; font-family: var(--mono); font-size: 10.5px; letter-spacing: .03em; color: var(--ok); }
+.grain-hero .wf-gate.g-held .wf-record { color: var(--wait); }
+.grain-hero .wf-record button { margin-left: 8px; border: 0; background: none; padding: 0; font: inherit; color: var(--s-dim); text-decoration: underline; cursor: pointer; }
+
+/* ───── previews inside nodes ───── */
+.grain-hero .pv { border-radius: 10px; background: var(--s-inset); padding: 10px 11px; font-size: 12.5px; line-height: 1.4; color: var(--s-body); }
+.grain-hero .pv + .pv { margin-top: 8px; }
+.grain-hero .pv-from { display: flex; align-items: center; gap: 8px; }
+.grain-hero .pv-av { flex: none; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: color-mix(in srgb, var(--c) 30%, transparent); color: var(--s-ink); font-size: 10px; font-weight: 600; }
+.grain-hero .pv-name { color: var(--s-ink); font-weight: 500; font-size: 12.5px; }
+.grain-hero .pv-addr { color: var(--s-dim); font-size: 11.5px; }
+.grain-hero .pv-subj { margin-top: 8px; color: var(--s-ink); font-weight: 500; }
+.grain-hero .pv-snip { margin-top: 3px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.grain-hero .pv-files { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 9px; }
+.grain-hero .pv-chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 7px; border-radius: 6px; border: 1px solid var(--s-line); font-family: var(--mono); font-size: 9.5px; letter-spacing: .02em; color: var(--s-body); }
+.grain-hero .pv-chip svg { width: 11px; height: 11px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.grain-hero .pv-kv { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; }
+.grain-hero .pv-kv dt { font-family: var(--mono); font-size: 9.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--s-dim); padding-top: 2px; }
+.grain-hero .pv-kv dd { margin: 0; color: var(--s-ink); }
+.grain-hero .pv-pill { display: inline-block; padding: 1px 8px; border-radius: 999px; background: color-mix(in srgb, var(--ok) 18%, transparent); color: var(--ok); font-size: 11px; }
+.grain-hero .pv-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+.grain-hero .pv-tag { padding: 2px 8px; border-radius: 999px; background: color-mix(in srgb, var(--c) 14%, transparent); font-size: 11.5px; color: var(--s-ink); }
+.grain-hero .pv-tag:nth-child(2) { background: color-mix(in srgb, var(--c-input) 16%, transparent); }
+.grain-hero .pv-tag:nth-child(3) { background: color-mix(in srgb, var(--c-gate) 14%, transparent); }
+.grain-hero .pv-perm { display: grid; grid-template-columns: 16px 1fr; gap: 6px; align-items: start; margin-top: 7px; }
+.grain-hero .pv-perm svg { width: 14px; height: 14px; margin-top: 2px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.grain-hero .pv-perm.yes { color: var(--s-body); }
+.grain-hero .pv-perm.yes svg { color: var(--ok); }
+.grain-hero .pv-perm.no { color: var(--wait); }
+.grain-hero .pv-ol { margin: 0; padding: 0 0 0 18px; display: grid; gap: 4px; }
+.grain-hero .pv-ol li::marker { color: var(--c); font-family: var(--mono); font-size: 10px; }
+.grain-hero .pv-doc-t { color: var(--s-ink); font-weight: 500; }
+.grain-hero .pv-lines { display: grid; gap: 5px; margin-top: 8px; }
+.grain-hero .pv-lines i { display: block; height: 5px; border-radius: 3px; background: color-mix(in srgb, var(--s-ink) 13%, transparent); }
+.grain-hero .pv-lines i:nth-child(4n+2) { background: color-mix(in srgb, var(--c) 35%, transparent); }
+.grain-hero .pv-foot { margin-top: 8px; font-family: var(--mono); font-size: 9.5px; letter-spacing: .05em; text-transform: uppercase; color: var(--c); }
+.grain-hero .pv-files-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.grain-hero .pv-files-list li { display: flex; justify-content: space-between; gap: 10px; align-items: center; font-size: 12px; }
+.grain-hero .pv-files-list li > span:first-child { display: inline-flex; align-items: center; gap: 6px; color: var(--s-ink); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.grain-hero .pv-files-list svg { flex: none; width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.7; }
+.grain-hero .pv-st { flex: none; font-family: var(--mono); font-size: 9.5px; letter-spacing: .05em; text-transform: uppercase; color: var(--s-dim); }
+.grain-hero .pv-st.ok { color: var(--s-ink); }
+.grain-hero .pv-st.ok { color: var(--ok); }
+.grain-hero .pv-st.ok::before { content: "✓ "; }
+.grain-hero .pv-st.flag { color: var(--bad); }
+.grain-hero .pv-st:not(.ok):not(.flag) { color: var(--c-action); }
+.grain-hero .pv-file-meta { margin-top: 6px; font-family: var(--mono); font-size: 9.5px; letter-spacing: .05em; text-transform: uppercase; color: var(--s-dim); }
+
+/* narrow: stack the nodes in order with a dashed connector between them */
+@media (max-width: 900px) {
+  .grain-hero .wf { height: auto !important; display: flex; flex-direction: column; gap: 52px; padding-top: 24px; }
+  .grain-hero .wf-edges { display: none; }
+  .grain-hero .wf-node { position: relative; left: auto !important; top: auto !important; width: auto !important; }
+  .grain-hero .wf-node + .wf-node::before {
+    content: ""; position: absolute; left: 27px; top: -51px; height: 28px; width: 1px;
+    background: linear-gradient(var(--c) 50%, transparent 0) 0 0 / 1px 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grain-hero .wf-node { transition: none; opacity: 1; transform: none; }
+  .grain-hero .wf-line { transition: none; }
+  .grain-hero .wf-btn { animation: none; }
+}
+
+/* paused by the visitor: every CSS animation inside the canvas holds still */
+.grain-hero .wf.paused *, .grain-hero .wf.paused *::before { animation-play-state: paused !important; }
+
+/* the advocate's cursor: a multiplayer-style pointer with a trailing name tag, in the approval colour */
+.grain-hero .wf-cur { position: absolute; inset: 0; pointer-events: none; z-index: 6; opacity: 0; }
+.grain-hero .wf-cur-arrow, .grain-hero .wf-cur-tag { position: absolute; left: 0; top: 0; will-change: transform; }
+.grain-hero .wf-cur-arrow { width: 20px; height: 22px; margin: -2px 0 0 -2px; transform-origin: 2px 2px; }
+.grain-hero .wf-cur-arrow svg { display: block; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 2px 6px rgba(0, 0, 0, .45)); }
+.grain-hero .wf-cur-arrow path { fill: var(--c-gate); stroke: #fff; stroke-width: 1.5; stroke-linejoin: round; }
+.grain-hero .wf-cur-tag {
+  padding: 4px 10px; border-radius: 999px; background: var(--c-gate); color: #fff;
+  font: 500 12px/1.2 var(--sans); white-space: nowrap; box-shadow: 0 6px 16px -6px rgba(0, 0, 0, .5);
+}
+/* click: a ring opens from the tip */
+.grain-hero .wf-cur-ring { position: absolute; left: 2px; top: 2px; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%; border: 1.5px solid var(--c-gate); opacity: 0; }
+.grain-hero .wf-cur.leave .wf-cur-ring { animation: wf-click .55s ease-out; }
+@keyframes wf-click { from { opacity: .9; transform: scale(.2); } to { opacity: 0; transform: scale(1.5); } }
+/* the button answers the cursor */
+.grain-hero .wf-btn.is-hover { filter: brightness(1.1); animation: none; }
+.grain-hero .wf-btn.is-press { transform: scale(.95); transition-duration: .08s; }
+/* once approved, the Approve button flashes briefly before the row fades */
+.grain-hero .wf-gate.g-approved .wf-btn:not(.line) { box-shadow: 0 0 0 4px color-mix(in srgb, var(--c) 30%, transparent); }
+/* the gate's person: a role, not a name */
+.grain-hero .pv-av.pv-role svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
