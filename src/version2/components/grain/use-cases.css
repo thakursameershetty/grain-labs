@@ -1,0 +1,147 @@
+/* Use cases: one shared anatomy strip, then cards that lead with a replica of their document. */
+.grain-hero .sx-uses {
+  --ua-line: color-mix(in srgb, var(--ink) 10%, transparent);
+  --ua-violet: #7c3aed; --ua-indigo: #3f46c9; --ua-cyan: #0e8fb0;
+}
+.grain-hero[data-theme="dark"] .sx-uses { --ua-violet: #b18cff; --ua-indigo: #8b93ff; --ua-cyan: #22d3ee; }
+
+/* header: title left, a short line on the right (bottom-aligned) */
+.grain-hero .ua-headrow { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 40px; align-items: end; }
+.grain-hero .ua-headrow .sx-sub { margin: 0 0 6px; max-width: 440px; justify-self: end; }
+@media (max-width: 900px) { .grain-hero .ua-headrow { grid-template-columns: 1fr; gap: 16px; } .grain-hero .ua-headrow .sx-sub { justify-self: start; } }
+
+/* ── the anatomy strip ── */
+.grain-hero .ua-anatomy { margin-top: 44px; padding: 18px 22px 20px; border-radius: 20px; border: 1px solid var(--ua-line);
+  background: color-mix(in srgb, var(--ink) 2%, var(--paper)); }
+.grain-hero .ua-an-top { display: flex; justify-content: space-between; gap: 16px; font-size: 13px; color: var(--muted); }
+.grain-hero .ua-an-top p { margin: 0; }
+.grain-hero .ua-an-who { animation: ua-swap .45s var(--ease); }
+.grain-hero .ua-anatomy.live .ua-an-who { font-family: var(--mono); font-size: 12px; letter-spacing: .02em; color: var(--ua-violet); }
+.grain-hero .ua-anatomy ol { position: relative; list-style: none; margin: 16px 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+/* the line through the four steps; it fills when a fleet is shown */
+.grain-hero .ua-anatomy ol::before, .grain-hero .ua-anatomy ol::after { content: ""; position: absolute; left: 20px; right: calc(25% - 20px); top: 19px; height: 1.5px; border-radius: 2px; }
+.grain-hero .ua-anatomy ol::before { background: var(--ua-line); }
+.grain-hero .ua-anatomy ol::after { background: linear-gradient(90deg, var(--ua-cyan), var(--ua-violet)); transform-origin: left; transform: scaleX(0); transition: transform .9s var(--ease); }
+.grain-hero .ua-anatomy.live ol::after { transform: scaleX(1); }
+.grain-hero .ua-anatomy li { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; min-width: 0; }
+.grain-hero .ua-an-ico { position: relative; z-index: 1; flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px;
+  border: 1px solid var(--ua-line); background: var(--paper); color: var(--muted); transition: color .3s ease, border-color .3s ease, box-shadow .3s ease; }
+.grain-hero .ua-anatomy.live .ua-an-ico { color: var(--ua-violet); border-color: color-mix(in srgb, var(--ua-violet) 40%, transparent);
+  box-shadow: 0 6px 16px -8px color-mix(in srgb, var(--ua-violet) 60%, transparent); transition-delay: calc(var(--s) * 180ms); }
+.grain-hero .ua-an-t { display: grid; gap: 2px; min-width: 0; padding-right: 12px; }
+.grain-hero .ua-an-t b { font-size: 14.5px; font-weight: 500; color: var(--ink); }
+.grain-hero .ua-an-t span { font-size: 13px; line-height: 1.35; color: var(--muted); animation: ua-swap .45s var(--ease) both; animation-delay: calc(var(--s) * 90ms); }
+.grain-hero .ua-anatomy.live .ua-an-t span { color: var(--body); }
+@keyframes ua-swap { from { opacity: 0; transform: translateY(5px); filter: blur(3px); } }
+
+/* ── filters ── */
+.grain-hero .ua-filters { display: inline-flex; flex-wrap: wrap; gap: 4px; margin-top: 28px; padding: 4px; border-radius: 999px; border: 1px solid var(--ua-line); background: var(--paper); }
+.grain-hero .ua-filters button { padding: 8px 15px; border: 0; border-radius: 999px; background: transparent; color: var(--body); font: 500 14px var(--sans); cursor: pointer; }
+.grain-hero .ua-filters button:hover { color: var(--ink); }
+.grain-hero .ua-filters button.on { background: var(--ink); color: var(--paper); }
+
+/* ── cards ── */
+.grain-hero .ua-grid { margin-top: 20px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.grain-hero .ua-card { display: flex; flex-direction: column; border-radius: 20px; border: 1px solid var(--ua-line); background: var(--paper); color: var(--ink);
+  overflow: hidden; box-shadow: 0 1px 0 rgba(0, 0, 0, .02);
+  transition: transform .45s var(--ease), box-shadow .45s ease, border-color .3s ease; animation: sx-rise .6s var(--ease) both; animation-delay: calc(var(--k) * 60ms); }
+.grain-hero .ua-card:hover { transform: translateY(-4px); border-color: color-mix(in srgb, var(--ink) 16%, transparent); box-shadow: 0 24px 44px -28px rgba(20, 16, 60, .35); }
+.grain-hero .ua-card:focus-visible { outline: 2px solid var(--ua-violet); outline-offset: 3px; }
+
+/* the illustration panel: a soft pool of light in the card's group colour, a faint dot grid, the document */
+.grain-hero .ua-art { --tone: var(--ua-violet);
+  position: relative; height: 176px; margin: 8px 8px 0; border-radius: 14px; overflow: hidden; display: grid; place-items: center;
+  background:
+    radial-gradient(70% 80% at 50% 110%, color-mix(in srgb, var(--tone) 16%, transparent), transparent 70%),
+    radial-gradient(color-mix(in srgb, var(--ink) 9%, transparent) 1px, transparent 1.3px) 0 0 / 14px 14px,
+    color-mix(in srgb, var(--ink) 2.5%, var(--paper));
+}
+.grain-hero .ua-card.t-1 .ua-art { --tone: var(--ua-violet); }
+.grain-hero .ua-card.t-2 .ua-art { --tone: var(--ua-indigo); }
+.grain-hero .ua-card.t-3 .ua-art { --tone: var(--ua-cyan); }
+.grain-hero .ua-body { display: flex; flex-direction: column; flex: 1; padding: 16px 18px 16px; }
+.grain-hero .ua-ind { font-size: 12.5px; color: var(--muted); }
+.grain-hero .ua-card h3 { margin: 6px 0 0; font-size: 17.5px; font-weight: 500; letter-spacing: -0.02em; line-height: 1.2; }
+.grain-hero .ua-body p { margin: 8px 0 0; font-size: 13.5px; line-height: 1.45; color: var(--body); }
+.grain-hero .ua-foot { margin-top: auto; padding-top: 16px; display: flex; align-items: center; justify-content: space-between; gap: 10px; color: var(--muted); }
+.grain-hero .ua-fleet { font-family: var(--mono); font-size: 10.5px; letter-spacing: .03em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.grain-hero .ua-card:hover .ua-foot { color: var(--ink); }
+
+/* ── document replicas ── */
+.grain-hero .ua-doc, .grain-hero .ua-cal {
+  position: relative; width: 78%; padding: 12px 13px; border-radius: 10px; border: 1px solid var(--ua-line); background: var(--paper);
+  box-shadow: 0 14px 28px -18px rgba(20, 16, 60, .4); font-size: 10.5px; color: var(--body);
+  transform: translateY(6px) rotate(-1.2deg); transition: transform .5s var(--ease);
+}
+.grain-hero .ua-card:hover .ua-doc, .grain-hero .ua-card:hover .ua-cal { transform: translateY(0) rotate(0deg); }
+.grain-hero .ua-doc p { margin: 0; }
+.grain-hero .ua-h { font-size: 11.5px; font-weight: 600; color: var(--ink); }
+.grain-hero .ua-sub { margin-top: 1px !important; margin-bottom: 4px !important; font-size: 9.5px; color: var(--muted); }
+.grain-hero .ua-l { display: block; height: 4px; margin-top: 5px; border-radius: 2px; background: color-mix(in srgb, var(--ink) 9%, transparent); }
+.grain-hero .ua-row { display: flex; justify-content: space-between; gap: 8px; padding: 3.5px 0; border-bottom: 1px solid var(--ua-line); font-size: 10px; color: var(--ink); }
+.grain-hero .ua-row span:last-child { font-variant-numeric: tabular-nums; }
+.grain-hero .ua-row.bad span { color: var(--bad); }
+.grain-hero .ua-row.ok-h span:last-child { color: var(--ok); font-weight: 600; }
+/* hover: the problem line gets struck through */
+.grain-hero .ua-row.strike, .grain-hero .ua-row.strike-h { background: linear-gradient(var(--bad), var(--bad)) no-repeat 0 55% / 0% 1px; transition: background-size .5s var(--ease) .15s; }
+.grain-hero .ua-card:hover .ua-row.strike, .grain-hero .ua-card:hover .ua-row.strike-h { background-size: 100% 1px; }
+.grain-hero .ua-tag { display: inline-block; margin-top: 8px; padding: 2px 7px; border-radius: 999px; font-size: 9.5px; font-weight: 500; }
+.grain-hero .ua-tag.bad { color: var(--bad); background: color-mix(in srgb, var(--bad) 11%, transparent); }
+.grain-hero .ua-tag.wait { color: var(--wait); background: color-mix(in srgb, var(--wait) 13%, transparent); }
+/* stamps land on hover */
+.grain-hero .ua-stamp, .grain-hero .ua-seal { position: absolute; right: 10px; bottom: 10px; padding: 2px 8px; border-radius: 5px; font-size: 10px; font-weight: 600;
+  letter-spacing: .04em; text-transform: uppercase; color: var(--bad); border: 1.5px solid currentColor;
+  opacity: 0; transform: scale(1.5) rotate(-10deg); transition: opacity .25s ease .2s, transform .35s cubic-bezier(.3, 1.6, .5, 1) .2s; }
+.grain-hero .ua-stamp.ok, .grain-hero .ua-seal.ok { color: var(--ok); }
+.grain-hero .ua-seal { text-transform: none; letter-spacing: 0; font-weight: 500; border-width: 1px; border-radius: 999px; bottom: 40px; right: 12px; background: var(--paper); }
+.grain-hero .ua-card:hover .ua-stamp, .grain-hero .ua-card:hover .ua-seal { opacity: 1; transform: rotate(-8deg); }
+.grain-hero .ua-card:hover .ua-seal { transform: none; }
+.grain-hero .ua-window { margin-top: 9px; }
+/* signature draws on hover */
+.grain-hero .ua-sign { margin-top: 9px; display: flex; align-items: flex-end; gap: 8px; border-bottom: 1px solid var(--ua-line); }
+.grain-hero .ua-sign svg { width: 92px; height: 24px; }
+.grain-hero .ua-sign span { margin-left: auto; padding-bottom: 2px; font-size: 9px; color: var(--muted); }
+.grain-hero .ua-scribble { fill: none; stroke: var(--ink); stroke-width: 1.6; stroke-linecap: round; stroke-dasharray: 260; stroke-dashoffset: 260; transition: stroke-dashoffset 1.1s var(--ease) .1s; }
+.grain-hero .ua-card:hover .ua-scribble { stroke-dashoffset: 0; }
+/* lien calendar */
+.grain-hero .ua-cal-h { display: flex; justify-content: space-between; align-items: center; gap: 6px; font-size: 10.5px; font-weight: 600; color: var(--ink); }
+.grain-hero .ua-cal-h .ua-tag { margin: 0; }
+.grain-hero .ua-cal-g { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; margin-top: 8px; }
+.grain-hero .ua-cal-g span { display: grid; place-items: center; height: 17px; border-radius: 4px; font-size: 9px; color: var(--muted); background: color-mix(in srgb, var(--ink) 3%, transparent); }
+.grain-hero .ua-cal-g span.got { color: var(--ok); background: color-mix(in srgb, var(--ok) 12%, transparent); }
+.grain-hero .ua-cal-g span.due { color: #fff; background: var(--bad); box-shadow: 0 0 0 0 color-mix(in srgb, var(--bad) 40%, transparent); }
+.grain-hero .ua-card:hover .ua-cal-g span.due { animation: ua-ping 1.2s ease-out infinite; }
+@keyframes ua-ping { to { box-shadow: 0 0 0 7px transparent; } }
+/* notification clocks */
+.grain-hero .ua-clock { display: grid; grid-template-columns: 74px 1fr 30px; align-items: center; gap: 8px; margin-top: 6px; font-size: 9.5px; color: var(--ink); }
+.grain-hero .ua-clock span:last-child { text-align: right; color: var(--muted); }
+.grain-hero .ua-clock b { height: 5px; border-radius: 3px; background: color-mix(in srgb, var(--ink) 8%, transparent); overflow: hidden; }
+.grain-hero .ua-clock b i { display: block; height: 100%; width: var(--p); border-radius: inherit; background: var(--wait); transform-origin: left; transform: scaleX(.25); transition: transform .9s var(--ease); }
+.grain-hero .ua-clock:nth-of-type(1) b i, .grain-hero .ua-clock:nth-of-type(4) b i { background: var(--bad); }   /* the clocks about to run out */
+.grain-hero .ua-card:hover .ua-clock b i { transform: scaleX(1); }
+.grain-hero .ua-clock:nth-of-type(2) b i { transition-delay: .08s; } .grain-hero .ua-clock:nth-of-type(3) b i { transition-delay: .16s; } .grain-hero .ua-clock:nth-of-type(4) b i { transition-delay: .24s; }
+/* price audit: a scan line passes and the mismatches light up */
+.grain-hero .ua-audit .ua-row { display: grid; grid-template-columns: 1fr 44px 44px; text-align: right; }
+.grain-hero .ua-audit .ua-row span:first-child { text-align: left; }
+.grain-hero .ua-audit .ua-th { font-size: 9px; color: var(--muted); }
+.grain-hero .ua-audit .ua-th span { color: var(--muted) !important; }
+.grain-hero .ua-audit .ua-row.bad span { color: var(--ink); transition: color .3s ease .5s, background .3s ease .5s; }
+.grain-hero .ua-card:hover .ua-audit .ua-row.bad { background: color-mix(in srgb, var(--bad) 8%, transparent); }
+.grain-hero .ua-card:hover .ua-audit .ua-row.bad span:nth-child(2) { color: var(--bad); font-weight: 600; }
+.grain-hero .ua-scan { position: absolute; left: 0; right: 0; top: 10px; height: 2px; opacity: 0;
+  background: linear-gradient(90deg, transparent, var(--ua-cyan), transparent); box-shadow: 0 0 10px var(--ua-cyan); }
+.grain-hero .ua-card:hover .ua-scan { animation: ua-scan 1.1s var(--ease) both; }
+@keyframes ua-scan { 0% { opacity: 1; top: 10px; } 90% { opacity: 1; } 100% { opacity: 0; top: calc(100% - 10px); } }
+
+/* responsive */
+@media (max-width: 1100px) { .grain-hero .ua-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 760px) {
+  .grain-hero .ua-anatomy ol { grid-template-columns: 1fr 1fr; row-gap: 18px; }
+  .grain-hero .ua-anatomy ol::before, .grain-hero .ua-anatomy ol::after { display: none; }
+  .grain-hero .ua-an-top { flex-direction: column; gap: 2px; }
+}
+@media (max-width: 560px) { .grain-hero .ua-grid { grid-template-columns: minmax(0, 1fr); } .grain-hero .ua-filters { border-radius: 18px; } }
+@media (prefers-reduced-motion: reduce) {
+  .grain-hero .ua-card, .grain-hero .ua-an-t span, .grain-hero .ua-an-who { animation: none; }
+  .grain-hero .ua-doc, .grain-hero .ua-cal, .grain-hero .ua-scribble, .grain-hero .ua-clock b i { transition: none; }
+}

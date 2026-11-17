@@ -1,0 +1,135 @@
+/* The packet: inputs → a fanned stack of pages → the selected page's evidence. */
+.grain-hero .pkx {
+  --pk-cyan: #0e9fbf; --pk-violet: #7c3aed; --pk-rasp: #be185d;
+  --pk-line: color-mix(in srgb, var(--ink) 12%, transparent);
+  --pk-paper: var(--paper);
+  position: relative; width: 100%; max-width: 1120px; padding: 22px 26px 28px;
+  border-radius: 24px; border: 1px solid var(--pk-line);
+  background: color-mix(in srgb, var(--ink) 2%, var(--paper));
+  box-shadow: 0 40px 80px -50px rgba(20, 16, 60, .35);
+}
+.grain-hero[data-theme="dark"] .pkx { --pk-cyan: #22d3ee; --pk-violet: #b18cff; --pk-rasp: #ff6ba6; }
+
+.grain-hero .pkx-top { display: flex; align-items: baseline; gap: 14px; padding-bottom: 16px; border-bottom: 1px solid var(--pk-line); }
+.grain-hero .pkx-name { font-size: 17px; font-weight: 500; letter-spacing: -0.01em; color: var(--ink); }
+.grain-hero .pkx-meta { font-size: 13px; color: var(--muted); }
+.grain-hero .pkx-badge { margin-left: auto; align-self: center; padding: 5px 11px; border-radius: 999px; font-size: 12px; font-weight: 500;
+  color: var(--ok); background: color-mix(in srgb, var(--ok) 12%, transparent); }
+.grain-hero .pkx-badge.busy { color: var(--pk-violet); background: color-mix(in srgb, var(--pk-violet) 12%, transparent); }
+
+.grain-hero .pkx-cols { display: grid; grid-template-columns: 220px minmax(0, 1fr) 270px; gap: 36px; align-items: center; margin-top: 20px; }
+.grain-hero .pkx-h { margin: 0 0 10px; font-size: 12px; font-weight: 500; color: var(--muted); }
+
+/* inputs */
+.grain-hero .pkx-inputs ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+.grain-hero .pkx-inputs li {
+  display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--pk-line); background: var(--pk-paper);
+  font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden;
+  transition: color .35s ease, border-color .35s ease, transform .45s var(--ease), box-shadow .35s ease;
+}
+.grain-hero .pkx-inputs li span { overflow: hidden; text-overflow: ellipsis; }
+.grain-hero .pkx-inputs li .msym { flex: none; font-size: 16px; color: var(--soft); transition: color .35s ease; }
+.grain-hero .pkx-inputs li.lit { color: var(--ink); border-color: color-mix(in srgb, var(--pk-cyan) 50%, transparent); transform: translateX(4px);
+  box-shadow: 0 6px 18px -10px color-mix(in srgb, var(--pk-cyan) 60%, transparent); }
+.grain-hero .pkx-inputs li.lit .msym { color: var(--pk-cyan); }
+
+/* wires (drawn over the whole card, behind the pages) */
+/* above the stack, so the line visibly lands on the lifted page */
+.grain-hero .pkx-wires { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; z-index: 3; }
+.grain-hero .pkx-wires path { fill: none; stroke-width: 1.6; stroke-dasharray: 6 6; stroke-linecap: round;
+  animation: pkx-draw .6s var(--ease) both, pkx-flow 1.1s linear infinite; }
+@keyframes pkx-draw { from { opacity: 0; } }
+@keyframes pkx-flow { to { stroke-dashoffset: -12; } }
+
+/* the stack */
+.grain-hero .pkx-stage { position: relative; z-index: 2; height: 330px; }
+.grain-hero .pkx-page {
+  --pw: min(196px, 62%);
+  position: absolute; left: 50%; top: 50%; width: var(--pw); height: 252px; margin: 0; padding: 16px 16px 40px;
+  display: block; text-align: left; font: inherit; color: var(--body); cursor: pointer;
+  border-radius: 10px; border: 1px solid var(--pk-line); background: var(--pk-paper);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, .02), 0 18px 34px -22px rgba(20, 16, 60, .45);
+  transform: translate(-50%, -50%) translateX(calc(var(--o) * 58px)) translateY(calc(var(--ao) * 10px)) rotate(calc(var(--o) * 6deg));
+  transform-origin: 50% 120%;
+  transition: transform .6s cubic-bezier(.2, .8, .2, 1), box-shadow .4s ease, opacity .4s ease, filter .4s ease;
+  opacity: 0;
+}
+.grain-hero .pkx-page.in { opacity: 1; }
+.grain-hero .pkx-page:not(.in) { transform: translate(-50%, -30%) rotate(0deg) scale(.92); }
+/* the others step back a little while one is lifted */
+/* pages stay opaque (nothing bleeds through); the ones not selected just quieten */
+.grain-hero .pkx-stage:has(.pkx-page.on) .pkx-page.in:not(.on) { filter: saturate(.55) brightness(.985); }
+.grain-hero[data-theme="dark"] .pkx-stage:has(.pkx-page.on) .pkx-page.in:not(.on) { filter: saturate(.55) brightness(.78); }
+.grain-hero .pkx-page.on {
+  transform: translate(-50%, -50%) translateY(-18px) rotate(0deg) scale(1.06);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--pk-violet) 30%, transparent), 0 30px 50px -24px rgba(20, 16, 60, .5);
+}
+.grain-hero .pkx-page:focus-visible { outline: 2px solid var(--pk-violet); outline-offset: 3px; }
+
+/* status stamp on each page */
+.grain-hero .pkx-st { position: absolute; bottom: 7px; right: 10px; z-index: 1; padding: 2px 8px; border-radius: 999px; font-size: 10.5px; font-weight: 500; }
+.grain-hero .pkx-st.st-verified { color: var(--ok); background: color-mix(in srgb, var(--ok) 12%, transparent); }
+.grain-hero .pkx-st.st-derived { color: var(--pk-violet); background: color-mix(in srgb, var(--pk-violet) 12%, transparent); }
+.grain-hero .pkx-st.st-pending { color: var(--wait); background: color-mix(in srgb, var(--wait) 12%, transparent); }
+.grain-hero .pkx-st.st-review { color: var(--bad); background: color-mix(in srgb, var(--bad) 11%, transparent); }
+.grain-hero .pkx-file { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 6px; padding: 8px 112px 8px 12px; min-width: 0;
+  border-top: 1px solid var(--pk-line); font-size: 10.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.grain-hero .pkx-file .msym { flex: none; font-size: 14px; color: var(--soft); }
+.grain-hero .pkx-fn { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* page contents */
+.grain-hero .pkx-page p { margin: 0; }
+.grain-hero .pg-h { font-size: 13px; font-weight: 600; letter-spacing: -0.01em; color: var(--ink); line-height: 1.2; }
+.grain-hero .pg-s { margin-top: 3px !important; font-size: 10px; color: var(--muted); }
+.grain-hero .pg-k { margin-top: 11px !important; font-size: 9.5px; font-weight: 600; color: var(--ink); }
+.grain-hero .pkx-page .pl { display: block; height: 5px; margin-top: 6px; border-radius: 3px; background: color-mix(in srgb, var(--ink) 9%, transparent); }
+.grain-hero .pg-task { display: grid; grid-template-columns: 12px 40px 1fr; align-items: center; gap: 6px; margin-top: 10px; font-size: 10px; color: var(--ink); }
+.grain-hero .pg-task:first-of-type { margin-top: 14px; }
+.grain-hero .pg-task b { width: 11px; height: 11px; border-radius: 3px; border: 1.5px solid color-mix(in srgb, var(--ink) 25%, transparent); }
+.grain-hero .pg-task b.done { border-color: var(--pk-violet); background: var(--pk-violet); box-shadow: inset 0 0 0 2px var(--pk-paper); }
+.grain-hero .pg-wk { color: var(--muted); }
+.grain-hero .pg-grid { display: grid; grid-template-columns: 28px 1fr; margin-top: 11px; border: 1px solid var(--pk-line); border-radius: 4px; overflow: hidden; font-size: 9.5px; }
+.grain-hero .pg-grid span { padding: 4px 6px; border-bottom: 1px solid var(--pk-line); color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.grain-hero .pg-grid span:nth-child(odd) { color: var(--muted); border-right: 1px solid var(--pk-line); }
+.grain-hero .pg-grid span:nth-child(-n+2) { background: color-mix(in srgb, var(--ink) 4%, transparent); font-weight: 600; color: var(--muted); }
+.grain-hero .pg-mail { padding: 5px 0; margin-top: 4px; border-bottom: 1px solid var(--pk-line); font-size: 10px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.grain-hero .pg-mail span { display: inline-block; width: 44px; color: var(--muted); }
+.grain-hero .pg-mail + .pg-mail + .pl { margin-top: 12px; }
+.grain-hero .pg-send { display: inline-block; margin-top: 14px; padding: 4px 9px; border-radius: 6px; font-size: 9.5px;
+  color: var(--wait); border: 1px dashed color-mix(in srgb, var(--wait) 45%, transparent); }
+.grain-hero .pg-flag { margin-top: 9px !important; padding: 4px 6px; border-radius: 4px; font-size: 9.5px; line-height: 1.3; color: var(--ink);
+  background: color-mix(in srgb, var(--bad) 9%, transparent); box-shadow: inset 2px 0 0 var(--bad); }
+
+/* evidence */
+.grain-hero .pkx-ev { position: relative; z-index: 2; padding: 18px; border-radius: 16px; border: 1px solid var(--pk-line); background: var(--pk-paper);
+  box-shadow: 0 20px 40px -30px rgba(20, 16, 60, .35); animation: pkx-in .5s var(--ease); }
+@keyframes pkx-in { from { opacity: 0; transform: translateY(8px); filter: blur(4px); } }
+.grain-hero .pkx-ev-t { font-size: 16px; font-weight: 500; letter-spacing: -0.01em; color: var(--ink); }
+.grain-hero .pkx-ev-k { margin-top: 2px; font-size: 12.5px; color: var(--muted); }
+.grain-hero .pkx-ev dl { display: grid; gap: 4px; margin: 14px 0 0; padding-top: 12px; border-top: 1px solid var(--pk-line); font-size: 13px; }
+.grain-hero .pkx-ev dt { margin-top: 8px; font-size: 11.5px; color: var(--muted); }
+.grain-hero .pkx-ev dt:first-child { margin-top: 0; }
+.grain-hero .pkx-ev dd { margin: 0; color: var(--ink); }
+.grain-hero .pkx-srcs { display: grid; gap: 4px; }
+.grain-hero .pkx-srcs span { display: flex; align-items: center; gap: 6px; font-size: 12.5px; }
+.grain-hero .pkx-srcs .msym { font-size: 15px; color: var(--pk-cyan); }
+.grain-hero .pkx-hash { display: flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 12px; letter-spacing: .03em; }
+.grain-hero .pkx-hash svg { width: 16px; height: 16px; fill: none; stroke: var(--pk-violet); stroke-width: 1.8; stroke-linecap: round; }
+
+/* the old hint now says what to do with the stack */
+@media (max-width: 1000px) {
+  .grain-hero .pkx-cols { grid-template-columns: minmax(0, 1fr) 260px; }
+  .grain-hero .pkx-inputs, .grain-hero .pkx-wires { display: none; }
+}
+@media (max-width: 700px) {
+  .grain-hero .pkx { padding: 18px 16px 20px; overflow: hidden; }
+  .grain-hero .pkx-top { flex-wrap: wrap; row-gap: 2px; }
+  .grain-hero .pkx-badge { display: none; }
+  .grain-hero .pkx-cols { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .grain-hero .pkx-stage { height: 300px; }
+  .grain-hero .pkx-page { transform: translate(-50%, -50%) translateX(calc(var(--o) * 20px)) translateY(calc(var(--ao) * 8px)) rotate(calc(var(--o) * 4deg)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .grain-hero .pkx-page, .grain-hero .pkx-inputs li { transition: none; }
+  .grain-hero .pkx-wires path, .grain-hero .pkx-ev { animation: none; }
+}

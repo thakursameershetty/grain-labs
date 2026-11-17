@@ -1,0 +1,35 @@
+/* Siri-style orb. Colours sampled from the reference: indigo-navy base, cyan, raspberry-magenta, violet,
+   a touch of teal, and a white core. Petals are blended as light (screen), so overlaps get brighter. */
+.siri {
+  --s: 120px;
+  position: relative; display: inline-grid; place-items: center; flex: none;
+  width: var(--s); height: var(--s); border-radius: 50%; overflow: hidden; isolation: isolate;
+  background: radial-gradient(circle at 50% 46%, #2b2f86 0%, #171a52 52%, #0a0b26 100%);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .06) inset, 0 calc(var(--s) * .18) calc(var(--s) * .4) calc(var(--s) * -.12) rgba(20, 16, 60, .55);
+}
+.siri .p {
+  position: absolute; inset: 8%; mix-blend-mode: screen; opacity: .92;
+  filter: blur(calc(var(--s) * .045));
+  border-radius: 44% 56% 62% 38% / 48% 40% 60% 52%;
+  animation: siri-turn 11s linear infinite;
+}
+.siri .p1 { background: radial-gradient(60% 55% at 30% 34%, #22d3ee 0%, rgba(34, 211, 238, .55) 38%, transparent 70%); }
+.siri .p2 { background: radial-gradient(60% 55% at 48% 74%, #e8246f 0%, rgba(232, 36, 111, .55) 40%, transparent 72%); animation-duration: 14s; animation-direction: reverse; }
+.siri .p3 { background: radial-gradient(55% 55% at 72% 40%, #b18cff 0%, rgba(177, 140, 255, .5) 40%, transparent 72%); animation-duration: 17s; }
+.siri .p4 { inset: 22%; background: radial-gradient(50% 50% at 40% 50%, rgba(45, 212, 191, .8), transparent 70%); animation-duration: 9s; animation-direction: reverse; opacity: .6; }
+.siri .core {
+  position: absolute; inset: 30%; border-radius: 50%; mix-blend-mode: screen;
+  background: radial-gradient(circle, #ffffff 0%, rgba(255, 255, 255, .7) 30%, transparent 70%);
+  filter: blur(calc(var(--s) * .04)); animation: siri-breathe 4.5s ease-in-out infinite;
+}
+/* dark rim, like the orb's edge falling away into the background */
+.siri::after {
+  content: ""; position: absolute; inset: 0; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle at 50% 45%, transparent 56%, rgba(6, 7, 26, .55) 82%, rgba(4, 5, 18, .9) 100%);
+}
+.siri-in { position: relative; z-index: 2; display: grid; place-items: center; color: #fff; }
+/* holding a mark: a smaller, softer core so the white mark stays readable */
+.siri:has(.siri-in) .core { inset: 36%; opacity: .55; }
+@keyframes siri-turn { from { transform: rotate(0deg) scale(1); } 50% { transform: rotate(180deg) scale(1.06); } to { transform: rotate(360deg) scale(1); } }
+@keyframes siri-breathe { 50% { transform: scale(1.15); opacity: .85; } }
+@media (prefers-reduced-motion: reduce) { .siri .p, .siri .core { animation: none; } }

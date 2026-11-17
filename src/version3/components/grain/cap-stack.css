@@ -1,0 +1,88 @@
+/* Capabilities stack: the anatomy kit's tokens mapped to Grain's palette (no blue), both themes. */
+.grain-hero .stk.iso {
+  /* light theme: warm paper */
+  --anatomy-paper: #fbf7f2; --anatomy-face: #fffdfa; --anatomy-top: #fffcf8;
+  --anatomy-shade-0: #dccdc1; --anatomy-shade-1: #e5d8cd; --anatomy-shade-2: #ede3da; --anatomy-shade-3: #f4ece5;
+  --anatomy-lit-top: #fff6f0; --anatomy-lit-shade: #f3e2d8;
+  --anatomy-hi: #2a1512; --anatomy-mid: #8a7065; --anatomy-lo: #b39b8e; --anatomy-faint: #d6c4b8; --anatomy-lit: #8f3a30;
+  --anatomy-halo: #8a6a58; --anatomy-halo-opacity: .28; --anatomy-dot: #5b3a33;
+  --anatomy-mono: "Disket Mono", ui-monospace, monospace;
+  --stk-accent: #8f3a30; --stk-ink: var(--ink); --stk-body: var(--body); --stk-muted: var(--muted);
+  position: relative; margin-top: clamp(36px, 6vh, 64px);
+}
+.grain-hero[data-theme="dark"] .stk.iso {
+  /* dark theme: warm near-black */
+  --anatomy-paper: #191512; --anatomy-face: #211c18; --anatomy-top: #221d19;
+  --anatomy-shade-0: #120f0d; --anatomy-shade-1: #151210; --anatomy-shade-2: #181412; --anatomy-shade-3: #1c1815;
+  --anatomy-lit-top: #2c221d; --anatomy-lit-shade: #231b17;
+  --anatomy-hi: #f4ece6; --anatomy-mid: #8a7a71; --anatomy-lo: #54473f; --anatomy-faint: #352c27; --anatomy-lit: #e8907c;
+  --anatomy-halo: #000; --anatomy-halo-opacity: .7; --anatomy-dot: #e9ddd5;
+  --stk-accent: #e8907c;
+}
+
+.grain-hero .stk-stage { position: relative; width: 100%; max-width: 1280px; margin: 0 auto; }
+.grain-hero .stk-art, .grain-hero .stk-leads { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.grain-hero .stk-leads { pointer-events: none; }
+.grain-hero .stk-leads path { fill: none; stroke: var(--anatomy-lo); stroke-width: 1; vector-effect: non-scaling-stroke; transition: stroke .25s ease; }
+.grain-hero .stk-leads circle { fill: var(--anatomy-paper); stroke: var(--anatomy-mid); stroke-width: 1; vector-effect: non-scaling-stroke; transition: fill .25s ease, stroke .25s ease; }
+.grain-hero .stk-leads g.on path { stroke: var(--stk-accent); }
+.grain-hero .stk-leads g.on circle { fill: var(--stk-accent); stroke: var(--stk-accent); }
+
+/* the inspected layer: its top and edges take the accent; the others step back */
+.grain-hero .stk-layer.on .iso-top { fill: var(--anatomy-lit-top); }
+.grain-hero .stk-layer.on .iso-shade { fill: var(--anatomy-lit-shade); }
+.grain-hero .stk-layer.on .iso-edge { stroke: var(--stk-accent); }
+.grain-hero .stk-layer.on .iso-line[data-tone="faint"], .grain-hero .stk-layer.on .iso-line[data-tone="lo"] { stroke: color-mix(in srgb, var(--stk-accent) 60%, var(--anatomy-lo)); }
+
+/* labels */
+.grain-hero .stk-label {
+  position: absolute; transform: translateY(-14px);
+  display: grid; grid-template-columns: auto 1fr; column-gap: 10px; row-gap: 3px; align-items: baseline;
+  padding: 6px 8px; border-radius: 12px; cursor: default; outline: none;
+  transition: background .25s ease;
+}
+.grain-hero .stk-label.right { text-align: left; }
+.grain-hero .stk-label.left { text-align: right; grid-template-columns: 1fr auto; }
+.grain-hero .stk-label.left .stk-n { order: 2; }
+.grain-hero .stk-label.left b { order: 1; }
+.grain-hero .stk-label.left .stk-line { order: 3; }
+.grain-hero .stk-label.left .stk-ex { order: 4; }
+.grain-hero .stk-label .stk-line, .grain-hero .stk-label .stk-ex { grid-column: 1 / -1; }
+.grain-hero .stk-n { font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em; color: var(--muted); }
+.grain-hero .stk-label b { font-size: 17px; font-weight: 500; letter-spacing: -0.02em; color: var(--ink); }
+.grain-hero .stk-line { font-size: 13.5px; line-height: 1.4; color: var(--body); }
+.grain-hero .stk-ex {
+  font-size: 12.5px; line-height: 1.4; color: var(--stk-accent);
+  max-height: 0; opacity: 0; overflow: hidden; transition: max-height .35s ease, opacity .25s ease;
+}
+.grain-hero .stk-label.on { background: color-mix(in srgb, var(--stk-accent) 9%, transparent); }
+.grain-hero .stk-label.on .stk-n { color: var(--stk-accent); }
+.grain-hero .stk-label.on .stk-ex { max-height: 60px; opacity: 1; }
+.grain-hero .stk-label.gov, .grain-hero .stk-label.imp { transform: none; }
+.grain-hero .stk-label.gov { text-align: left; grid-template-columns: auto 1fr; }
+.grain-hero .stk-label.gov .stk-n, .grain-hero .stk-label.gov b { order: 0; }
+.grain-hero .stk-label.gov .stk-ex, .grain-hero .stk-label.imp .stk-ex { max-height: 60px; opacity: .85; color: var(--muted); }
+.grain-hero .stk-label.imp .stk-n { color: var(--stk-accent); }
+.grain-hero .stk { overflow-x: clip; }
+.grain-hero .stk-hint { margin-top: 10px; text-align: center; font-family: var(--mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+
+/* phones: the drawing on top, the labels as a list under it */
+@media (max-width: 900px) {
+  .grain-hero .stk-stage { aspect-ratio: auto !important; display: flex; flex-direction: column; }
+  .grain-hero .stk-art { position: relative; height: auto; aspect-ratio: 1360 / 800; width: 100%; }
+  .grain-hero .stk-leads { display: none; }
+  .grain-hero .stk-label, .grain-hero .stk-label.left, .grain-hero .stk-label.gov, .grain-hero .stk-label.imp {
+    position: relative; inset: auto !important; top: auto !important; width: auto !important; transform: none;
+    text-align: left; grid-template-columns: auto 1fr;
+  }
+  .grain-hero .stk-label.left .stk-n, .grain-hero .stk-label.left b { order: 0; }
+  .grain-hero .stk-ex { max-height: 60px; opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .grain-hero .stk-ex, .grain-hero .stk-layer, .grain-hero .stk-leads path { transition: none; }
+}
+
+/* phones: crop the empty label gutters off the drawing so the machine itself is large */
+@media (max-width: 900px) {
+  .grain-hero .stk-art { width: 178%; margin-left: -39%; }
+}

@@ -1,0 +1,256 @@
+/* v3 hero: the product, live. Centred headline, copy and buttons over one dark product window where a real
+   run plays and stops for the visitor's approval (LiveRun.tsx). No pinned scroll, no 3D, no dither.
+   Below the hero, a Gaussian seam eases the page into the dark How it runs intro. */
+
+@font-face { font-family: "General Sans"; src: url("/fonts/GeneralSans-Regular.otf") format("opentype"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "General Sans"; src: url("/fonts/GeneralSans-Medium.otf") format("opentype"); font-weight: 500; font-display: swap; }
+@font-face { font-family: "General Sans"; src: url("/fonts/GeneralSans-Semibold.otf") format("opentype"); font-weight: 600; font-display: swap; }
+@font-face { font-family: "Disket Mono"; src: url("/fonts/disket-mono-regular.ttf") format("truetype"); font-weight: 400; font-display: swap; }
+
+
+/* ───── Themes ───── */
+.grain-hero {
+  --sans: "General Sans", system-ui, sans-serif;
+  --mono: "Disket Mono", ui-monospace, monospace;
+  --ease: cubic-bezier(.2, .7, .1, 1);
+  --gutter: clamp(20px, 2.7vw, 54px);
+
+  /* light (default) */
+  --paper: #ffffff;
+  --ink: #0a0a0a;
+  --body: #404040;
+  --muted: #737373;
+  --soft: #a3a3a3;
+  --btn: #0a0a0a;
+  --btn-hover: #2a2a2a;
+  --btn-ink: #ffffff;
+  --btn-shadow: rgba(0, 0, 0, .14);
+  --line: rgba(0, 0, 0, .12);
+  --word: #f2f2f2;
+  --word-hi: #e4e4e4;
+  color-scheme: light;
+}
+.grain-hero[data-theme="dark"] {
+  --paper: #0a0a0a;
+  --ink: #fafafa;
+  --body: #a3a3a3;
+  --muted: #7a7a7a;
+  --soft: #737373;
+  --btn: #fafafa;
+  --btn-hover: #e2e2e2;
+  --btn-ink: #0a0a0a;
+  --btn-shadow: rgba(255, 255, 255, .08);
+  --line: rgba(255, 255, 255, .12);
+  --word: #161616;
+  --word-hi: #262626;
+  color-scheme: dark;
+}
+
+.grain-hero {
+  color: var(--ink);
+  background: var(--paper);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+  position: relative;
+  isolation: isolate;
+  transition: background-color .5s var(--ease), color .5s var(--ease);
+}
+.grain-hero, .grain-hero * { box-sizing: border-box; }
+.grain-hero a { color: inherit; text-decoration: none; }
+.grain-hero p { margin: 0; }
+
+
+.grain-hero {
+  --siri-navy: #171a52; --siri-cyan: #22d3ee; --siri-magenta: #e8246f; --siri-violet: #b18cff; --siri-teal: #2dd4bf;
+  /* a soft Siri mesh: blobs of light on the indigo base, not a stripe */
+  --grad: radial-gradient(60% 120% at 8% 40%, rgba(34, 211, 238, .9), transparent 60%),
+          radial-gradient(60% 130% at 55% 110%, rgba(232, 36, 111, .85), transparent 62%),
+          radial-gradient(55% 120% at 92% 10%, rgba(177, 140, 255, .9), transparent 62%),
+          radial-gradient(30% 60% at 50% 45%, rgba(255, 255, 255, .55), transparent 70%),
+          #171a52;
+  --next-bg: #ffffff; --next-ink: #0a0a0a; --next-muted: #6d28d9;
+  --dark-bg: #0a0a0a; --dark-ink: #fafafa; --dark-accent: #b18cff;
+}
+/* How it runs and the portal into it use the dark surface */
+.grain-hero .hw, .grain-hero .next-reveal { --next-bg: var(--dark-bg); --next-ink: var(--dark-ink); --next-muted: var(--dark-accent); }
+.grain-hero[data-theme="dark"] { --next-bg: #0a0a0a; --next-ink: #fafafa; --next-muted: #b18cff; }
+/* the live-run window uses the same dark surface, so the workflow renders exactly as in How it runs */
+.grain-hero .lr-window { --next-bg: var(--dark-bg); --next-ink: var(--dark-ink); --next-muted: var(--dark-accent); --ok: #3fcf8e; --bad: #ff5f57; --wait: #f5b942; }
+
+/* ───── Header ───── */
+.grain-hero .site-header { position: fixed; top: 0; left: 0; right: 0; z-index: 50; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; height: 64px; padding: 0 var(--gutter); }  /* slim bar */
+.grain-hero .brand { justify-self: start; display: inline-flex; align-items: center; gap: 10px; font-size: 21px; font-weight: 600; letter-spacing: -0.045em; }
+.grain-hero .logo-mark { width: 22px; height: 22px; }
+.grain-hero .desktop-nav { display: flex; gap: clamp(4px, .8vw, 14px); font-size: 15px; letter-spacing: -0.015em; }
+/* nav links: a soft rounded pill on hover, and a slightly stronger one on the section you're reading.
+   currentColor-based, so it works on white, on black and over the dark How it runs */
+.grain-hero .desktop-nav a { padding: 7px 13px; border-radius: 10px; border: 1px solid transparent;
+  transition: background-color .2s ease, border-color .2s ease, color .2s ease; }
+.grain-hero .desktop-nav a:hover, .grain-hero .desktop-nav a:focus-visible { outline: none;
+  background: color-mix(in srgb, currentColor 7%, transparent); border-color: color-mix(in srgb, currentColor 12%, transparent); }
+.grain-hero .desktop-nav a.on { background: color-mix(in srgb, currentColor 10%, transparent); border-color: color-mix(in srgb, currentColor 16%, transparent); }
+.grain-hero .scroll-cue { transition: opacity 180ms ease; }
+.grain-hero .scroll-cue:hover { opacity: .5; }
+.grain-hero .header-actions { justify-self: end; display: flex; align-items: center; gap: 10px; }
+
+.grain-hero .theme-toggle {
+  display: grid; place-items: center; width: 36px; height: 36px; padding: 0;
+  border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer;
+  transition: border-color 200ms ease, transform 300ms var(--ease);
+}
+.grain-hero .theme-toggle:hover { border-color: var(--ink); transform: rotate(-20deg); }
+.grain-hero .theme-toggle svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+
+.grain-hero .header-cta, .grain-hero .primary-cta {
+  display: inline-flex; align-items: center; justify-content: center; gap: 12px;
+  color: var(--btn-ink); background: var(--btn); border-radius: 999px;
+  box-shadow: 0 10px 30px var(--btn-shadow);
+  transition: transform 180ms ease, background 180ms ease;
+}
+.grain-hero .header-cta:hover, .grain-hero .primary-cta:hover { transform: translateY(-2px); background: var(--btn-hover); color: var(--btn-ink); }
+.grain-hero .header-cta { padding: 9px 16px; font-size: 14px; font-weight: 500; gap: 8px; box-shadow: none; }
+
+
+/* ───── Hero ───── */
+.grain-hero .lr-hero { position: relative; z-index: 3; background: var(--paper); padding: clamp(104px, 15vh, 148px) var(--gutter) clamp(56px, 9vh, 104px); }
+.grain-hero .lr-head { display: grid; justify-items: center; text-align: center; max-width: 1000px; margin: 0 auto; }
+.grain-hero h1 { margin: 0; font-size: clamp(38px, min(5.2vw, 8.2vh), 100px); font-weight: 500; line-height: .98; letter-spacing: -0.045em; }
+.grain-hero .headline-line { display: block; white-space: nowrap; }
+.grain-hero .headline-line-muted { color: var(--soft); font-weight: 400; }
+.grain-hero .hero-copy { margin-top: 22px; max-width: 600px; font-size: clamp(15px, 1.2vw, 18.5px); line-height: 1.45; letter-spacing: -0.01em; color: var(--body); }
+.grain-hero .ctas { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 22px; margin-top: 26px; }
+.grain-hero .primary-cta { padding: 13px 20px; font-size: 15px; font-weight: 500; }
+.grain-hero .secondary-cta { font-size: 15px; font-weight: 500; border-bottom: 1px solid currentColor; padding-bottom: 2px; transition: opacity 180ms ease; }
+.grain-hero .secondary-cta:hover { opacity: .6; }
+.grain-hero .lr-wrap { max-width: 1180px; margin: clamp(40px, 6vh, 64px) auto 0; }
+
+/* ───── The product window ───── */
+.grain-hero .lr-window {
+  --s-bg: #0e0e10; --s-ink: var(--dark-ink); --s-accent: var(--dark-accent);
+  --s-body: color-mix(in srgb, var(--dark-ink) 72%, transparent);
+  --s-dim: color-mix(in srgb, var(--dark-ink) 45%, transparent);
+  --s-line: color-mix(in srgb, var(--dark-ink) 10%, transparent);
+  --s-line-strong: color-mix(in srgb, var(--dark-ink) 24%, transparent);
+  --s-canvas: color-mix(in srgb, var(--dark-ink) 3%, var(--s-bg));
+  --s-node: color-mix(in srgb, var(--dark-ink) 7%, var(--s-bg));
+  --s-inset: color-mix(in srgb, var(--dark-ink) 3.5%, var(--s-bg));
+  position: relative; overflow: hidden; border-radius: 22px; text-align: left;
+  background: var(--s-bg); color: var(--s-ink); border: 1px solid #1f1f22;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .06) inset, 0 50px 120px -40px rgba(10, 10, 20, .55), 0 18px 40px -24px rgba(10, 10, 20, .35);
+}
+.grain-hero[data-theme="dark"] .lr-window { border-color: #232327; box-shadow: 0 1px 0 rgba(255, 255, 255, .07) inset, 0 0 0 1px rgba(177, 140, 255, .06), 0 40px 120px -50px rgba(177, 140, 255, .25); }
+
+.grain-hero .lr-bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; height: 50px; padding: 0 18px; border-bottom: 1px solid var(--s-line); font-size: 13.5px; }
+.grain-hero .lr-crumb { display: inline-flex; align-items: center; gap: 9px; min-width: 0; color: var(--s-dim); white-space: nowrap; }
+.grain-hero .lr-crumb i { font-style: normal; opacity: .6; }
+.grain-hero .lr-crumb b { color: var(--s-ink); font-weight: 500; overflow: hidden; text-overflow: ellipsis; }
+.grain-hero .lr-id { font-family: var(--mono); font-size: 11px; letter-spacing: .04em; }
+.grain-hero .lr-mark { width: 15px; height: 15px; color: var(--s-ink); }
+.grain-hero .lr-status { display: inline-flex; align-items: center; gap: 8px; padding: 5px 11px; border-radius: 999px; border: 1px solid var(--s-line); flex: none;
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--s-body); transition: color .3s, border-color .3s; }
+.grain-hero .lr-status i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.grain-hero .lr-status.s-run i { color: var(--dark-accent); animation: lr-blink 1.2s ease-in-out infinite; }
+.grain-hero .lr-status.s-wait { color: var(--wait); border-color: color-mix(in srgb, var(--wait) 40%, transparent); }
+.grain-hero .lr-status.s-wait i { animation: lr-blink 1s ease-in-out infinite; }
+.grain-hero .lr-status.s-ok { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 40%, transparent); }
+@keyframes lr-blink { 50% { opacity: .3; } }
+
+.grain-hero .lr-stage { position: relative; margin: 26px 28px 14px; }
+.grain-hero .lr-scaled { transform-origin: 0 0; }
+
+/* waiting on you: the Approve button breathes, so it's obvious what to do */
+.grain-hero .lr-window.g-waiting [data-approve]:not(:disabled) { animation: lr-ask 1.8s ease-in-out infinite; }
+@keyframes lr-ask { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--c-gate) 55%, transparent); } 60% { box-shadow: 0 0 0 9px transparent; } }
+
+.grain-hero .lr-foot { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 13px 18px; border-top: 1px solid var(--s-line); }
+.grain-hero .lr-steps { display: flex; gap: 18px; margin: 0; padding: 0; list-style: none; font-size: 12.5px; color: var(--s-dim); }
+.grain-hero .lr-steps li { display: inline-flex; align-items: center; gap: 8px; transition: color .3s; }
+.grain-hero .lr-steps li i { width: 16px; height: 3px; border-radius: 3px; background: var(--s-line-strong); transition: background .3s; }
+.grain-hero .lr-steps li.done { color: var(--s-body); }
+.grain-hero .lr-steps li.done i { background: var(--s-body); }
+.grain-hero .lr-steps li.on { color: var(--s-ink); }
+.grain-hero .lr-steps li.on i { background: var(--dark-accent); box-shadow: 0 0 10px color-mix(in srgb, var(--dark-accent) 70%, transparent); }
+.grain-hero .lr-hint { margin: 0; font-size: 13.5px; color: var(--s-body); text-align: right; }
+.grain-hero .lr-hint b { color: var(--wait); font-weight: 500; }
+
+/* ───── Seam into How it runs, and its intro ─────
+   The profile of a Gaussian-blurred edge (an erf curve), mixed in OKLab so the midtones stay clean. */
+.grain-hero .seam-in { position: relative; z-index: 1; height: clamp(72px, 11vh, 120px); background: linear-gradient(to bottom,
+    color-mix(in oklab, var(--dark-bg) 0.0%, var(--paper)) 0.0%,
+    color-mix(in oklab, var(--dark-bg) 0.6%, var(--paper)) 8.3%,
+    color-mix(in oklab, var(--dark-bg) 2.3%, var(--paper)) 16.7%,
+    color-mix(in oklab, var(--dark-bg) 6.9%, var(--paper)) 25.0%,
+    color-mix(in oklab, var(--dark-bg) 16.2%, var(--paper)) 33.3%,
+    color-mix(in oklab, var(--dark-bg) 31.1%, var(--paper)) 41.7%,
+    color-mix(in oklab, var(--dark-bg) 50.0%, var(--paper)) 50.0%,
+    color-mix(in oklab, var(--dark-bg) 68.9%, var(--paper)) 58.3%,
+    color-mix(in oklab, var(--dark-bg) 83.8%, var(--paper)) 66.7%,
+    color-mix(in oklab, var(--dark-bg) 93.1%, var(--paper)) 75.0%,
+    color-mix(in oklab, var(--dark-bg) 97.7%, var(--paper)) 83.3%,
+    color-mix(in oklab, var(--dark-bg) 99.4%, var(--paper)) 91.7%,
+    color-mix(in oklab, var(--dark-bg) 100.0%, var(--paper)) 100.0%); }
+.grain-hero[data-theme="dark"] .seam-in { display: none; }
+.grain-hero .hw-intro { position: relative; z-index: 2; background: var(--dark-bg); color: var(--dark-ink); text-align: center;
+  padding: clamp(64px, 12vh, 140px) var(--gutter) clamp(8px, 2vh, 24px); display: grid; justify-items: center; scroll-margin-top: 0; }
+.grain-hero .hw-intro h2 { margin: 0; max-width: 12ch; font-size: clamp(40px, 5.6vw, 104px); font-weight: 500; letter-spacing: -0.05em; line-height: .95; text-wrap: balance; }
+.grain-hero .hw-intro p { margin-top: 20px; max-width: 520px; font-size: clamp(15px, 1.2vw, 19px); line-height: 1.45; color: color-mix(in srgb, var(--dark-ink) 68%, transparent); }
+
+/* ───── Medium screens ───── */
+@media (max-width: 900px) {
+  .grain-hero .desktop-nav { display: none; }
+  .grain-hero .site-header { display: flex; justify-content: space-between; }
+  .grain-hero .lr-hint { display: none; }
+}
+
+/* ───── Phones ───── */
+@media (max-width: 760px) {
+  .grain-hero .site-header { height: 58px; }
+  .grain-hero .header-cta { padding: 8px 14px; font-size: 13px; }
+  .grain-hero .theme-toggle { width: 34px; height: 34px; }
+  .grain-hero .lr-hero { padding-top: 96px; }
+  .grain-hero h1 { font-size: 8.6vw; }
+  .grain-hero .hero-copy { font-size: 15.5px; }
+  .grain-hero .lr-window { border-radius: 16px; }
+  .grain-hero .lr-bar { height: 44px; padding: 0 12px; font-size: 12.5px; }
+  .grain-hero .lr-crumb > span:not(.lr-id), .grain-hero .lr-crumb i { display: none; }
+  .grain-hero .lr-stage { margin: 4px 14px 18px; }
+  .grain-hero .lr-foot { padding: 10px 12px; }
+  .grain-hero .lr-steps { gap: 10px; font-size: 11.5px; }
+}
+@media (max-width: 400px) {
+  .grain-hero .header-cta { padding: 10px 13px; font-size: 13px; gap: 8px; }
+  .grain-hero .lr-steps li i { display: none; }
+}
+
+/* ───── Entrance ───── */
+.grain-hero .headline-line { overflow: hidden; padding-bottom: .09em; margin-bottom: -.09em; }
+.grain-hero .rise { display: inline-block; }
+@keyframes gh-fade-down { from { opacity: 0; transform: translateY(-10px); } }
+@keyframes gh-fade-up { from { opacity: 0; transform: translateY(14px); } }
+@keyframes gh-rise { from { transform: translateY(108%); } }
+@keyframes gh-window { from { opacity: 0; transform: translateY(40px) scale(.98); } }
+
+.grain-hero.intro:not(.go) :is(.site-header, .rise, .hero-copy, .ctas, .lr-wrap) { opacity: 0; }
+.grain-hero.intro.go .site-header { animation: gh-fade-down .8s var(--ease) .1s both; }
+.grain-hero.intro.go .headline-line:nth-child(1) .rise { animation: gh-rise 1s cubic-bezier(.2, .8, .1, 1) .15s both; }
+.grain-hero.intro.go .headline-line:nth-child(2) .rise { animation: gh-rise 1s cubic-bezier(.2, .8, .1, 1) .25s both; }
+.grain-hero.intro.go .hero-copy { animation: gh-fade-up .8s var(--ease) .45s both; }
+.grain-hero.intro.go .ctas { animation: gh-fade-up .8s var(--ease) .55s both; }
+.grain-hero.intro.go .lr-wrap { animation: gh-window 1.2s var(--ease) .6s both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .grain-hero.intro :is(.site-header, .rise, .hero-copy, .ctas, .lr-wrap) { animation: none !important; opacity: 1 !important; }
+  .grain-hero .lr-status i, .grain-hero .lr-window [data-approve] { animation: none !important; }
+  .grain-hero, .grain-hero * { transition-duration: .01ms !important; }
+}
+
+/* ───── Status colours: meaning, not brand ─────
+   red = something is wrong / needs attention, green = good / done, amber = waiting on someone.
+   (The raspberry "approval" role colour is identity, not status, and stays as it is.) */
+.grain-hero { --ok: #15803d; --bad: #dc2626; --wait: #b45309; }
+.grain-hero[data-theme="dark"], .grain-hero .hw, .grain-hero .next-reveal { --ok: #3fcf8e; --bad: #ff5f57; --wait: #f5b942; }
+
+/* logo colours: the Siri family along the mark */
+.grain-hero { --lg-a: #0e9fbf; --lg-b: #7c3aed; --lg-c: #db2777; }
+.grain-hero[data-theme="dark"], .grain-hero[data-surface="dark"] .site-header { --lg-a: #22d3ee; --lg-b: #b18cff; --lg-c: #ff5fa2; }
+
