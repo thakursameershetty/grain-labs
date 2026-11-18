@@ -1,0 +1,150 @@
+/* The Board section: centred two-line headline, a full-width board where runs are physically carried between
+   lanes (Nia and the Advocate's hand), and three captions underneath that light up as their moment happens. */
+.grain-hero .sx-board .bd-head { text-align: center; }
+.grain-hero .sx-board h2 { font-size: clamp(34px, 4.6vw, 72px); letter-spacing: -0.05em; line-height: 1.02; }
+.grain-hero .sx-board h2 span { display: block; white-space: nowrap; }
+.grain-hero .sx-board h2 em { font-style: normal; color: var(--c-gate); }
+.grain-hero .sx-board .bd-head .sx-sub { margin: 18px auto 0; text-wrap: balance; }
+@media (max-width: 640px) { .grain-hero .sx-board h2 span { white-space: normal; } }
+
+/* ───── board ───── */
+.grain-hero .rb { position: relative; margin-top: clamp(64px, 8vw, 96px); }
+.grain-hero .rb-scroll { overflow-x: auto; overflow-y: visible; padding-top: 50px; margin-top: -50px; scrollbar-width: none; }
+.grain-hero .rb-scroll::-webkit-scrollbar { display: none; }
+.grain-hero .rb-inner {
+  position: relative; min-width: 940px; border-radius: 26px; touch-action: pan-y;
+  background: color-mix(in srgb, var(--ink) 2.5%, var(--paper));
+  box-shadow: inset 0 0 0 1px var(--x-line), 0 50px 90px -70px color-mix(in srgb, var(--ink) 45%, transparent);
+}
+.grain-hero .rb-lane { position: absolute; top: 14px; bottom: 14px; border-radius: 18px; transition: background-color .3s ease, box-shadow .3s ease; }
+.grain-hero .rb-lh { display: flex; align-items: center; gap: 8px; padding: 14px 14px 0; font-size: 14px; font-weight: 500; color: var(--x-ink); }
+.grain-hero .rb-n { min-width: 22px; height: 20px; padding: 0 7px; border-radius: 7px; display: inline-grid; place-items: center;
+  font-size: 11.5px; font-variant-numeric: tabular-nums; background: color-mix(in srgb, var(--x-ink) 7%, transparent); color: var(--x-muted); }
+.grain-hero .rb-note { margin: 2px 14px 0; font-size: 12px; color: var(--x-muted); }
+/* "Needs you" is the one lane with colour: a soft rust wash and a dashed edge, like a tray waiting to be emptied */
+.grain-hero .rb-lane.l-need { background: color-mix(in srgb, var(--c-gate) 5%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c-gate) 22%, transparent); }
+.grain-hero .rb-lane.l-need .rb-ln { color: var(--c-gate); }
+.grain-hero .rb-lane.l-need .rb-n { background: var(--c-gate); color: var(--paper); }
+.grain-hero .rb-lane.drop { background: color-mix(in srgb, var(--ok) 7%, transparent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--ok) 45%, transparent); }
+
+/* cards: travel by transform; the inner part lifts and tilts while held */
+.grain-hero .rb-card {
+  position: absolute; left: 0; top: 0; z-index: 2;
+  transition-property: transform; transition-timing-function: cubic-bezier(.45, .05, .25, 1);
+}
+.grain-hero .rb-card.held { z-index: 6; }
+.grain-hero .rb-card.l-need:not(.held) { cursor: grab; }
+.grain-hero .rb-card.by-you { cursor: grabbing; }
+.grain-hero .rb-ci {
+  height: 100%; padding: 13px 14px 12px; border-radius: 14px; background: var(--paper);
+  box-shadow: inset 0 0 0 1px var(--x-line), 0 1px 0 color-mix(in srgb, var(--x-ink) 4%, transparent);
+  display: flex; flex-direction: column; user-select: none;
+  transition: transform .3s cubic-bezier(.3, 1.4, .5, 1), box-shadow .3s ease;
+}
+.grain-hero .rb-card.l-need .rb-ci { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c-gate) 35%, transparent); }
+.grain-hero .rb-card.held .rb-ci {
+  transform: rotate(-2.5deg) scale(1.04);
+  box-shadow: inset 0 0 0 1px var(--x-line), 0 26px 40px -18px color-mix(in srgb, var(--x-ink) 40%, transparent);
+}
+.grain-hero .rb-ct { font-size: 14px; font-weight: 500; letter-spacing: -0.01em; color: var(--x-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.grain-hero .rb-cs { margin-top: 3px; font-size: 12.5px; color: var(--x-body); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.grain-hero .rb-cf { margin-top: auto; display: flex; align-items: center; gap: 7px; font-size: 11.5px; color: var(--x-muted); }
+.grain-hero .rb-wait { color: var(--c-gate); }
+.grain-hero .rb-ok-btn {
+  margin-left: auto; padding: 4px 10px; border: 0; border-radius: 999px; font: inherit; font-size: 11.5px; font-weight: 500; cursor: pointer;
+  background: var(--c-gate); color: var(--paper); transition: transform .2s var(--ease), filter .2s ease;
+}
+.grain-hero .rb-ok-btn:hover { transform: translateY(-1px); filter: brightness(1.08); }
+.grain-hero .rb-ok-btn:focus-visible { outline: 2px solid var(--c-gate); outline-offset: 2px; }
+.grain-hero .rb-sq { width: 8px; height: 8px; border-radius: 2px; background: var(--c-action); }
+.grain-hero .rb-ok { width: 15px; height: 15px; border-radius: 50%; display: grid; place-items: center; font-size: 9px; font-style: normal; background: var(--ok); color: #fff; }
+
+/* the Advocate's hand: a white hand cursor with a name tag, Figma-style */
+.grain-hero .rb-hand {
+  position: absolute; left: 0; top: 0; z-index: 8; pointer-events: none; opacity: 0;
+  transition-property: transform, opacity; transition-timing-function: cubic-bezier(.45, .05, .25, 1), ease;
+}
+.grain-hero .rb-hand.on { opacity: 1; }
+.grain-hero .rb-hand svg { width: 30px; height: 30px; margin: -6px 0 0 -8px; fill: #fff; stroke: var(--ink); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round;
+  filter: drop-shadow(0 3px 4px color-mix(in srgb, var(--ink) 30%, transparent)); transition: transform .2s ease; }
+.grain-hero .rb-hand.grab svg { transform: scale(.92); }
+.grain-hero .rb-tag { position: absolute; left: 22px; top: 22px; padding: 3px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 500; white-space: nowrap;
+  background: var(--ink); color: var(--paper); }
+
+/* Nia: flies about; a gentle hover-bob on her own, a tilt toward where she is going, a spin when clicked */
+.grain-hero .rb-nia {
+  position: absolute; left: 0; top: 0; z-index: 7; padding: 0; border: 0; background: none; cursor: pointer;
+  transition-property: transform; transition-timing-function: cubic-bezier(.5, .05, .25, 1);
+  filter: drop-shadow(0 10px 10px color-mix(in srgb, var(--ink) 18%, transparent));
+}
+.grain-hero .rb-nia:focus-visible { outline: 2px solid var(--c-gate); outline-offset: 4px; border-radius: 16px; }
+.grain-hero .rb-nia-tilt { display: block; transition: transform .5s cubic-bezier(.3, 1.4, .5, 1); animation: rb-hover 2.6s ease-in-out infinite; }
+.grain-hero .rb-nia.carrying .rb-nia-tilt { animation-duration: .7s; }
+.grain-hero .rb-nia-spin { display: block; }
+.grain-hero .rb-nia-spin.go { animation: rb-spin .8s cubic-bezier(.3, 1.3, .5, 1); }
+@keyframes rb-hover { 0%, 100% { translate: 0 0; } 50% { translate: 0 -6px; } }
+@keyframes rb-spin { 0% { transform: rotate(0) scale(1); } 40% { transform: rotate(200deg) scale(1.15); } 100% { transform: rotate(360deg) scale(1); } }
+
+/* effects: hearts float up, the logo's square dots burst out */
+.grain-hero .rb-bit { position: absolute; z-index: 9; width: var(--s); height: var(--s); margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2); pointer-events: none;
+  animation: rb-pop 1.2s cubic-bezier(.2, .8, .3, 1) forwards; }
+.grain-hero .rb-bit.dot { background: var(--c); border-radius: 2px; }
+.grain-hero .rb-bit.heart::before { content: "♥"; display: block; font-style: normal; font-size: var(--s); line-height: 1; color: var(--c); }
+@keyframes rb-pop {
+  0% { transform: translate(0, 0) scale(.3); opacity: 0; }
+  15% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)) scale(1) rotate(25deg); opacity: 0; }
+}
+
+/* ───── captions under the board: each lights up as its moment happens ───── */
+.grain-hero .bd-points { list-style: none; margin: 28px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(16px, 3vw, 40px); }
+.grain-hero .bd-points li { position: relative; padding-top: 18px; }
+.grain-hero .bd-points li::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: var(--x-line); }
+.grain-hero .bd-points li::after { content: ""; position: absolute; left: 0; top: 0; height: 2px; width: 0; background: var(--c-gate); transition: width .8s var(--ease); }
+.grain-hero .bd-points li.on::after { width: 100%; }
+.grain-hero .bd-points b { display: block; font-size: 16px; font-weight: 500; letter-spacing: -0.01em; color: var(--x-ink); }
+.grain-hero .bd-points span { display: block; margin-top: 6px; font-size: 14.5px; line-height: 1.45; color: var(--x-body); transition: color .4s ease; }
+.grain-hero .bd-points li:not(.on) b { color: var(--x-body); }
+@media (max-width: 760px) { .grain-hero .bd-points { grid-template-columns: 1fr; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .grain-hero .rb-card, .grain-hero .rb-nia, .grain-hero .rb-hand { transition-duration: .01ms !important; }
+  .grain-hero .rb-nia-tilt, .grain-hero .rb-nia-spin.go, .grain-hero .rb-bit { animation: none !important; }
+}
+
+/* ───── v4.1: a fuller board: toolbar with filters, richer cards ───── */
+.grain-hero .rb-tools { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+.grain-hero .rb-filters { display: flex; gap: 6px; flex-wrap: wrap; }
+.grain-hero .rb-filters button {
+  display: inline-flex; align-items: center; gap: 7px; padding: 7px 12px; border-radius: 999px; font: inherit; font-size: 13px; cursor: pointer;
+  border: 1px solid var(--x-line); background: var(--paper); color: var(--x-body); transition: background-color .2s ease, color .2s ease, border-color .2s ease;
+}
+.grain-hero .rb-filters button span { font-size: 11.5px; color: var(--x-muted); font-variant-numeric: tabular-nums; }
+.grain-hero .rb-filters button:hover { color: var(--x-ink); border-color: color-mix(in srgb, var(--x-ink) 22%, transparent); }
+.grain-hero .rb-filters button[aria-pressed="true"] { background: var(--x-ink); border-color: var(--x-ink); color: var(--paper); }
+.grain-hero .rb-filters button[aria-pressed="true"] span { color: color-mix(in srgb, var(--paper) 70%, transparent); }
+.grain-hero .rb-sum { font-size: 13px; color: var(--x-muted); }
+.grain-hero .rb-sum b { font-weight: 500; color: var(--x-ink); font-variant-numeric: tabular-nums; }
+.grain-hero .rb-scroll { padding-top: 56px; margin-top: -56px; }
+
+.grain-hero .rb-card.dim .rb-ci { opacity: .32; filter: saturate(.4); }
+.grain-hero .rb-ci { transition: transform .3s cubic-bezier(.3, 1.4, .5, 1), box-shadow .3s ease, opacity .3s ease, filter .3s ease; }
+.grain-hero .rb-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 7px; }
+.grain-hero .rb-grp { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--x-muted); white-space: nowrap; }
+.grain-hero .rb-grp::before { content: ""; width: 7px; height: 7px; border-radius: 2px; background: var(--gc); }
+.grain-hero .rb-grp.g0 { --gc: var(--c-gate); }
+.grain-hero .rb-grp.g1 { --gc: var(--c-input); }
+.grain-hero .rb-grp.g2 { --gc: var(--c-output); }
+.grain-hero .rb-ago { font-size: 11px; color: var(--x-muted); font-variant-numeric: tabular-nums; }
+.grain-hero .rb-bar { flex: 1; height: 4px; border-radius: 4px; overflow: hidden; background: color-mix(in srgb, var(--x-ink) 8%, transparent); }
+.grain-hero .rb-bar i { display: block; height: 100%; border-radius: inherit; background: var(--c-action); animation: rb-progress 5.4s ease-in-out var(--dl, 0s) infinite alternate; }
+@keyframes rb-progress { from { width: 18%; } to { width: 86%; } }
+.grain-hero .rb-step { font-size: 11px; color: var(--x-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.grain-hero .rb-av { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; flex: none; font-size: 9px; font-weight: 600;
+  background: color-mix(in srgb, var(--c-gate) 14%, var(--paper)); color: var(--c-gate); }
+.grain-hero .rb-srcs { display: inline-flex; flex: none; }
+.grain-hero .rb-srcs i { width: 14px; height: 17px; border-radius: 3px; background: var(--paper); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c-action) 45%, transparent); }
+.grain-hero .rb-srcs i + i { margin-left: -8px; }
+.grain-hero .rb-cf span:last-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (prefers-reduced-motion: reduce) { .grain-hero .rb-bar i { animation: none; width: 60%; } }

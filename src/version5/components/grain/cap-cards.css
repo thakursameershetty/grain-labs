@@ -1,0 +1,96 @@
+/* Capabilities cards — after the "Not just control. Clarity." reference: hairline cards with a notched corner,
+   mono caps titles, a dot mark and an isometric line drawing. Warm greys, one accent per drawing. */
+
+.grain-hero .cx {
+  --cx-line: color-mix(in srgb, var(--ink) 14%, transparent);
+  --cx-card: color-mix(in srgb, var(--ink) 2%, var(--paper));
+  margin-top: clamp(40px, 6vh, 64px);
+}
+.grain-hero .cx-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+
+.grain-hero .cx-card {
+  --notch: 22px;
+  position: relative; display: flex; flex-direction: column; padding: 22px 18px 18px;
+  background: var(--cx-line);
+  clip-path: polygon(0 0, calc(100% - var(--notch)) 0, 100% var(--notch), 100% 100%, 0 100%);
+  transition: background .3s ease;
+}
+/* a 1px hairline that follows the notch: the card's face is inset 1px over a line-coloured backing */
+.grain-hero .cx-card::before {
+  content: ""; position: absolute; inset: 1px; z-index: 0; background: var(--cx-card);
+  clip-path: polygon(0 0, calc(100% - var(--notch) + 0.4px) 0, 100% calc(var(--notch) - 0.4px), 100% 100%, 0 100%);
+}
+.grain-hero .cx-card > * { position: relative; z-index: 1; }
+.grain-hero .cx-card.on { background: color-mix(in srgb, var(--btn) 55%, transparent); }
+
+.grain-hero .cx-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.grain-hero .cx-head h3 {
+  margin: 0; white-space: pre-line; font-family: var(--mono); font-weight: 400; font-size: 17px; line-height: 1.2;
+  letter-spacing: .02em; text-transform: uppercase; color: var(--ink);
+}
+.grain-hero .cx-mark { flex: none; display: grid; grid-template-columns: repeat(5, 3px); gap: 2px; margin: 2px 14px 0 0; }
+.grain-hero .cx-mark i { width: 3px; height: 3px; background: transparent; }
+.grain-hero .cx-mark i.on { background: var(--ink); opacity: .8; }
+.grain-hero .cx-card.on .cx-mark i.on { background: var(--btn); opacity: 1; }
+.grain-hero .cx-covers { margin-top: 10px; font-size: 12px; color: var(--btn); }
+.grain-hero .cx-d { margin-top: 26px; min-height: 5.6em; font-size: 14px; line-height: 1.45; color: var(--body); }
+
+.grain-hero .cx-fig { margin-top: 18px; border: 1px solid var(--cx-line); background: var(--paper); aspect-ratio: 340 / 240; overflow: hidden; }
+.grain-hero .cx-fig { --dm-accent: #16a34a; --dm-off: color-mix(in srgb, var(--ink) 9%, transparent); padding: 14px; }
+.grain-hero[data-theme="dark"] .cx-fig { --dm-accent: #4ade80; --dm-off: color-mix(in srgb, var(--ink) 10%, transparent); }
+.grain-hero .dm, .grain-hero .ps { display: block; width: 100%; height: 100%; }
+
+/* anatomy tokens in Grain's palette — hairline greys with one accent */
+.grain-hero .cx-fig.iso {
+  --anatomy-paper: #fbf8f4; --anatomy-face: #fffdfa; --anatomy-top: #fffcf9;
+  --anatomy-shade-0: #dfd5cc; --anatomy-shade-1: #e7ded6; --anatomy-shade-2: #eee7e0; --anatomy-shade-3: #f5f0ea;
+  --anatomy-lit-top: #fbeee8; --anatomy-lit-shade: #f0dcd2;
+  --anatomy-hi: #2a1512; --anatomy-mid: #8d766b; --anatomy-lo: #b7a497; --anatomy-faint: #ddd0c6; --anatomy-lit: #8f3a30;
+  --anatomy-halo: #7d5f4f; --anatomy-halo-opacity: .22; --anatomy-dot: #5b3a33;
+  --anatomy-mono: "Disket Mono", ui-monospace, monospace;
+}
+.grain-hero[data-theme="dark"] .cx-fig.iso {
+  --anatomy-paper: #181411; --anatomy-face: #201b17; --anatomy-top: #211c18;
+  --anatomy-shade-0: #110e0c; --anatomy-shade-1: #14110f; --anatomy-shade-2: #171311; --anatomy-shade-3: #1b1714;
+  --anatomy-lit-top: #2e231e; --anatomy-lit-shade: #241b17;
+  --anatomy-hi: #f2e9e2; --anatomy-mid: #8c7c72; --anatomy-lo: #574a42; --anatomy-faint: #352c27; --anatomy-lit: #e8907c;
+  --anatomy-halo: #000; --anatomy-halo-opacity: .6; --anatomy-dot: #e9ddd5;
+}
+
+/* the moment each card plays */
+.grain-hero .cx-fig [data-move] { transform: var(--off); transition: transform .9s cubic-bezier(.3, .7, .15, 1); transition-delay: 0ms; }
+.grain-hero .cx-fig [data-show] { opacity: 0; transition: opacity .45s ease; }
+.grain-hero .cx-fig .cx-tick { stroke-dasharray: 1; stroke-dashoffset: 1; stroke-width: 1.4; transition: stroke-dashoffset .35s ease; }
+.grain-hero .cx-fig .cx-tick.done { stroke-dashoffset: 0; }
+.grain-hero .cx-card.on .cx-fig [data-move],
+.grain-hero .cx-card.done .cx-fig [data-move] { transform: none; transition-delay: var(--delay); }
+.grain-hero .cx-card.on .cx-fig [data-show],
+.grain-hero .cx-card.done .cx-fig [data-show] { opacity: 1; transition-delay: calc(var(--delay) + 200ms); }
+.grain-hero .cx-card.on .cx-fig .cx-tick,
+.grain-hero .cx-card.done .cx-fig .cx-tick { stroke-dashoffset: 0; transition-delay: calc(var(--delay) + 150ms); }
+
+/* the always-on strip */
+.grain-hero .cx-strip { margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grain-hero .cx-always {
+  display: grid; grid-template-columns: 40px 1fr; gap: 14px; align-items: start; padding: 16px 18px;
+  border: 1px solid var(--cx-line); background: var(--cx-card);
+}
+.grain-hero .cx-always-ico { display: grid; place-items: center; width: 40px; height: 40px; border: 1px solid var(--cx-line); color: var(--btn); }
+.grain-hero .cx-always b { display: block; font-family: var(--mono); font-weight: 400; font-size: 13px; letter-spacing: .03em; text-transform: uppercase; color: var(--ink); }
+.grain-hero .cx-always span { display: block; margin-top: 6px; font-size: 14px; line-height: 1.45; color: var(--body); }
+
+@media (max-width: 1100px) { .grain-hero .cx-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) {
+  .grain-hero .cx-grid, .grain-hero .cx-strip { grid-template-columns: minmax(0, 1fr); }
+  .grain-hero .cx-d { min-height: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .grain-hero .cx-fig [data-move] { transform: none; transition: none; }
+  .grain-hero .cx-fig [data-show] { opacity: 1; transition: none; }
+  .grain-hero .cx-fig .cx-tick { stroke-dashoffset: 0; transition: none; }
+}
+
+/* the animated icon renders its own wrapper div: centre it in the square tile */
+.grain-hero .cx-always-ico > * { display: grid; place-items: center; width: 100%; height: 100%; }
+.grain-hero .cx-always-ico svg { display: block; }
+.grain-hero .cx-always { align-items: center; }

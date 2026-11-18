@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" aria-hidden="true" focusable="false">
+  <path fill="none" stroke="#C85636" stroke-width="30" stroke-linejoin="miter" stroke-linecap="butt" d="M305 280V15H15V305H280"></path>
+  <path fill="#C85636" d="M30 30H48Q30 30 30 48Z M290 30V48Q290 30 272 30Z M30 290H48Q30 290 30 272Z"></path>
+  <path fill="none" stroke="#E27A5F" stroke-width="24" stroke-linejoin="round" stroke-linecap="butt" d="M260 240V66Q260 60 254 60H66Q60 60 60 66V254Q60 260 66 260H240"></path>
+  <path fill="#E27A5F" d="M72 72H87Q72 72 72 87Z M248 72V87Q248 72 233 72Z M72 248H87Q72 248 72 233Z"></path>
+  <path fill="none" stroke="#F0BFA7" stroke-width="22" stroke-linejoin="round" stroke-linecap="butt" d="M219 201V105Q219 101 215 101H105Q101 101 101 105V215Q101 219 105 219H201"></path>
+  <path fill="#F0BFA7" d="M112 112H124Q112 112 112 124Z M208 112V124Q208 112 196 112Z M112 208H124Q112 208 112 196Z"></path>
+  <rect x="141" y="141" width="38" height="38" rx="3" fill="#C85636"></rect>
+  <rect x="208" y="208" width="22" height="22" rx="3" fill="#F0BFA7"></rect>
+  <rect x="248" y="248" width="24" height="24" rx="3" fill="#E27A5F"></rect>
+  <rect x="290" y="290" width="30" height="30" rx="4" fill="#C85636"></rect>
+</svg>

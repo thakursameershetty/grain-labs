@@ -1,0 +1,9 @@
+/* the wrapper keeps the button inline in its row; the button gets a soft top highlight so the beam reads as
+   light running around a real, slightly glossy pill */
+.grain-hero .beam-wrap { display: inline-flex; border-radius: 999px; }
+.grain-hero .beam-btn { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; white-space: nowrap;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .16), inset 0 -1px 0 rgba(0, 0, 0, .25), 0 8px 20px -10px color-mix(in srgb, var(--o-navy-deep) 55%, transparent);
+  transition: transform .25s var(--ease), background .2s ease; }
+.grain-hero .beam-btn:hover { transform: translateY(-1px); }
+.grain-hero .beam-btn svg { flex: none; }
+.grain-hero .beam-btn.header-cta:hover, .grain-hero .beam-btn.primary-cta:hover { background: var(--btn); }   /* keep the pill solid so the beam stays visible */

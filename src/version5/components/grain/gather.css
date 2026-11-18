@@ -1,0 +1,182 @@
+/* "Scattered → gathered → run". Pinned on desktop; --a (converge) and --b (fan out) come from the scroll. */
+.grain-hero .ga {
+  --h: 0; --a: 0; --w: 0; --hub: 0; --b: 0;
+  --g-cyan: var(--o1-deep);
+  --g-line: color-mix(in srgb, var(--ink) 16%, transparent);
+  --g-card: color-mix(in srgb, var(--ink) 3%, var(--paper));
+  --g-accent: var(--o3-deep);
+  position: relative; z-index: 2; height: 300svh; background: var(--paper); color: var(--ink);
+}
+.grain-hero[data-theme="dark"] .ga { --g-accent: var(--o3); --g-cyan: var(--o1); }
+.grain-hero .ga-stage { position: sticky; top: 0; height: 100svh; display: grid; place-items: center; padding: 72px var(--gutter) 24px; overflow: hidden; }
+.grain-hero .ga-box { position: relative; width: min(100%, calc((100svh - 110px) * 1200 / 720)); }
+
+/* lines */
+.grain-hero .ga-lines { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.grain-hero .ga-in, .grain-hero .ga-out {
+  /* no non-scaling-stroke here: it breaks pathLength-based dashes and leaves stray fragments */
+  fill: none; stroke-width: 1.5; stroke-linecap: butt;
+  stroke-dasharray: 1 1; stroke-dashoffset: 1;
+}
+/* fan-in lines warm up toward the hub, like light gathering */
+.grain-hero .ga-in { stroke: url(#ga-g-in); stroke-width: 1.3; }
+.grain-hero .ga-out { stroke: url(#ga-g-out); stroke-width: 1.3; }
+.grain-hero .ga-dot { fill: var(--g-accent); opacity: 0; }
+.grain-hero .ga-dot.out { fill: var(--g-cyan); }
+
+/* source cards. Scattered, each is a small replica of the real thing (email, invoice, sheet…);
+   as it joins the column it shrinks into a compact chip. --ai is the card's own 0→1 progress. */
+.grain-hero .ga-card {
+  --rw: 196px; --rh: 122px;
+  position: absolute; transform: translate(-50%, -50%) rotate(var(--tilt, 0deg));
+  width: calc(184 / 1200 * 100% * var(--ai, 0) + (1 - var(--ai, 0)) * var(--rw));
+  height: calc(42px * var(--ai, 0) + (1 - var(--ai, 0)) * var(--rh));
+  border-radius: 12px; background: var(--paper); border: 1px solid var(--g-line);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, .02), 0 12px 28px -16px rgba(20, 16, 60, calc(.3 * (1 - var(--ai, 0)) + .08));
+  font-size: 13px; letter-spacing: -0.005em; color: var(--ink); white-space: nowrap; will-change: left, top;
+}
+.grain-hero .ga-chip {
+  position: absolute; inset: 0; display: flex; align-items: center; gap: 10px; padding: 0 12px; overflow: hidden;
+  opacity: clamp(0, calc(var(--ai, 0) * 2.4 - .5), 1); filter: blur(calc(clamp(0, 1 - var(--ai, 0) * 1.6, 1) * 6px));
+}
+.grain-hero .ga-card .msym { flex: none; font-size: 18px; color: var(--muted); }
+.grain-hero .ga:not(.narrow) .ga-card .msym { color: color-mix(in srgb, var(--g-accent) calc(var(--w) * 100%), var(--muted)); }
+.grain-hero .ga-card-t { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+
+/* the notification: a real red count badge on the corner */
+.grain-hero .ga-badge {
+  position: absolute; top: -9px; right: -9px; z-index: 2; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px;
+  display: grid; place-items: center; background: #ff3b30; color: #fff;
+  font: 600 11.5px/1 var(--sans); letter-spacing: 0; box-shadow: 0 0 0 2px var(--paper), 0 4px 10px -3px rgba(255, 59, 48, .55);
+  opacity: calc(1 - var(--ai, 0) * 2.2);
+}
+
+/* ── replicas ── */
+.grain-hero .rp {
+  position: absolute; inset: 0; padding: 12px 13px; overflow: hidden; border-radius: inherit; white-space: normal;
+  font-size: 10.5px; line-height: 1.35; color: var(--body);
+  opacity: clamp(0, calc(1 - var(--ai, 0) * 1.8), 1); filter: blur(calc(var(--ai, 0) * 8px));
+}
+.grain-hero .rp p { margin: 0; }
+.grain-hero .rp .rl { display: block; height: 5px; margin-top: 6px; border-radius: 3px; background: color-mix(in srgb, var(--ink) 9%, transparent); font-style: normal; }
+.grain-hero .rp-row { display: flex; align-items: center; gap: 7px; }
+.grain-hero .rp-av { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: color-mix(in srgb, var(--g-accent) 16%, transparent); color: var(--g-accent); font: 600 8px var(--sans); }
+.grain-hero .rp-from { font-weight: 600; color: var(--ink); }
+.grain-hero .rp-time { margin-left: auto; color: var(--soft); }
+.grain-hero .rp-subj { margin-top: 7px !important; font-size: 11.5px; font-weight: 600; color: var(--ink); }
+.grain-hero .rp-sub { margin-top: 2px !important; color: var(--muted); }
+/* inbox: two more envelopes peeking out behind the top one */
+.grain-hero .ga-card:has(.rp-stack) {
+  --st: calc((1 - var(--ai, 0)) * 100%);
+  box-shadow: 0 6px 0 -3px color-mix(in srgb, var(--paper) var(--st), transparent), 0 6px 0 -2px color-mix(in srgb, var(--g-line) var(--st), transparent),
+              0 12px 0 -7px color-mix(in srgb, var(--paper) var(--st), transparent), 0 12px 0 -6px color-mix(in srgb, var(--g-line) var(--st), transparent),
+              0 18px 30px -16px rgba(20, 16, 60, calc(.3 * (1 - var(--ai, 0)) + .08));
+}
+/* documents */
+.grain-hero .rp-h { font-size: 12px; font-weight: 600; color: var(--ink); letter-spacing: -0.01em; }
+.grain-hero .rp-tag { margin-left: auto; padding: 1px 5px; border-radius: 4px; font: 600 8.5px var(--sans); }
+.grain-hero .rp-tag.pdf { background: #fde8e8; color: #c62828; }
+.grain-hero .rp-li { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 6px; }
+.grain-hero .rp-li .rl { margin: 0; }
+.grain-hero .rp-li span:last-child { font-variant-numeric: tabular-nums; color: var(--ink); }
+.grain-hero .rp-li.tot { padding-top: 5px; border-top: 1px solid var(--g-line); font-weight: 600; color: var(--ink); }
+/* spreadsheet */
+.grain-hero .rp-sheet { padding: 0; }
+.grain-hero .rp-grid { display: grid; grid-template-columns: 18px 1.3fr 1fr 1fr; font-size: 9.5px; font-variant-numeric: tabular-nums; }
+.grain-hero .rp-grid span { padding: 4px 6px; border-right: 1px solid var(--g-line); border-bottom: 1px solid var(--g-line); color: var(--ink); overflow: hidden; }
+.grain-hero .rp-grid span:nth-child(-n+4), .grain-hero .rp-grid span:nth-child(4n+1) { background: color-mix(in srgb, var(--ink) 4%, transparent); color: var(--muted); text-align: center; padding: 4px 2px; }
+.grain-hero .rp-grid span:nth-child(-n+8):nth-child(n+6) { font-weight: 600; }
+.grain-hero .rp-sheet-tab { position: absolute; left: 0; right: 0; bottom: 0; padding: 4px 8px; border-top: 1px solid var(--g-line); font-size: 9px; color: #1d7a45; background: color-mix(in srgb, #1d7a45 7%, var(--paper)); }
+/* email thread with nested quotes */
+.grain-hero .rp-quote { margin-top: 5px; padding-left: 7px; border-left: 2px solid color-mix(in srgb, var(--ink) 12%, transparent); }
+/* portal */
+.grain-hero .rp-portal { padding: 0; }
+.grain-hero .rp-bar { display: flex; align-items: center; gap: 4px; padding: 6px 8px; border-bottom: 1px solid var(--g-line); background: color-mix(in srgb, var(--ink) 3%, transparent); }
+.grain-hero .rp-bar i { width: 6px; height: 6px; border-radius: 50%; background: color-mix(in srgb, var(--ink) 16%, transparent); }
+.grain-hero .rp-bar span { margin-left: 6px; flex: 1; padding: 1px 6px; border-radius: 4px; background: var(--paper); font-size: 8.5px; color: var(--muted); }
+.grain-hero .rp-pbody { padding: 9px 12px; }
+.grain-hero .rp-err { font-size: 11px; font-weight: 600; color: var(--bad); }
+.grain-hero .rp-field { display: block; height: 14px; margin-top: 7px; border: 1px solid var(--g-line); border-radius: 4px; }
+.grain-hero .rp-btn { display: inline-block; margin-top: 6px; padding: 2px 8px; border-radius: 4px; background: var(--ink); color: var(--paper); font-size: 9px; }
+/* voicemail */
+.grain-hero .rp-wave { display: flex; align-items: center; gap: 2px; height: 34px; margin-top: 14px; }
+.grain-hero .rp-wave i { flex: 1; border-radius: 2px; background: color-mix(in srgb, var(--ink) 22%, transparent); }
+.grain-hero .rp-wave i:nth-of-type(-n+7) { background: var(--g-accent); }
+.grain-hero .rp-play { flex: none; width: 24px; height: 24px; margin-right: 6px; border-radius: 50%; background: var(--ink); position: relative; }
+.grain-hero .rp-play::after { content: ""; position: absolute; left: 9px; top: 7px; border-left: 8px solid var(--paper); border-top: 5px solid transparent; border-bottom: 5px solid transparent; }
+.grain-hero .rp-wave span { flex: none; margin-left: 6px; color: var(--muted); font-variant-numeric: tabular-nums; }
+/* chat */
+.grain-hero .rp-chat { display: flex; flex-direction: column; gap: 5px; padding: 11px 12px; }
+.grain-hero .rp-bub { align-self: flex-start; max-width: 82%; padding: 5px 9px; border-radius: 10px 10px 10px 3px; background: color-mix(in srgb, var(--ink) 6%, transparent); color: var(--ink); }
+.grain-hero .rp-bub.me { align-self: flex-end; border-radius: 10px 10px 3px 10px; background: var(--g-accent); color: #fff; }
+
+/* headline (beat 1) and captions (beats 2–3) */
+.grain-hero .ga-title { position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; }
+.grain-hero .ga-title.one { width: 56%; opacity: calc(1 - var(--h)); filter: blur(calc(var(--h) * 14px)); transform: translate(-50%, calc(-50% - var(--h) * 18px)) scale(calc(1 - var(--h) * .04)); }
+.grain-hero .ga-title.one h2 { margin: 0; font-size: clamp(36px, 4.6vw, 72px); font-weight: 500; letter-spacing: -0.045em; line-height: 1; }
+.grain-hero .ga em { font-style: normal; color: var(--g-accent); }
+.grain-hero .ga-facts { margin-top: 26px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; text-align: left; }
+.grain-hero .ga-facts span { padding-top: 12px; border-top: 1px solid var(--g-line); font-size: 14px; line-height: 1.45; color: var(--body); }
+.grain-hero .ga-title.two { top: 6%; width: 70%; }
+.grain-hero .ga-cap-a, .grain-hero .ga-cap-b { font-size: clamp(24px, 2.6vw, 40px); font-weight: 500; letter-spacing: -0.035em; line-height: 1.1; }
+.grain-hero .ga-cap-a { opacity: var(--w); filter: blur(calc((1 - var(--w)) * 8px)); }
+.grain-hero .ga-cap-b { color: var(--muted); opacity: var(--b); filter: blur(calc((1 - var(--b)) * 8px)); }
+
+/* the hub */
+.grain-hero .ga-hub-wrap { position: absolute; transform: translate(-50%, -50%) scale(calc(.7 + var(--hub) * .3)); opacity: var(--hub); filter: blur(calc((1 - var(--hub)) * 10px)); display: grid; justify-items: center; gap: 12px; }
+.grain-hero .ga-hub {
+  position: relative; display: grid; place-items: center; width: 108px; height: 108px; border-radius: 28px;
+  background: var(--next-bg); color: var(--g-accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--g-accent) 40%, transparent),
+              0 0 calc(10px + var(--a) * 40px) color-mix(in srgb, var(--g-accent) 45%, transparent),
+              0 24px 50px -24px rgba(0, 0, 0, .5);
+}
+.grain-hero .ga-logo { width: 48px; height: 48px; }
+.grain-hero .ga-hub-label { font-family: var(--mono); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+
+/* model tiles */
+.grain-hero .ga-model {
+  position: absolute; transform: translate(-50%, -50%) translateX(calc((1 - var(--b)) * 24px)); width: calc(212 / 1200 * 100%);
+  padding: 12px 14px; border-radius: 12px; border: 1px solid var(--g-line); background: var(--paper);
+  box-shadow: 0 10px 24px -18px color-mix(in srgb, var(--o-navy-deep) 20%, transparent);
+  font-size: 14.5px; font-weight: 500; letter-spacing: -0.01em;
+  opacity: clamp(0, calc((var(--b) - var(--i) * .06) * 2.2), 1);
+}
+.grain-hero .ga-model-k { display: block; margin-bottom: 2px; font-family: var(--mono); font-size: 9.5px; font-weight: 400; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+
+/* phones: static, stacked */
+.grain-hero .ga.narrow { height: auto; }
+.grain-hero .ga.narrow h2 { margin: 0; font-size: 38px; font-weight: 500; letter-spacing: -0.04em; line-height: 1.05; }
+.grain-hero .ga.narrow .ga-list { margin-top: 28px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.grain-hero .ga.narrow .ga-card { position: relative; transform: none; width: auto !important; height: auto; display: flex; align-items: center; gap: 9px; padding: 10px 12px; font-size: 12.5px; }
+.grain-hero .ga.narrow .ga-badge { opacity: 1; }
+.grain-hero .ga-hub-m { margin: 34px 0 0; display: flex; align-items: center; gap: 16px; }
+.grain-hero .ga-hub-m .ga-hub { width: 72px; height: 72px; border-radius: 20px; flex: none; }
+.grain-hero .ga-hub-m .ga-logo { width: 32px; height: 32px; }
+.grain-hero .ga-hub-m p { font-size: 16px; color: var(--body); }
+.grain-hero .ga-runs { margin-top: 30px; font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--g-accent); }
+.grain-hero .ga-models { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
+.grain-hero .ga.narrow .ga-model { position: relative; transform: none; width: auto; opacity: 1; padding: 9px 12px; font-size: 13.5px; }
+
+/* the hub is a Siri orb; the mark sits white inside it */
+.grain-hero .ga-orb .ga-logo { width: 46px; height: 46px; color: #fff; filter: drop-shadow(0 1px 6px color-mix(in srgb, var(--o-navy-deep) 55%, transparent)); }
+.grain-hero .ga-hub-m .siri .ga-logo { width: 30px; height: 30px; color: #fff; filter: drop-shadow(0 1px 4px color-mix(in srgb, var(--o-navy-deep) 55%, transparent)); }
+.grain-hero .ga-orb { box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset, 0 0 calc(20px + var(--w) * 50px) rgba(177, 140, 255, calc(var(--w) * .4)), 0 30px 60px -30px color-mix(in srgb, var(--o-navy-deep) 60%, transparent); }
+.grain-hero .rp-tx { margin-top: 10px !important; color: var(--muted); font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* model tiles: the provider's mark on the left, name and a plain note */
+.grain-hero .ga:not(.narrow) .ga-model { display: flex; align-items: center; gap: 12px; }
+.grain-hero .ga-model-t { display: grid; min-width: 0; }
+.grain-hero .ga-model-n { white-space: nowrap; }
+.grain-hero .ga-model .ga-model-k { margin: 1px 0 0; font-family: var(--sans); font-size: 11.5px; letter-spacing: 0; text-transform: none; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.grain-hero .ga-marks { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; color: var(--ink);
+  background: color-mix(in srgb, var(--ink) 5%, transparent); }
+.grain-hero .ga-mark { display: grid; place-items: center; }
+.grain-hero .ga-mark svg { width: 20px; height: 20px; }
+/* several open-weight marks in a 2×2 */
+.grain-hero .ga-marks.many { grid-template-columns: 1fr 1fr; gap: 2px; padding: 5px; }
+.grain-hero .ga-marks.many .ga-mark svg { width: 11px; height: 11px; }
+.grain-hero .ga.narrow .ga-model { display: inline-flex; align-items: center; gap: 8px; }
+.grain-hero .ga.narrow .ga-marks { width: 24px; height: 24px; border-radius: 7px; }
+.grain-hero .ga.narrow .ga-mark svg { width: 14px; height: 14px; }
+.grain-hero .ga.narrow .ga-marks.many .ga-mark svg { width: 8px; height: 8px; }

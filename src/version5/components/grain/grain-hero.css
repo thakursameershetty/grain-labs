@@ -1,0 +1,256 @@
+/* v2 hero: clean and minimal. The Block G as a dark-metal 3D object (src/version2/brand/MarkObject.tsx) in
+   front of a huge Audiowide "GRAIN". Headline top-left, copy + buttons top-right,
+   a bobbing scroll arrow bottom-right. No dither, no dots.
+   Scroll: the hero is pinned for one extra screen. GrainHero writes --p (0–1): the G turns edge-on (0 → .5),
+   the page dims to the How it runs surface, and one line of light draws down from the G into that section. */
+
+@font-face { font-family: "General Sans"; src: url("/fonts/GeneralSans-Regular.otf") format("opentype"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "General Sans"; src: url("/fonts/GeneralSans-Medium.otf") format("opentype"); font-weight: 500; font-display: swap; }
+@font-face { font-family: "General Sans"; src: url("/fonts/GeneralSans-Semibold.otf") format("opentype"); font-weight: 600; font-display: swap; }
+@font-face { font-family: "Disket Mono"; src: url("/fonts/disket-mono-regular.ttf") format("truetype"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Audiowide"; src: url("/fonts/Audiowide-Regular.woff2") format("woff2"); font-weight: 400; font-display: block; }
+
+/* ───── Themes ───── */
+.grain-hero {
+  --sans: "General Sans", system-ui, sans-serif;
+  --mono: "Disket Mono", ui-monospace, monospace;
+  --ease: cubic-bezier(.2, .7, .1, 1);
+  --gutter: clamp(20px, 2.7vw, 54px);
+
+  /* light (default) */
+  --paper: #ffffff;
+  --ink: #0a0a0a;
+  --body: #404040;
+  --muted: #737373;
+  --soft: #a3a3a3;
+  --btn: #0a0a0a;
+  --btn-hover: #2a2a2a;
+  --btn-ink: #ffffff;
+  --btn-shadow: rgba(0, 0, 0, .14);
+  --line: rgba(0, 0, 0, .12);
+  --word: #f2f2f2;
+  --word-hi: #e4e4e4;
+  color-scheme: light;
+}
+.grain-hero[data-theme="dark"] {
+  --paper: #0a0a0a;
+  --ink: #fafafa;
+  --body: #a3a3a3;
+  --muted: #7a7a7a;
+  --soft: #737373;
+  --btn: #fafafa;
+  --btn-hover: #e2e2e2;
+  --btn-ink: #0a0a0a;
+  --btn-shadow: rgba(255, 255, 255, .08);
+  --line: rgba(255, 255, 255, .12);
+  --word: #161616;
+  --word-hi: #262626;
+  color-scheme: dark;
+}
+
+.grain-hero {
+  color: var(--ink);
+  background: var(--paper);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+  position: relative;
+  isolation: isolate;
+  transition: background-color .5s var(--ease), color .5s var(--ease);
+}
+.grain-hero, .grain-hero * { box-sizing: border-box; }
+.grain-hero a { color: inherit; text-decoration: none; }
+.grain-hero p { margin: 0; }
+
+/* ───── Stage ───── */
+.grain-hero { --p: 0;
+  --dim: clamp(0, calc((var(--p) - .18) * 3.6), 1);        /* page → How it runs surface */
+  --line-in: clamp(0, calc((var(--p) - .4) * 2.4), 1);   /* the line drawing down */
+  --next-in: clamp(0, calc((var(--p) - .44) * 2.8), 1);      /* How it runs heading */
+}
+.grain-hero .hero-scroll { position: relative; height: 240svh; }
+.grain-hero .hero-scroll > .hero { position: sticky; top: 0; }
+.grain-hero .how-anchor { position: absolute; left: 0; bottom: 100svh; width: 1px; height: 1px; }
+.grain-hero .hero {
+  position: relative; isolation: isolate; height: max(100svh, 680px); overflow: hidden;
+  background: color-mix(in srgb, var(--dark-bg) calc(var(--dim) * 100%), var(--paper));
+}
+
+/* the big word: Audiowide, a few shades off the background so it reads as texture */
+.grain-hero .bigword {
+  --wsize: min(19.5vw, 34vh);
+  position: absolute; z-index: 0; left: 0; right: 0; bottom: max(9vh, 64px);
+  text-align: center; white-space: nowrap; user-select: none; pointer-events: none;
+  font-family: "Audiowide", var(--sans); font-size: var(--wsize); line-height: .8; letter-spacing: .01em;
+  color: var(--word); opacity: clamp(0, calc(1 - var(--p) * 3), 1);
+  transition: color .5s var(--ease);
+}
+
+/* the object: its canvas covers the lower part of the stage, the G sits on the word */
+.grain-hero .hero-object {
+  position: absolute; z-index: 2; left: 0; right: 0; top: 24%; bottom: 0;
+  cursor: grab; touch-action: pan-y;
+  opacity: clamp(0, calc(1 - (var(--p) - .3) * 6.5), 1);   /* gone as it reaches edge-on, before the heading arrives */
+}
+.grain-hero .hero-object:active { cursor: grabbing; }
+.grain-hero .hero-object canvas { display: block; width: 100%; height: 100%; }
+
+/* the line of light: from the G's centre down off the bottom of the screen, into How it runs */
+.grain-hero .hero-thread {
+  position: absolute; z-index: 3; left: 50%; top: 61%; width: 2px; height: 28%; margin-left: -1px;
+  transform-origin: top; transform: scaleY(var(--line-in)); opacity: min(1, calc(var(--line-in) * 3));
+  background: linear-gradient(to bottom, #fff, color-mix(in srgb, var(--dark-accent) 70%, transparent) 55%, transparent);
+  box-shadow: 0 0 14px 1px color-mix(in srgb, var(--dark-accent) 60%, transparent);
+  pointer-events: none;
+}
+
+/* How it runs introduces itself, centred above the line */
+.grain-hero .hero-next {
+  position: absolute; z-index: 4; left: var(--gutter); right: var(--gutter); bottom: 42%;
+  display: grid; justify-items: center; text-align: center; color: var(--dark-ink); pointer-events: none;
+  opacity: var(--next-in); transform: translateY(calc((1 - var(--next-in)) * 28px));
+}
+.grain-hero .hero-next h2 { margin: 0; font-size: clamp(40px, 5.6vw, 104px); font-weight: 500; letter-spacing: -0.05em; line-height: .95; text-wrap: balance; max-width: 12ch; }
+.grain-hero .next-lead { margin-top: 20px; max-width: 520px; font-size: clamp(15px, 1.2vw, 19px); line-height: 1.45; color: color-mix(in srgb, var(--dark-ink) 68%, transparent); }
+
+/* the text steps back as soon as you scroll */
+.grain-hero .hero-ui {
+  position: absolute; inset: 0; z-index: 5; pointer-events: none;
+  opacity: clamp(0, calc(1 - var(--p) * 3.4), 1);
+  transform: translateY(calc(var(--p) * -40px));
+}
+.grain-hero .hero-ui > * { pointer-events: auto; }
+
+.grain-hero {
+  --siri-navy: var(--o-navy); --siri-cyan: var(--o1); --siri-magenta: var(--o2); --siri-violet: var(--o3); --siri-teal: var(--o4);
+  /* a soft Siri mesh: blobs of light on the indigo base, not a stripe */
+  --grad: radial-gradient(60% 120% at 8% 40%, color-mix(in srgb, var(--o1) 90%, transparent), transparent 60%),
+          radial-gradient(60% 130% at 55% 110%, color-mix(in srgb, var(--o2) 85%, transparent), transparent 62%),
+          radial-gradient(55% 120% at 92% 10%, color-mix(in srgb, var(--o3) 90%, transparent), transparent 62%),
+          radial-gradient(30% 60% at 50% 45%, rgba(255, 255, 255, .55), transparent 70%),
+          var(--o-navy);
+  --next-bg: #ffffff; --next-ink: #0a0a0a; --next-muted: var(--o3-deep);
+  --dark-bg: #0a0a0a; --dark-ink: #fafafa; --dark-accent: var(--o3);
+}
+/* How it runs and the portal into it use the dark surface */
+.grain-hero .hw, .grain-hero .next-reveal { --next-bg: var(--dark-bg); --next-ink: var(--dark-ink); --next-muted: var(--dark-accent); }
+.grain-hero[data-theme="dark"] { --next-bg: #0a0a0a; --next-ink: #fafafa; --next-muted: var(--o3); }
+
+/* the nav steps aside while the hero hands over (filter, so it doesn't fight the intro animation) */
+.grain-hero .site-header { filter: opacity(clamp(0, calc((0.8 - var(--p)) * 6), 1)); }
+
+/* ───── Header ───── */
+.grain-hero .site-header { position: fixed; top: 0; left: 0; right: 0; z-index: 50; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; height: 64px; padding: 0 var(--gutter); }  /* slim bar */
+.grain-hero .brand { justify-self: start; display: inline-flex; align-items: center; gap: 10px; font-size: 21px; font-weight: 600; letter-spacing: -0.045em; }
+.grain-hero .logo-mark { width: 26px; height: 26px; }
+.grain-hero .desktop-nav { display: flex; gap: clamp(4px, .8vw, 14px); font-size: 15px; letter-spacing: -0.015em; }
+/* nav links: a soft rounded pill on hover, and a slightly stronger one on the section you're reading.
+   currentColor-based, so it works on white, on black and over the dark How it runs */
+.grain-hero .desktop-nav a { padding: 7px 13px; border-radius: 10px; border: 1px solid transparent;
+  transition: background-color .2s ease, border-color .2s ease, color .2s ease; }
+.grain-hero .desktop-nav a:hover, .grain-hero .desktop-nav a:focus-visible { outline: none;
+  background: color-mix(in srgb, currentColor 7%, transparent); border-color: color-mix(in srgb, currentColor 12%, transparent); }
+.grain-hero .desktop-nav a.on { background: color-mix(in srgb, currentColor 10%, transparent); border-color: color-mix(in srgb, currentColor 16%, transparent); }
+.grain-hero .scroll-cue { transition: opacity 180ms ease; }
+.grain-hero .scroll-cue:hover { opacity: .5; }
+.grain-hero .header-actions { justify-self: end; display: flex; align-items: center; gap: 10px; }
+
+.grain-hero .theme-toggle {
+  display: grid; place-items: center; width: 36px; height: 36px; padding: 0;
+  border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer;
+  transition: border-color 200ms ease, transform 300ms var(--ease);
+}
+.grain-hero .theme-toggle:hover { border-color: var(--ink); transform: rotate(-20deg); }
+.grain-hero .theme-toggle svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+
+.grain-hero .header-cta, .grain-hero .primary-cta {
+  display: inline-flex; align-items: center; justify-content: center; gap: 12px;
+  color: var(--btn-ink); background: var(--btn); border-radius: 999px;
+  box-shadow: 0 10px 30px var(--btn-shadow);
+  transition: transform 180ms ease, background 180ms ease;
+}
+.grain-hero .header-cta:hover, .grain-hero .primary-cta:hover { transform: translateY(-2px); background: var(--btn-hover); color: var(--btn-ink); }
+.grain-hero .header-cta { padding: 9px 16px; font-size: 14px; font-weight: 500; gap: 8px; box-shadow: none; }
+
+.grain-hero .hero-head { position: absolute; left: var(--gutter); top: clamp(104px, 15vh, 150px); }
+.grain-hero h1 { margin: 0; font-size: clamp(38px, min(4.6vw, 8vh), 96px); font-weight: 500; line-height: .98; letter-spacing: -0.045em; }
+.grain-hero .headline-line { display: block; white-space: nowrap; }
+.grain-hero .headline-line-muted { color: var(--soft); font-weight: 400; }
+
+.grain-hero .hero-side { position: absolute; right: var(--gutter); top: clamp(110px, 15.6vh, 158px); width: min(400px, 30vw); }
+.grain-hero .hero-copy { font-size: clamp(15px, 1.15vw, 18px); line-height: 1.45; letter-spacing: -0.01em; color: var(--body); }
+.grain-hero .ctas { display: flex; flex-wrap: wrap; align-items: center; gap: 22px; margin-top: 24px; }
+.grain-hero .primary-cta { padding: 13px 20px; font-size: 15px; font-weight: 500; }
+.grain-hero .secondary-cta { font-size: 15px; font-weight: 500; border-bottom: 1px solid currentColor; padding-bottom: 2px; transition: opacity 180ms ease; }
+.grain-hero .secondary-cta:hover { opacity: .6; }
+
+/* ───── Scroll arrow (bottom-right): a plain arrow that bobs ───── */
+.grain-hero .scroll-arrow { position: absolute; right: var(--gutter); bottom: 28px; display: grid; place-items: center; width: 44px; height: 44px; color: var(--ink); }
+.grain-hero .scroll-arrow svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round;
+  animation: gh-bob 1.8s cubic-bezier(.45, 0, .55, 1) infinite; }
+.grain-hero .scroll-arrow:hover svg { animation-duration: .9s; }
+.grain-hero .scroll-arrow:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; border-radius: 50%; }
+@keyframes gh-bob { 0%, 100% { transform: translateY(-4px); } 50% { transform: translateY(6px); } }
+
+/* ───── Medium screens ───── */
+@media (max-width: 1100px) {
+  .grain-hero .hero-side { width: min(360px, 36vw); }
+}
+@media (max-width: 900px) {
+  .grain-hero .desktop-nav { display: none; }
+  .grain-hero .site-header { display: flex; justify-content: space-between; }
+}
+
+/* ───── Phones: everything stacks above the object ───── */
+@media (max-width: 760px) {
+  .grain-hero .hero { height: max(100svh, 700px); }
+  .grain-hero .site-header { height: 58px; }
+  .grain-hero .header-cta { padding: 8px 14px; font-size: 13px; }
+  .grain-hero .theme-toggle { width: 34px; height: 34px; }
+  .grain-hero .hero-head { top: 92px; right: var(--gutter); }
+  .grain-hero h1 { font-size: 8.6vw; }
+  .grain-hero .hero-side { left: var(--gutter); right: var(--gutter); top: calc(92px + 8.6vw * 2.2); width: auto; }
+  .grain-hero .hero-copy { font-size: 15.5px; }
+  .grain-hero .hero-object { top: 46%; }
+  .grain-hero .hero-thread { top: 71%; height: 22%; }
+  .grain-hero .bigword { --wsize: 21vw; bottom: 64px; }
+  .grain-hero .hero-next { bottom: 32%; }
+  .grain-hero .scroll-arrow { bottom: 18px; }
+}
+@media (max-width: 400px) {
+  .grain-hero .header-cta { padding: 10px 13px; font-size: 13px; gap: 8px; }
+}
+
+/* ───── Entrance ───── */
+.grain-hero .headline-line { overflow: hidden; padding-bottom: .09em; margin-bottom: -.09em; }
+.grain-hero .rise { display: inline-block; }
+@keyframes gh-fade-down { from { opacity: 0; transform: translateY(-10px); } }
+@keyframes gh-fade-up { from { opacity: 0; transform: translateY(14px); } }
+@keyframes gh-rise { from { transform: translateY(108%); } }
+@keyframes gh-fade { from { opacity: 0; } }
+@keyframes gh-object { from { opacity: 0; transform: translateY(36px) scale(.96); } }
+
+.grain-hero.intro:not(.go) :is(.site-header, .rise, .hero-copy, .ctas, .scroll-arrow, .bigword, .hero-object canvas) { opacity: 0; }
+.grain-hero.intro.go .bigword { animation: gh-fade-up 1.2s var(--ease) .05s both; }
+.grain-hero.intro.go .hero-object canvas { animation: gh-object 1.4s var(--ease) .15s both; }
+.grain-hero.intro.go .site-header { animation: gh-fade-down .8s var(--ease) .35s both; }
+.grain-hero.intro.go .headline-line:nth-child(1) .rise { animation: gh-rise 1s cubic-bezier(.2, .8, .1, 1) .45s both; }
+.grain-hero.intro.go .headline-line:nth-child(2) .rise { animation: gh-rise 1s cubic-bezier(.2, .8, .1, 1) .55s both; }
+.grain-hero.intro.go .hero-copy { animation: gh-fade-up .8s var(--ease) .75s both; }
+.grain-hero.intro.go .ctas { animation: gh-fade-up .8s var(--ease) .85s both; }
+.grain-hero.intro.go :is(.scroll-arrow) { animation: gh-fade 1s ease 1.05s both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .grain-hero.intro :is(.site-header, .rise, .hero-copy, .ctas, .scroll-arrow, .bigword, .hero-object canvas) { animation: none !important; opacity: 1 !important; }
+  .grain-hero .scroll-arrow svg { animation: none; }
+  .grain-hero, .grain-hero * { transition-duration: .01ms !important; }
+}
+
+/* ───── Status colours: meaning, not brand ─────
+   red = something is wrong / needs attention, green = good / done, amber = waiting on someone.
+   (The raspberry "approval" role colour is identity, not status, and stays as it is.) */
+.grain-hero { --ok: #15803d; --bad: #dc2626; --wait: #b45309; }
+.grain-hero[data-theme="dark"], .grain-hero .hw, .grain-hero .next-reveal { --ok: #3fcf8e; --bad: #ff5f57; --wait: #f5b942; }
+
+/* logo colours: the Siri family along the mark */
+.grain-hero { --lg-a: var(--o1-deep); --lg-b: var(--o3-deep); --lg-c: #db2777; }
+.grain-hero[data-theme="dark"], .grain-hero[data-surface="dark"] .site-header { --lg-a: var(--o1); --lg-b: var(--o3); --lg-c: var(--o2); }
