@@ -1,0 +1,364 @@
+/* v2 hero: clean and minimal. The Block G as a dark-metal 3D object (src/version2/brand/MarkObject.tsx) in
+   front of a huge Audiowide "GRAIN". Headline top-left, copy + buttons top-right,
+   a bobbing scroll arrow bottom-right. No dither, no dots.
+   Scroll: the hero is pinned for one extra screen. GrainHero writes --p (0–1): the G turns edge-on (0 → .5),
+   the page dims to the How it runs surface, and one line of light draws down from the G into that section. */
+
+@font-face { font-family: "General Sans"; src: url("/fonts/GeneralSans-Regular.otf") format("opentype"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "General Sans"; src: url("/fonts/GeneralSans-Medium.otf") format("opentype"); font-weight: 500; font-display: swap; }
+@font-face { font-family: "General Sans"; src: url("/fonts/GeneralSans-Semibold.otf") format("opentype"); font-weight: 600; font-display: swap; }
+@font-face { font-family: "Disket Mono"; src: url("/fonts/disket-mono-regular.ttf") format("truetype"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Audiowide"; src: url("/fonts/Audiowide-Regular.woff2") format("woff2"); font-weight: 400; font-display: block; }
+
+/* ───── Themes ───── */
+.grain-hero {
+  --sans: "General Sans", system-ui, sans-serif;
+  --mono: "Disket Mono", ui-monospace, monospace;
+  --ease: cubic-bezier(.2, .7, .1, 1);
+  --gutter: clamp(20px, 2.7vw, 54px);
+
+  /* light (default) */
+  --paper: #ffffff;
+  --ink: #0a0a0a;
+  --body: #404040;
+  --muted: #737373;
+  --soft: #a3a3a3;
+  --btn: #0a0a0a;
+  --btn-hover: #2a2a2a;
+  --btn-ink: #ffffff;
+  --btn-shadow: rgba(0, 0, 0, .14);
+  --line: rgba(0, 0, 0, .12);
+  --word: #f2f2f2;
+  --word-hi: #e4e4e4;
+  color-scheme: light;
+}
+.grain-hero[data-theme="dark"] {
+  --paper: #0a0a0a;
+  --ink: #fafafa;
+  --body: #a3a3a3;
+  --muted: #7a7a7a;
+  --soft: #737373;
+  --btn: #fafafa;
+  --btn-hover: #e2e2e2;
+  --btn-ink: #0a0a0a;
+  --btn-shadow: rgba(255, 255, 255, .08);
+  --line: rgba(255, 255, 255, .12);
+  --word: #161616;
+  --word-hi: #262626;
+  color-scheme: dark;
+}
+
+.grain-hero {
+  color: var(--ink);
+  background: var(--paper);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+  position: relative;
+  isolation: isolate;
+  transition: background-color .5s var(--ease), color .5s var(--ease);
+}
+.grain-hero, .grain-hero * { box-sizing: border-box; }
+.grain-hero a { color: inherit; text-decoration: none; }
+.grain-hero p { margin: 0; }
+
+/* ───── Stage ───── */
+.grain-hero { --p: 0;
+  --dim: clamp(0, calc((var(--p) - .18) * 3.6), 1);        /* page → How it runs surface */
+  --line-in: clamp(0, calc((var(--p) - .4) * 2.4), 1);   /* the line drawing down */
+  --next-in: clamp(0, calc((var(--p) - .44) * 2.8), 1);      /* How it runs heading */
+}
+.grain-hero .hero-scroll { position: relative; height: 240svh; }
+.grain-hero .hero-scroll > .hero { position: sticky; top: 0; }
+.grain-hero .how-anchor { position: absolute; left: 0; bottom: 100svh; width: 1px; height: 1px; }
+.grain-hero .hero {
+  position: relative; isolation: isolate; height: max(100svh, 680px); overflow: hidden;
+  background: var(--dark-bg); color: var(--dark-ink);
+}
+
+/* the wireframe mark (WireMark.tsx): one canvas over the whole stage. It reads the pointer from the window,
+   so it never blocks clicks; the scroll turn and fog-out happen in the canvas. */
+/* over the mark it is clickable: a click sends a ripple through it (WireMark) */
+.grain-hero .hero.mark-hot { cursor: pointer; }
+.grain-hero .hero-object { position: absolute; inset: 0; z-index: 1; display: block; width: 100%; height: 100%; pointer-events: none;
+  /* the mark owns the top of the stage, so its core and inner rings sit in clear space above the headline */
+  --mark-y: .37; --mark-scale: .8; }
+
+/* the line of light: from the G's centre down off the bottom of the screen, into How it runs */
+.grain-hero .hero-thread {
+  position: absolute; z-index: 3; left: 50%; top: 64%; width: 2px; height: 26%; margin-left: -1px;
+  transform-origin: top; transform: scaleY(var(--line-in)); opacity: min(1, calc(var(--line-in) * 3));
+  background: linear-gradient(to bottom, #fff, color-mix(in srgb, var(--dark-accent) 70%, transparent) 55%, transparent);
+  box-shadow: 0 0 14px 1px color-mix(in srgb, var(--dark-accent) 60%, transparent);
+  pointer-events: none;
+}
+
+/* How it runs introduces itself, centred above the line */
+.grain-hero .hero-next {
+  position: absolute; z-index: 4; left: var(--gutter); right: var(--gutter); bottom: 42%;
+  display: grid; justify-items: center; text-align: center; color: var(--dark-ink); pointer-events: none;
+  opacity: var(--next-in); transform: translateY(calc((1 - var(--next-in)) * 28px));
+}
+.grain-hero .hero-next h2 { margin: 0; font-size: clamp(40px, 5.6vw, 104px); font-weight: 500; letter-spacing: -0.05em; line-height: .95; text-wrap: balance; max-width: 12ch; }
+.grain-hero .next-lead { margin-top: 20px; max-width: 520px; font-size: clamp(15px, 1.2vw, 19px); line-height: 1.45; color: color-mix(in srgb, var(--dark-ink) 68%, transparent); }
+
+/* the text steps back as soon as you scroll */
+.grain-hero .hero-ui {
+  position: absolute; inset: 0; z-index: 5; pointer-events: none;
+  opacity: clamp(0, calc(1 - var(--p) * 3.4), 1);
+  transform: translateY(calc(var(--p) * -40px));
+}
+.grain-hero .hero-ui > * { pointer-events: auto; }
+
+.grain-hero {
+  --siri-navy: var(--o-navy); --siri-cyan: var(--o1); --siri-magenta: var(--o2); --siri-violet: var(--o3); --siri-teal: var(--o4);
+  /* a soft Siri mesh: blobs of light on the indigo base, not a stripe */
+  --grad: radial-gradient(60% 120% at 8% 40%, color-mix(in srgb, var(--o1) 90%, transparent), transparent 60%),
+          radial-gradient(60% 130% at 55% 110%, color-mix(in srgb, var(--o2) 85%, transparent), transparent 62%),
+          radial-gradient(55% 120% at 92% 10%, color-mix(in srgb, var(--o3) 90%, transparent), transparent 62%),
+          radial-gradient(30% 60% at 50% 45%, rgba(255, 255, 255, .55), transparent 70%),
+          var(--o-navy);
+  --next-bg: #ffffff; --next-ink: #0a0a0a; --next-muted: var(--o3-deep);
+  --dark-bg: #0a0a0a; --dark-ink: #fafafa; --dark-accent: var(--o3);
+}
+/* How it runs and the portal into it use the dark surface */
+.grain-hero .hw, .grain-hero .next-reveal { --next-bg: var(--dark-bg); --next-ink: var(--dark-ink); --next-muted: var(--dark-accent); }
+.grain-hero[data-theme="dark"] { --next-bg: #0a0a0a; --next-ink: #fafafa; --next-muted: var(--o3); }
+
+/* the nav steps aside while the hero hands over (filter, so it doesn't fight the intro animation) */
+
+/* ───── Header ───── */
+.grain-hero .site-header { position: fixed; top: 0; left: 0; right: 0; z-index: 50; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; height: 64px; padding: 0 var(--gutter); }  /* slim bar */
+.grain-hero .brand { justify-self: start; display: inline-flex; align-items: center; gap: 10px; font-size: 21px; font-weight: 600; letter-spacing: -0.045em; }
+.grain-hero .logo-mark { width: 26px; height: 26px; }
+.grain-hero .desktop-nav { display: flex; gap: clamp(4px, .8vw, 14px); font-size: 15px; letter-spacing: -0.015em; }
+/* nav tabs (v6, NavPill.tsx): one pill travels between the tabs. Its motion, stretch and soft edges are driven
+   from JS (transform / width / filter); here it's only the look: a hairline outline and a faint fill, like the hero
+   pills. currentColor-based, so it works over the dark hero, white sections and How it runs. */
+.grain-hero .desktop-nav { position: relative; isolation: isolate; }
+.grain-hero .desktop-nav a { position: relative; z-index: 1; padding: 7px 14px; border-radius: 999px;
+  color: color-mix(in srgb, currentColor 70%, transparent); transition: color .3s ease; }
+.grain-hero .desktop-nav a:hover, .grain-hero .desktop-nav a:focus-visible, .grain-hero .desktop-nav a.on { color: inherit; outline: none; }
+.grain-hero .nav-pill {
+  --mx: 50%; --my: 50%; --sk: 0;
+  position: absolute; z-index: 0; left: 0; top: 50%; height: 36px; width: 0; pointer-events: none;
+  border-radius: 999px; opacity: 0; transform-origin: center; will-change: transform, width, filter;
+  transition: --mx .28s var(--ease), --my .28s var(--ease), --sk .45s ease;
+}
+/* two copies of the outline: crisp everywhere except round the cursor, where the soft one shows instead */
+.grain-hero .nav-pill > i {
+  position: absolute; inset: 0; border-radius: inherit;
+  border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+  background: color-mix(in srgb, currentColor 9%, transparent);
+}
+.grain-hero .nav-pill .np-sharp {
+  -webkit-mask: radial-gradient(calc(var(--sk) * 84px + 1px) calc(var(--sk) * 58px + 1px) at var(--mx) var(--my), transparent 30%, #000 100%);
+          mask: radial-gradient(calc(var(--sk) * 84px + 1px) calc(var(--sk) * 58px + 1px) at var(--mx) var(--my), transparent 30%, #000 100%);
+}
+.grain-hero .nav-pill .np-soft {
+  /* the fogged edge has some body (a stronger, thicker outline before the blur), so it reads as soft, not just faded */
+  filter: blur(6px);
+  border: 2.5px solid color-mix(in srgb, currentColor 70%, transparent);
+  background: color-mix(in srgb, currentColor 16%, transparent);
+  -webkit-mask: radial-gradient(calc(var(--sk) * 84px + 1px) calc(var(--sk) * 58px + 1px) at var(--mx) var(--my), #000 30%, transparent 100%);
+          mask: radial-gradient(calc(var(--sk) * 84px + 1px) calc(var(--sk) * 58px + 1px) at var(--mx) var(--my), #000 30%, transparent 100%);
+}
+@property --mx { syntax: "<length-percentage>"; inherits: true; initial-value: 50%; }
+@property --my { syntax: "<length-percentage>"; inherits: true; initial-value: 50%; }
+@property --sk { syntax: "<number>"; inherits: true; initial-value: 0; }
+.grain-hero .scroll-cue { transition: opacity 180ms ease; }
+.grain-hero .scroll-cue:hover { opacity: .5; }
+.grain-hero .header-actions { justify-self: end; display: flex; align-items: center; gap: 10px; }
+
+.grain-hero .theme-toggle {
+  display: grid; place-items: center; width: 36px; height: 36px; padding: 0;
+  border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer;
+  transition: border-color 200ms ease, transform 300ms var(--ease);
+}
+.grain-hero .theme-toggle:hover { border-color: var(--ink); transform: rotate(-20deg); }
+.grain-hero .theme-toggle svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+
+
+/* ───── Hero layout (v6): headline centred over the mark, pills along the bottom ───── */
+.grain-hero .hero-center {
+  position: absolute; left: 50%; top: 71.5%; transform: translate(-50%, -50%);   /* under the mark; overlaps at most its outer ring */
+  width: max-content; max-width: calc(100% - 2 * var(--gutter));   /* hugs the text: the wireframe fogs behind exactly this box */
+  display: grid; justify-items: center; text-align: center; pointer-events: none;
+}
+.grain-hero h1 { margin: 0; font-size: clamp(40px, min(5.4vw, 8.2vh), 112px); font-weight: 500; line-height: .96; letter-spacing: -0.05em;
+  /* the wireframe passes behind the words: a soft shade of the stage keeps them clean */
+  text-shadow: 0 0 28px var(--dark-bg), 0 0 8px var(--dark-bg); }
+.grain-hero .headline-line { display: block; white-space: nowrap; text-wrap: balance; }
+.grain-hero .headline-line-muted { color: color-mix(in srgb, var(--dark-ink) 52%, transparent); font-weight: 400; }
+.grain-hero .hero-copy { margin-top: clamp(14px, 2vh, 24px); max-width: 600px; font-size: clamp(15px, 1.1vw, 18px); line-height: 1.5; letter-spacing: -0.01em;
+  color: color-mix(in srgb, var(--dark-ink) 66%, transparent); text-shadow: 0 0 18px var(--dark-bg); }
+
+/* pills: hairline outlines (no gloss). A patch of fog fills them on hover, like the nav tabs. currentColor-based. */
+.grain-hero .hero-pills { position: absolute; left: 0; right: 0; bottom: clamp(28px, 6vh, 64px); display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; padding: 0 var(--gutter); }
+.grain-hero .pill {
+  position: relative; isolation: isolate; overflow: hidden;
+  display: inline-flex; align-items: center; gap: 10px; padding: 14px 24px; border-radius: 999px;
+  font-size: 16px; font-weight: 500; letter-spacing: -0.015em; white-space: nowrap;
+  border: 1px solid color-mix(in srgb, currentColor 26%, transparent);
+  transition: border-color .4s ease;
+}
+.grain-hero .pill::before {
+  content: ""; position: absolute; inset: -40%; z-index: -1; border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, currentColor 22%, transparent), transparent);
+  filter: blur(12px); opacity: 0; transform: scale(.6); transition: opacity .5s ease, transform .6s var(--ease), filter .6s ease;
+}
+.grain-hero .pill:hover, .grain-hero .pill:focus-visible { outline: none; border-color: color-mix(in srgb, currentColor 55%, transparent); }
+.grain-hero .pill:hover::before, .grain-hero .pill:focus-visible::before { opacity: 1; transform: scale(1); filter: blur(6px); }
+.grain-hero .pill svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; transition: transform .3s var(--ease); }
+.grain-hero .pill:hover svg { transform: translate(2px, -2px); }
+.grain-hero .pill-solid { border-color: color-mix(in srgb, currentColor 60%, transparent); background: color-mix(in srgb, currentColor 7%, transparent); }
+.grain-hero .pill-sm { padding: 9px 16px; font-size: 14px; gap: 8px; }
+.grain-hero .pill-sm svg { width: 14px; height: 14px; }
+
+/* the nav over the dark hero, in either theme */
+.grain-hero:not(.past-hero) .site-header { color: var(--dark-ink); --ink: var(--dark-ink); --line: color-mix(in srgb, var(--dark-ink) 16%, transparent);
+  --lg-a: var(--o1); --lg-b: var(--o3); --lg-c: var(--o2); }
+
+/* ───── Scroll arrow (bottom-right): a plain arrow that bobs ───── */
+.grain-hero .scroll-arrow { position: absolute; right: var(--gutter); bottom: clamp(30px, 6vh, 66px); display: grid; place-items: center; width: 44px; height: 44px; color: var(--dark-ink); opacity: .7; }
+.grain-hero .scroll-arrow svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round;
+  animation: gh-bob 1.8s cubic-bezier(.45, 0, .55, 1) infinite; }
+.grain-hero .scroll-arrow:hover svg { animation-duration: .9s; }
+.grain-hero .scroll-arrow:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; border-radius: 50%; }
+@keyframes gh-bob { 0%, 100% { transform: translateY(-4px); } 50% { transform: translateY(6px); } }
+
+/* ───── Medium screens ───── */
+@media (max-width: 900px) {
+  .grain-hero .desktop-nav { display: none; }
+  .grain-hero .site-header { display: flex; justify-content: space-between; }
+}
+
+/* ───── Short screens (laptops at 720–800px tall): a smaller mark and a tighter text block ───── */
+@media (min-width: 761px) and (max-height: 800px) {
+  .grain-hero .hero-object { --mark-y: .355; --mark-scale: .7; }
+  .grain-hero .hero-center { top: 70%; }
+  .grain-hero h1 { font-size: clamp(38px, min(5vw, 7.6vh), 96px); }
+  .grain-hero .hero-copy { max-width: 680px; font-size: 15px; margin-top: 12px; }
+  .grain-hero .hero-pills { bottom: 24px; }
+  .grain-hero .pill { padding: 12px 20px; font-size: 15px; }
+}
+
+/* ───── Phones: headline wraps, the mark sits a little lower, pills stack in a row of two ───── */
+@media (max-width: 760px) {
+  .grain-hero .hero { height: max(100svh, 640px); }
+  .grain-hero .site-header { height: 58px; }
+  .grain-hero .header-cta { padding: 8px 13px; font-size: 13px; }
+  .grain-hero .theme-toggle { width: 34px; height: 34px; }
+  /* the mark rises into the top half, the text sits under it */
+  .grain-hero .hero-object { --mark-y: .3; --mark-scale: 1.3; }
+  .grain-hero .hero-center { top: 63%; transform: translate(-50%, -50%); }
+  .grain-hero h1 { font-size: clamp(38px, 11vw, 56px); }
+  .grain-hero .headline-line { white-space: normal; }
+  .grain-hero .hero-copy { font-size: 15.5px; max-width: 34ch; }
+  /* clears the palette picker (a review tool, bottom-left) */
+  .grain-hero .hero-pills { bottom: 88px; flex-wrap: nowrap; gap: 8px; }
+  .grain-hero .pill { padding: 11px 16px; font-size: 14.5px; }
+  .grain-hero .pill:nth-child(3) { display: none; }
+  .grain-hero .hero-thread { top: 66%; height: 24%; }
+  .grain-hero .hero-next { bottom: 34%; }
+  .grain-hero .scroll-arrow { bottom: 26px; }
+}
+@media (max-width: 400px) {
+  .grain-hero .header-cta svg { display: none; }
+}
+
+/* ───── Entrance ───── */
+.grain-hero .headline-line { overflow: hidden; padding-bottom: .09em; margin-bottom: -.09em; }
+.grain-hero .rise { display: inline-block; }
+@keyframes gh-fade-down { from { opacity: 0; transform: translateY(-10px); } }
+@keyframes gh-fade-up { from { opacity: 0; transform: translateY(14px); } }
+@keyframes gh-rise { from { transform: translateY(108%); } }
+@keyframes gh-fade { from { opacity: 0; } }
+@keyframes gh-object { from { opacity: 0; transform: translateY(36px) scale(.96); } }
+
+.grain-hero.intro:not(.go) :is(.site-header, .rise, .hero-copy, .hero-pills, .scroll-arrow, .hero-object) { opacity: 0; }
+.grain-hero.intro.go .hero-object { animation: gh-fade .6s ease both; }   /* the fog condenses in the canvas */
+.grain-hero.intro.go .site-header { animation: gh-fade-down .8s var(--ease) .35s backwards; }
+.grain-hero.intro.go .headline-line:nth-child(1) .rise { animation: gh-rise 1s cubic-bezier(.2, .8, .1, 1) .45s both; }
+.grain-hero.intro.go .headline-line:nth-child(2) .rise { animation: gh-rise 1s cubic-bezier(.2, .8, .1, 1) .55s both; }
+.grain-hero.intro.go .hero-copy { animation: gh-fade-up .8s var(--ease) .75s both; }
+.grain-hero.intro.go .hero-pills { animation: gh-fade-up .8s var(--ease) .85s both; }
+.grain-hero.intro.go :is(.scroll-arrow) { animation: gh-fade 1s ease 1.05s both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .grain-hero.intro :is(.site-header, .rise, .hero-copy, .hero-pills, .scroll-arrow, .hero-object) { animation: none !important; opacity: 1 !important; }
+  .grain-hero .scroll-arrow svg { animation: none; }
+  .grain-hero, .grain-hero * { transition-duration: .01ms !important; }
+}
+
+/* ───── Status colours: meaning, not brand ─────
+   red = something is wrong / needs attention, green = good / done, amber = waiting on someone.
+   (The raspberry "approval" role colour is identity, not status, and stays as it is.) */
+.grain-hero { --ok: #15803d; --bad: #dc2626; --wait: #b45309; }
+.grain-hero[data-theme="dark"], .grain-hero .hw, .grain-hero .next-reveal { --ok: #3fcf8e; --bad: #ff5f57; --wait: #f5b942; }
+
+/* logo colours: the Siri family along the mark */
+.grain-hero { --lg-a: var(--o1-deep); --lg-b: var(--o3-deep); --lg-c: #db2777; }
+.grain-hero[data-theme="dark"], .grain-hero[data-surface="dark"] .site-header { --lg-a: var(--o1); --lg-b: var(--o3); --lg-c: var(--o2); }
+
+/* ───── Nav (v6, after orchestrator.inc): no bar, no stroke, no divider. Logo left; tabs, theme and a solid CTA right.
+   It blends because of what's under it: .top-blur, a progressive blur (six backdrop layers, strongest at the top,
+   each feathered into the next) plus a tint that fades from the surface colour to nothing, so content scrolling up
+   simply softens and melts into the page. Overrides how-it-runs.css's bar. Surface: dark over the hero and How it
+   runs, the page colour elsewhere. ───── */
+.grain-hero.grain-hero.grain-hero .site-header.site-header {   /* specific enough to beat how-it-runs.css's per-surface bar */
+  --cap-bg: var(--dark-bg);
+  display: block; height: 76px; padding: 0;
+  background: transparent; border-bottom: 0; -webkit-backdrop-filter: none; backdrop-filter: none;
+  pointer-events: none;
+}
+.grain-hero.grain-hero.past-hero[data-surface="base"] .site-header.site-header { --cap-bg: var(--paper); }
+.grain-hero.grain-hero.past-hero[data-surface="inverse"] .site-header.site-header { --cap-bg: var(--next-bg); }
+
+.grain-hero .top-blur { position: absolute; z-index: 0; left: 0; right: 0; top: 0; height: 128px; pointer-events: none; }
+.grain-hero .top-blur > * { position: absolute; inset: 0; }
+/* layer k blurs 2^k × .75px and shows only in its own band (bands overlap and fade, so the steps never show) */
+.grain-hero .top-blur > i { -webkit-mask: var(--m); mask: var(--m); -webkit-backdrop-filter: blur(var(--b)); backdrop-filter: blur(var(--b)); }
+.grain-hero .top-blur > i:nth-of-type(1) { --b: .75px; --m: linear-gradient(to top, transparent 0%, #000 16%, #000 33%, transparent 50%); }
+.grain-hero .top-blur > i:nth-of-type(2) { --b: 1.5px; --m: linear-gradient(to top, transparent 16%, #000 33%, #000 50%, transparent 66%); }
+.grain-hero .top-blur > i:nth-of-type(3) { --b: 3px;   --m: linear-gradient(to top, transparent 33%, #000 50%, #000 66%, transparent 83%); }
+.grain-hero .top-blur > i:nth-of-type(4) { --b: 6px;   --m: linear-gradient(to top, transparent 50%, #000 66%, #000 83%, transparent 100%); }
+.grain-hero .top-blur > i:nth-of-type(5) { --b: 12px;  --m: linear-gradient(to top, transparent 66%, #000 83%, #000 100%); }
+.grain-hero .top-blur > i:nth-of-type(6) { --b: 24px;  --m: linear-gradient(to top, transparent 83%, #000 100%); }
+/* the lens (Chromium, via useLiquidGlass): bends what's under the nav in a smooth wave with an RGB fringe, under the
+   blur layers, its bottom masked away so it melts in; elsewhere it simply isn't there */
+.grain-hero .top-blur > .top-glass { display: none; text-decoration: none; }
+.grain-hero[data-lg] .top-blur > .top-glass {
+  display: block;
+  -webkit-mask: linear-gradient(to bottom, #000 0%, #000 62%, transparent 100%); mask: linear-gradient(to bottom, #000 0%, #000 62%, transparent 100%);
+  -webkit-backdrop-filter: var(--lg-filter) saturate(135%); backdrop-filter: var(--lg-filter) saturate(135%);
+}
+.grain-hero .top-blur > b {
+  background: linear-gradient(to bottom,
+    color-mix(in srgb, var(--cap-bg) 88%, transparent) 0%,
+    color-mix(in srgb, var(--cap-bg) 62%, transparent) 38%,
+    color-mix(in srgb, var(--cap-bg) 22%, transparent) 72%,
+    transparent 100%);
+  transition: background-color .35s ease;
+}
+
+.grain-hero .nav-bar {
+  pointer-events: auto; position: relative; z-index: 1;
+  /* three columns: logo · tabs (dead centre of the page) · CTA */
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px;
+  height: 76px; max-width: 1440px; margin: 0 auto; padding: 0 var(--gutter);
+}
+.grain-hero .nav-bar .brand { grid-column: 1; justify-self: start; font-size: 20px; gap: 9px; }
+.grain-hero .nav-bar .desktop-nav { grid-column: 2; }
+.grain-hero .nav-bar .header-actions { grid-column: 3; justify-self: end; }
+.grain-hero .nav-bar .logo-mark { width: 24px; height: 24px; }
+.grain-hero .nav-bar .desktop-nav { gap: 0; font-size: 15px; }
+.grain-hero .nav-bar .desktop-nav a { padding: 7px 13px; }
+.grain-hero .nav-bar .header-actions { gap: 8px; }
+.grain-hero .nav-bar .theme-toggle { width: 36px; height: 36px; border-color: transparent; }
+.grain-hero .nav-bar .theme-toggle:hover { border-color: transparent; background: color-mix(in srgb, currentColor 9%, transparent); }
+/* the CTA: solid, in the surface's ink (light on dark sections, dark on light ones) */
+.grain-hero .nav-bar .header-cta { border-color: transparent; background: var(--ink); color: var(--cap-bg); padding: 9px 16px; font-weight: 500; }
+.grain-hero .nav-bar .header-cta::before { display: none; }
+.grain-hero .nav-bar .header-cta:hover { border-color: transparent; opacity: .86; }
+@media (max-width: 1100px) { .grain-hero .nav-bar .desktop-nav a { padding: 7px 9px; } }
+@media (max-width: 760px) { .grain-hero .nav-bar, .grain-hero .site-header.site-header { height: 62px; } .grain-hero .top-blur { height: 100px; } }

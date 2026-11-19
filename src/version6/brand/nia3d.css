@@ -1,0 +1,21 @@
+/* 3D Nia (Nia3D.tsx): the canvas, plus the hearts and logo dots she throws off (DOM, so they stay crisp). */
+.nia3d { position: relative; display: grid; place-items: center; cursor: grab; touch-action: pan-y; -webkit-tap-highlight-color: transparent; outline: none; }
+.nia3d:active { cursor: grabbing; }
+.nia3d:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; border-radius: 24px; }
+.nia3d canvas { display: block; }
+.nia3d .n3-bit {
+  position: absolute; left: 50%; top: 46%; width: var(--s); height: var(--s); margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2);
+  pointer-events: none; animation: n3-fly 1.15s cubic-bezier(.2, .8, .3, 1) forwards;
+}
+.nia3d .n3-bit.dot { background: var(--c); border-radius: 2px; }
+.nia3d .n3-bit.heart {
+  background: var(--c);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 21s-7.5-4.6-9.5-9.2C1 8.2 3.4 4.5 7 4.5c2.1 0 3.6 1.1 5 3 1.4-1.9 2.9-3 5-3 3.6 0 6 3.7 4.5 7.3C19.5 16.4 12 21 12 21z'/%3E%3C/svg%3E") center / contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 21s-7.5-4.6-9.5-9.2C1 8.2 3.4 4.5 7 4.5c2.1 0 3.6 1.1 5 3 1.4-1.9 2.9-3 5-3 3.6 0 6 3.7 4.5 7.3C19.5 16.4 12 21 12 21z'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+@keyframes n3-fly {
+  0% { opacity: 0; transform: translate(0, 0) scale(.4) rotate(0deg); }
+  15% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1) rotate(25deg); }
+}
+@media (prefers-reduced-motion: reduce) { .nia3d .n3-bit { animation-duration: .01ms; } }

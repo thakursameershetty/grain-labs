@@ -1,0 +1,390 @@
+/* Sections after "How it runs": packet, capabilities, use cases, trust, CTA, footer.
+   Base sections use the page colours (paper in light, near-black in dark); Trust flips to the inverse
+   surface like How it runs. Rounded surfaces, General Sans, Disket Mono labels, warm accents. */
+
+.grain-hero .sx {
+  --x-bg: var(--paper); --x-ink: var(--ink); --x-body: var(--body); --x-muted: var(--muted); --x-accent: var(--btn);
+  --x-line: color-mix(in srgb, var(--ink) 11%, transparent);
+  --x-card: color-mix(in srgb, var(--ink) 3.5%, var(--paper));
+  --x-inset: color-mix(in srgb, var(--ink) 6%, var(--paper));
+  --c-input: var(--in-deep); --c-action: var(--o3-deep); --c-gate: var(--o2-deep); --c-output: var(--o1-deep);
+  position: relative; z-index: 2; background: var(--x-bg); color: var(--x-ink);
+  padding: clamp(96px, 14vh, 150px) 0;
+}
+.grain-hero[data-theme="dark"] .sx:not(.sx-trust) { --c-input: var(--in); --c-action: var(--o3); --c-gate: var(--o2); --c-output: var(--o1); --x-accent: var(--btn); }
+/* Trust uses the inverse surface (near-black in light theme, paper in dark theme) */
+.grain-hero .sx-trust {
+  --x-bg: var(--next-bg); --x-ink: var(--next-ink); --x-accent: var(--next-muted);
+  --x-body: color-mix(in srgb, var(--next-ink) 72%, transparent); --x-muted: color-mix(in srgb, var(--next-ink) 48%, transparent);
+  --x-line: color-mix(in srgb, var(--next-ink) 12%, transparent);
+  --x-card: color-mix(in srgb, var(--next-ink) 5%, var(--next-bg));
+  --x-inset: color-mix(in srgb, var(--next-ink) 8%, var(--next-bg));
+}
+.grain-hero:not([data-theme="dark"]) .sx-trust { --c-input: var(--in-deep); --c-action: var(--o3-deep); --c-gate: var(--o2-deep); --c-output: var(--o1-deep); }
+
+.grain-hero .sx-wrap { max-width: 1320px; margin: 0 auto; padding: 0 var(--gutter); }
+.grain-hero .sx h2 { margin: 0; font-size: clamp(36px, 4.4vw, 68px); font-weight: 500; letter-spacing: -0.045em; line-height: 1; text-wrap: balance; }
+.grain-hero .sx h2 em { font-style: normal; color: var(--x-accent); }
+.grain-hero .sx-kicker { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--x-accent); margin-bottom: 18px; }
+.grain-hero .sx-kicker::before { content: "■ "; }
+.grain-hero .sx-sub { margin-top: 20px; max-width: 560px; font-size: clamp(16px, 1.25vw, 19px); line-height: 1.45; color: var(--x-body); }
+.grain-hero .sx-head.center { text-align: center; }
+.grain-hero .sx-head.center .sx-sub { margin-left: auto; margin-right: auto; }
+
+/* reveal on scroll */
+.grain-hero .sx .rv { opacity: 0; transform: translateY(22px); transition: opacity .8s var(--ease), transform .9s var(--ease); transition-delay: var(--d, 0ms); }
+.grain-hero .sx .uc-grid.rv { transform: none; }   /* the grid fades; its cards do the rising */
+.grain-hero .sx .rv.in, .grain-hero .sx .rv[data-in] { opacity: 1; transform: none; }
+
+/* ───── 1 · packet ───── */
+.grain-hero .pk-grid { display: grid; grid-template-columns: 1fr 1.05fr; gap: clamp(40px, 6vw, 96px); align-items: center; }
+.grain-hero .pk-flow { list-style: none; margin: 40px 0 0; padding: 0; display: grid; gap: 0; max-width: 360px; }
+.grain-hero .pk-flow li { position: relative; padding: 10px 0 10px 28px; font-size: 15px; color: var(--x-body); }
+.grain-hero .pk-flow li::before { content: ""; position: absolute; left: 4px; top: 50%; width: 9px; height: 9px; margin-top: -5px; border-radius: 50%; border: 1.5px solid var(--x-accent); background: var(--x-bg); }
+.grain-hero .pk-flow li:not(:last-child)::after { content: ""; position: absolute; left: 8px; top: calc(50% + 6px); height: calc(100% - 12px); width: 1px; background: var(--x-line); }
+.grain-hero .pk-flow li:last-child { color: var(--x-ink); font-weight: 500; }
+.grain-hero .pk-flow li:last-child::before { background: var(--x-accent); }
+
+.grain-hero .pk-card { border-radius: 24px; border: 1px solid var(--x-line); background: var(--x-card); padding: 22px; box-shadow: 0 30px 60px -40px rgba(40, 20, 10, .35); }
+.grain-hero .pk-top { display: flex; align-items: center; gap: 12px; padding-bottom: 18px; border-bottom: 1px solid var(--x-line); }
+.grain-hero .pk-ico { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: color-mix(in srgb, var(--c-output) 16%, transparent); color: var(--c-output); }
+.grain-hero .pk-name { font-size: 17px; font-weight: 500; letter-spacing: -0.01em; }
+.grain-hero .pk-meta { margin-top: 2px; font-size: 13px; color: var(--x-muted); }
+.grain-hero .pk-badge { margin-left: auto; padding: 5px 11px; border-radius: 999px; font-size: 12px; font-weight: 500; color: var(--c-output); background: color-mix(in srgb, var(--c-output) 14%, transparent); }
+.grain-hero .pk-list { list-style: none; margin: 10px 0 0; padding: 0; }
+.grain-hero .pk-list button {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 11px 12px; border: 0; border-radius: 12px; background: transparent; color: var(--x-ink); font: 14px var(--sans); text-align: left; cursor: pointer;
+  transition: background .2s ease;
+}
+.grain-hero .pk-list button:hover { background: var(--x-inset); }
+.grain-hero .pk-list button.on { background: var(--x-inset); }
+.grain-hero .pk-file { display: inline-flex; align-items: center; gap: 9px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.grain-hero .pk-file .msym { flex: none; font-size: 18px; color: var(--x-accent); }
+.grain-hero .pk-st { flex: none; padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 500; }
+.grain-hero .st-verified { color: var(--c-output); background: color-mix(in srgb, var(--c-output) 13%, transparent); }
+.grain-hero .st-derived { color: var(--c-action); background: color-mix(in srgb, var(--c-action) 13%, transparent); }
+.grain-hero .st-adopted { color: var(--c-gate); background: color-mix(in srgb, var(--c-gate) 12%, transparent); }
+.grain-hero .st-review { color: var(--c-gate); background: color-mix(in srgb, var(--c-gate) 12%, transparent); }
+.grain-hero .pk-evidence { margin-top: 12px; padding: 16px; border-radius: 16px; background: var(--x-inset); animation: sx-pop .45s var(--ease); }
+@keyframes sx-pop { from { opacity: 0; transform: translateY(6px); } }
+.grain-hero .pk-ev-title { font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--x-accent); }
+.grain-hero .pk-evidence dl { display: grid; grid-template-columns: 96px 1fr; gap: 8px 14px; margin: 12px 0 0; font-size: 14px; }
+.grain-hero .pk-evidence dt { color: var(--x-muted); }
+.grain-hero .pk-evidence dd { margin: 0; color: var(--x-ink); }
+.grain-hero .pk-evidence dd.mono { font-family: var(--mono); font-size: 12px; letter-spacing: .03em; }
+
+/* ───── 2 · capabilities ───── */
+.grain-hero .cp-grid { margin-top: 64px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.grain-hero .cp-card {
+  display: flex; flex-direction: column; padding: 22px; border-radius: 20px; border: 1px solid var(--x-line); background: var(--x-card);
+  transition: transform .4s var(--ease), border-color .3s ease, box-shadow .4s ease;
+}
+.grain-hero .cp-card:hover { transform: translateY(-4px); border-color: color-mix(in srgb, var(--x-accent) 40%, transparent); box-shadow: 0 24px 50px -36px rgba(40, 20, 10, .45); }
+.grain-hero .cp-top { display: flex; justify-content: space-between; align-items: center; }
+.grain-hero .cp-ico { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: color-mix(in srgb, var(--x-accent) 14%, transparent); color: var(--x-accent); }
+.grain-hero .cp-card:nth-child(4n+2) .cp-ico { background: color-mix(in srgb, var(--c-input) 16%, transparent); color: var(--c-input); }
+.grain-hero .cp-card:nth-child(4n+3) .cp-ico { background: color-mix(in srgb, var(--c-gate) 13%, transparent); color: var(--c-gate); }
+.grain-hero .cp-card:nth-child(4n+4) .cp-ico { background: color-mix(in srgb, var(--c-output) 15%, transparent); color: var(--c-output); }
+.grain-hero .cp-n { font-family: var(--mono); font-size: 11px; color: var(--x-muted); }
+.grain-hero .cp-t { margin-top: 22px; font-size: 13px; font-weight: 500; color: var(--x-accent); }
+.grain-hero .cp-card h3 { margin: 6px 0 0; font-size: 19px; font-weight: 500; letter-spacing: -0.02em; line-height: 1.2; }
+.grain-hero .cp-m { margin-top: 10px; font-size: 14px; line-height: 1.45; color: var(--x-body); }
+.grain-hero .cp-e { margin-top: auto; padding-top: 16px; font-size: 13.5px; line-height: 1.45; color: var(--x-ink); }
+.grain-hero .cp-e span { display: block; margin: 0 0 4px; padding-top: 14px; border-top: 1px solid var(--x-line); font-size: 12px; color: var(--x-muted); }
+
+/* ───── 3 · use cases ───── */
+.grain-hero .uc-headrow { display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; flex-wrap: wrap; }
+.grain-hero .uc-filters { display: flex; flex-wrap: wrap; gap: 6px; padding: 5px; border-radius: 999px; border: 1px solid var(--x-line); background: var(--x-card); }
+.grain-hero .uc-filters button { padding: 8px 15px; border: 0; border-radius: 999px; background: transparent; color: var(--x-body); font: 500 14px var(--sans); cursor: pointer; transition: background .2s, color .2s; }
+.grain-hero .uc-filters button:hover { color: var(--x-ink); }
+.grain-hero .uc-filters button.on { background: var(--x-ink); color: var(--x-bg); }
+.grain-hero .uc-grid { margin-top: 48px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+/* cards rise in one after another: when the grid first appears and on every filter change */
+.grain-hero .uc-grid.in .uc-card, .grain-hero .uc-grid[data-in] .uc-card { animation: sx-rise .7s var(--ease) both; animation-delay: calc(var(--k) * 80ms + 120ms); }
+@keyframes sx-rise { from { opacity: 0; transform: translateY(18px); } }
+.grain-hero .uc-card {
+  display: flex; flex-direction: column; min-height: 250px; padding: 22px; border-radius: 20px; border: 1px solid var(--x-line); background: var(--x-card);
+  color: var(--x-ink); transition: transform .4s var(--ease), border-color .3s ease;
+}
+.grain-hero .uc-card:hover { transform: translateY(-4px); border-color: color-mix(in srgb, var(--x-accent) 40%, transparent); }
+.grain-hero .uc-chip { align-self: flex-start; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 500; }
+.grain-hero .uc-chip.g-1 { color: var(--c-action); background: color-mix(in srgb, var(--c-action) 13%, transparent); }
+.grain-hero .uc-chip.g-2 { color: var(--c-gate); background: color-mix(in srgb, var(--c-gate) 12%, transparent); }
+.grain-hero .uc-chip.g-3 { color: var(--c-output); background: color-mix(in srgb, var(--c-output) 13%, transparent); }
+.grain-hero .uc-card h3 { margin: 18px 0 0; font-size: 19px; font-weight: 500; letter-spacing: -0.02em; line-height: 1.2; }
+.grain-hero .uc-card p { margin-top: 10px; font-size: 14px; line-height: 1.45; color: var(--x-body); }
+.grain-hero .uc-foot { margin-top: auto; padding-top: 18px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.grain-hero .uc-fleet { font-family: var(--mono); font-size: 10.5px; letter-spacing: .03em; color: var(--x-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.grain-hero .uc-go { flex: none; display: inline-flex; align-items: center; gap: 2px; font-size: 13px; font-weight: 500; color: var(--x-accent); }
+
+/* ───── 4 · trust ───── */
+.grain-hero .tr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(40px, 6vw, 96px); align-items: center; }
+.grain-hero .tr-pillars { list-style: none; margin: 40px 0 0; padding: 0; display: grid; gap: 6px; }
+.grain-hero .tr-pillar { display: grid; grid-template-columns: 42px 1fr; gap: 14px; align-items: start; padding: 14px; border-radius: 16px; transition: background .25s ease; }
+.grain-hero .tr-pillar:hover { background: var(--x-card); }
+.grain-hero .tr-ico { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: color-mix(in srgb, var(--x-accent) 16%, transparent); color: var(--x-accent); }
+.grain-hero .tr-pillar b { display: block; font-size: 17px; font-weight: 500; letter-spacing: -0.01em; }
+.grain-hero .tr-pillar div span { display: block; margin-top: 4px; font-size: 14.5px; line-height: 1.45; color: var(--x-body); }
+.grain-hero .tr-audit { border-radius: 22px; border: 1px solid var(--x-line); background: var(--x-card); overflow: hidden; }
+.grain-hero .tr-audit-bar { display: flex; align-items: center; gap: 7px; padding: 14px 18px; border-bottom: 1px solid var(--x-line); }
+.grain-hero .tr-audit-bar i { width: 10px; height: 10px; border-radius: 50%; background: var(--x-line); }
+.grain-hero .tr-audit-bar i:nth-child(1) { background: var(--c-gate); opacity: .8; }
+.grain-hero .tr-audit-bar i:nth-child(2) { background: var(--c-input); opacity: .8; }
+.grain-hero .tr-audit-bar i:nth-child(3) { background: var(--c-output); opacity: .8; }
+.grain-hero .tr-audit-bar span { margin-left: 8px; font-family: var(--mono); font-size: 11px; letter-spacing: .04em; color: var(--x-muted); }
+.grain-hero .tr-audit pre { margin: 0; padding: 22px 24px; min-height: 292px; font-family: var(--mono); font-size: 13.5px; line-height: 1.85; color: var(--x-body); white-space: pre; overflow-x: auto; }
+.grain-hero .tr-audit .k { color: var(--x-accent); }
+.grain-hero .tr-audit .v { color: var(--x-ink); }
+.grain-hero .tr-audit .w { color: var(--c-output); }
+.grain-hero .tr-line { animation: sx-pop .35s var(--ease); }
+.grain-hero .tr-caret { color: var(--x-accent); animation: tr-blink 1s steps(2) infinite; }
+@keyframes tr-blink { 50% { opacity: 0; } }
+.grain-hero .tr-note { padding: 14px 24px 18px; border-top: 1px solid var(--x-line); font-size: 13.5px; color: var(--x-body); }
+
+/* ───── 5 · CTA + footer ───── */
+
+.grain-hero .sx-foot { position: relative; z-index: 2; background: var(--paper); color: var(--ink); padding: 24px 0 0; overflow: hidden; }
+.grain-hero .ft-row { display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; padding-bottom: 18px; border-bottom: 1px solid color-mix(in srgb, var(--ink) 11%, transparent); }
+.grain-hero .ft-brand { display: inline-flex; align-items: center; gap: 9px; font-size: 20px; font-weight: 600; letter-spacing: -0.04em; }
+.grain-hero .ft-brand svg { width: 20px; height: 20px; color: var(--btn); }
+.grain-hero .ft-links { display: flex; flex-wrap: wrap; gap: 22px; font-size: 14px; color: var(--body); }
+.grain-hero .ft-links a:hover { color: var(--ink); }
+.grain-hero .ft-copy { font-size: 13px; color: var(--muted); }
+.grain-hero .ft-word { margin: 0; font-family: "Zen Dots", var(--sans); font-size: 21.5vw; line-height: .78; text-align: center; color: var(--word); transform: translateY(8%); user-select: none; }
+
+/* ───── responsive ───── */
+@media (max-width: 1100px) {
+  .grain-hero .cp-grid, .grain-hero .uc-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 900px) {
+  .grain-hero .pk-grid, .grain-hero .tr-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .grain-hero .cp-grid, .grain-hero .uc-grid { grid-template-columns: 1fr; }
+  .grain-hero .uc-card { min-height: 0; }
+  .grain-hero .pk-evidence dl { grid-template-columns: 1fr; gap: 2px; }
+  .grain-hero .pk-evidence dd { margin-bottom: 8px; }
+  .grain-hero .pk-badge { display: none; }
+  .grain-hero .uc-filters { border-radius: 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .grain-hero .sx .rv { opacity: 1; transform: none; transition: none; }
+  .grain-hero .uc-grid.in .uc-card, .grain-hero .uc-grid[data-in] .uc-card { animation: none; }
+}
+
+/* ═══════════════ Interactions ═══════════════ */
+
+/* ───── packet: lineage graph ───── */
+.grain-hero .pk-grid { grid-template-columns: 0.75fr 1.25fr; }
+.grain-hero .pk-hint { margin-top: 28px; font-family: var(--mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--x-muted); }
+.grain-hero .pk-hint::before { content: "↳ "; color: var(--x-accent); }
+.grain-hero .pk-badge.building { color: var(--c-action); background: color-mix(in srgb, var(--c-action) 13%, transparent); }
+.grain-hero .pk-body { position: relative; display: grid; grid-template-columns: 0.85fr 1.15fr; gap: 72px; margin-top: 16px; }
+.grain-hero .pk-col-h { margin: 0 0 8px 2px; font-family: var(--mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--x-muted); }
+.grain-hero .pk-wires { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.grain-hero .pk-wires path { fill: none; stroke: var(--x-line); stroke-width: 1.2; opacity: 0; transition: opacity .5s ease, stroke .3s ease, stroke-width .3s ease; }
+.grain-hero .pk-wires path.on { opacity: 1; }
+.grain-hero .pk-wires path.lit { stroke: var(--x-accent); stroke-width: 1.8; stroke-dasharray: 5 5; animation: pk-flow 1s linear infinite; }
+@keyframes pk-flow { to { stroke-dashoffset: -10; } }
+.grain-hero .pk-inputs { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.grain-hero .pk-inputs li {
+  display: flex; align-items: center; gap: 7px; padding: 7px 10px; border-radius: 10px; border: 1px solid var(--x-line);
+  font-size: 12.5px; color: var(--x-muted); background: var(--x-bg); white-space: nowrap; overflow: hidden;
+  transition: color .3s ease, border-color .3s ease, background .3s ease, transform .3s var(--ease);
+}
+.grain-hero .pk-inputs li span { overflow: hidden; text-overflow: ellipsis; }
+.grain-hero .pk-inputs li .msym { font-size: 16px; color: var(--x-muted); flex: none; }
+.grain-hero .pk-inputs li.lit { color: var(--x-ink); border-color: color-mix(in srgb, var(--x-accent) 55%, transparent); background: color-mix(in srgb, var(--x-accent) 8%, var(--x-bg)); transform: translateX(3px); }
+.grain-hero .pk-inputs li.lit .msym { color: var(--x-accent); }
+.grain-hero .pk-list { margin-top: 0; }
+.grain-hero .pk-list li { opacity: 0; transform: translateX(-12px); transition: opacity .5s var(--ease), transform .6s var(--ease); }
+.grain-hero .pk-list li.arrived { opacity: 1; transform: none; }
+.grain-hero .pk-list button { padding: 9px 10px; font-size: 13.5px; }
+.grain-hero .pk-spin { flex: none; font-family: var(--mono); font-size: 13px; color: var(--c-action); padding: 0 10px; }
+
+/* ───── capabilities: spotlight, tilt, terminal line ───── */
+.grain-hero .cp-card {
+  position: relative; isolation: isolate;
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform .35s var(--ease), border-color .3s ease, box-shadow .4s ease;
+}
+.grain-hero .cp-card:hover { transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(-4px); }
+.grain-hero .cp-card::before, .grain-hero .uc-card::before {
+  content: ""; position: absolute; inset: -1px; z-index: -1; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .3s ease;
+  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), color-mix(in srgb, var(--x-accent) 14%, transparent), transparent 70%);
+}
+.grain-hero .cp-card:hover::before, .grain-hero .uc-card:hover::before { opacity: 1; }
+.grain-hero .cp-log {
+  margin-top: 14px; padding: 9px 11px; border-radius: 10px; background: var(--x-inset);
+  display: flex; gap: 7px; align-items: baseline; min-height: 34px;
+  font-family: var(--mono); font-size: 11px; letter-spacing: .02em; color: var(--x-muted); white-space: nowrap; overflow: hidden;
+  transition: color .25s ease, background .25s ease;
+}
+.grain-hero .cp-prompt { color: var(--x-accent); }
+.grain-hero .cp-card.live .cp-log { color: var(--x-ink); background: color-mix(in srgb, var(--x-accent) 10%, var(--x-inset)); }
+.grain-hero .cp-caret { color: var(--x-accent); animation: tr-blink .8s steps(2) infinite; }
+
+/* ───── use cases: the fleet runs on hover ───── */
+.grain-hero .uc-card { position: relative; isolation: isolate; transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); }
+.grain-hero .uc-card:hover { transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(-4px); }
+.grain-hero .uc-pipe { list-style: none; margin: 16px 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); position: relative; }
+.grain-hero .uc-pipe::before { content: ""; position: absolute; left: 5px; right: calc(25% - 5px); top: 5px; height: 1px; background: var(--x-line); }
+.grain-hero .uc-pipe::after {
+  content: ""; position: absolute; left: 5px; right: calc(25% - 5px); top: 5px; height: 1px; background: var(--x-accent);
+  transform-origin: left; transform: scaleX(0); transition: transform .9s var(--ease);
+}
+.grain-hero .uc-card:hover .uc-pipe::after { transform: scaleX(1); }
+.grain-hero .uc-pipe li { position: relative; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.grain-hero .uc-pipe i { width: 11px; height: 11px; border-radius: 50%; border: 1.5px solid var(--x-line); background: var(--x-card); position: relative; z-index: 1; transition: background .25s ease, border-color .25s ease, box-shadow .25s ease; }
+.grain-hero .uc-pipe b { margin-top: 6px; font-family: var(--mono); font-size: 9.5px; font-weight: 400; letter-spacing: .06em; text-transform: uppercase; color: var(--x-muted); }
+.grain-hero .uc-pipe span { font-size: 11.5px; line-height: 1.3; color: var(--x-muted); opacity: 0; transform: translateY(4px); transition: opacity .3s ease, transform .3s var(--ease); padding-right: 6px; }
+.grain-hero .uc-card:hover .uc-pipe i { animation: uc-on .35s var(--ease) both; animation-delay: calc(var(--s) * 240ms); }
+.grain-hero .uc-card:hover .uc-pipe span { opacity: 1; transform: none; color: var(--x-ink); transition-delay: calc(var(--s) * 240ms + 80ms); }
+.grain-hero .uc-card:hover .uc-pipe b { color: var(--x-accent); }
+@keyframes uc-on { to { background: var(--x-accent); border-color: var(--x-accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--x-accent) 18%, transparent); } }
+.grain-hero .uc-card:hover .uc-pipe li:last-child i { animation-name: uc-on-out; }
+@keyframes uc-on-out { to { background: var(--ok); border-color: var(--ok); box-shadow: 0 0 0 4px color-mix(in srgb, var(--ok) 22%, transparent); } }
+.grain-hero .uc-card { min-height: 300px; }
+
+/* ───── trust: pillars light up the log; private journal ───── */
+.grain-hero .tr-pillar { cursor: default; outline: none; border: 1px solid transparent; }
+.grain-hero .tr-pillar.on { background: var(--x-card); border-color: var(--x-line); }
+.grain-hero .tr-pillar.on .tr-ico { background: var(--x-accent); color: var(--x-bg); }
+.grain-hero .tr-pillar:focus-visible { border-color: var(--x-accent); }
+.grain-hero .tr-line { display: inline; border-radius: 4px; transition: background .3s ease; }
+.grain-hero .tr-line.hl { background: color-mix(in srgb, var(--x-accent) 18%, transparent); box-shadow: -6px 0 0 color-mix(in srgb, var(--x-accent) 18%, transparent), 6px 0 0 color-mix(in srgb, var(--x-accent) 18%, transparent); }
+.grain-hero .tr-line.hl .k { color: var(--x-ink); }
+.grain-hero .tr-audit pre { min-height: 330px; }
+.grain-hero .tr-tabs { margin-left: auto; display: flex; gap: 4px; padding: 3px; border-radius: 999px; background: var(--x-bg); border: 1px solid var(--x-line); }
+.grain-hero .tr-tabs button { display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px; border: 0; border-radius: 999px; background: transparent; color: var(--x-muted); font: 500 12px var(--sans); cursor: pointer; transition: background .2s, color .2s; }
+.grain-hero .tr-tabs button.on { background: var(--x-card); color: var(--x-ink); box-shadow: 0 0 0 1px var(--x-line); }
+.grain-hero .tr-audit-bar span:not(:empty) { display: none; }
+.grain-hero .tr-journal { position: relative; }
+.grain-hero .tr-journal pre { min-height: 250px; white-space: pre-wrap; word-break: break-word; padding-bottom: 80px; }
+.grain-hero .tr-line.locked .v { color: var(--x-muted); letter-spacing: .04em; }
+.grain-hero .tr-unlock {
+  position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%);
+  display: inline-flex; align-items: center; gap: 7px; padding: 10px 18px; border-radius: 999px;
+  border: 1px solid var(--x-accent); background: var(--x-accent); color: var(--x-bg); font: 500 14px var(--sans); cursor: pointer;
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--x-accent) 30%, transparent); animation: wf-nudge 1.8s ease-in-out infinite;
+}
+.grain-hero .tr-unlock:hover { transform: translateX(-50%) translateY(-1px); }
+.grain-hero .tr-granted { position: absolute; left: 24px; bottom: 22px; font-family: var(--mono); font-size: 11.5px; color: var(--ok); }
+@keyframes wf-nudge { 50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--x-accent) 22%, transparent); } }
+
+
+/* ───── narrow ───── */
+@media (max-width: 700px) {
+  .grain-hero .pk-body { grid-template-columns: 1fr; gap: 18px; }
+  .grain-hero .pk-wires { display: none; }
+  .grain-hero .pk-inputs { grid-template-columns: 1fr 1fr; }
+  .grain-hero .uc-pipe span { display: none; }
+  .grain-hero .uc-card { min-height: 0; }
+  .grain-hero .tr-tabs button { padding: 5px 8px; font-size: 11px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .grain-hero .pk-list li { opacity: 1; transform: none; }
+  .grain-hero .pk-wires path.lit, .grain-hero .tr-unlock { animation: none; }
+  .grain-hero .uc-card:hover .uc-pipe i { animation-duration: .01ms; animation-delay: 0ms; }
+}
+
+/* ───── seam (v4): no fade. The light page rises over How it runs as a sheet with rounded top corners.
+   Its corners start wide and tighten as it scrolls into view (scroll-driven; a static rounded sheet where
+   scroll timelines aren't supported). A hairline of the logo's rust runs along its edge. */
+.grain-hero .seam {
+  position: relative; z-index: 2; height: clamp(56px, 8vh, 96px); background: var(--dark-bg);
+  --seam-in: 0;   /* 0 = wide corners, 1 = tight */
+}
+.grain-hero .seam::before {
+  content: ""; position: absolute; bottom: -1px; height: calc(100% + 1px);
+  left: 0; right: 0;
+  background: var(--paper);
+  border-radius: calc(18px + (1 - var(--seam-in)) * clamp(24px, 4vw, 64px)) calc(18px + (1 - var(--seam-in)) * clamp(24px, 4vw, 64px)) 0 0;
+  box-shadow: 0 -1px 0 color-mix(in srgb, var(--o3-deep) 55%, transparent);
+}
+@property --seam-in { syntax: "<number>"; inherits: true; initial-value: 0; }
+@supports (animation-timeline: view()) {
+  .grain-hero .seam { animation: seam-open linear both; animation-timeline: view(); animation-range: entry 0% exit 10%; }
+  @keyframes seam-open { from { --seam-in: 0; } to { --seam-in: 1; } }
+}
+.grain-hero[data-theme="dark"] .seam { display: none; }
+.grain-hero .seam + .sx { padding-top: clamp(28px, 4vh, 56px); }
+
+/* phones: the packet stacks to one column (this must come after the 0.75fr/1.25fr rule above) */
+@media (max-width: 900px) {
+  .grain-hero .pk-grid { grid-template-columns: minmax(0, 1fr); }
+  .grain-hero .pk-card { min-width: 0; }
+}
+
+
+
+/* Packet: centred three-line headline with icon tiles in the text; the packet card sits below it */
+.grain-hero .sx-packet .pk-grid { grid-template-columns: minmax(0, 1fr); gap: clamp(40px, 5vw, 64px); justify-items: center; }
+.grain-hero .sx-packet .pk-intro { text-align: center; }
+.grain-hero .sx-packet .pk-card { width: 100%; max-width: 980px; }
+.grain-hero .sx-packet h2 { font-size: clamp(34px, 5.4vw, 84px); line-height: 1.06; letter-spacing: -0.05em; text-wrap: initial; }
+.grain-hero .pk-line { display: block; white-space: nowrap; }
+.grain-hero .pk-hint { text-align: center; }
+/* the tile (v4): a flat squircle in the logo's own sequence (rust → coral → peach → ink), about a cap-height tall,
+   sitting on the baseline like a glyph. No gradient blobs: one solid colour, a hairline top highlight and a soft
+   contact shadow, so it reads like an enamel key cap set into the line. */
+.grain-hero .it {
+  --t-bg: var(--o3-deep); --t-ink: #fff;
+  position: relative; display: inline-block; vertical-align: -0.08em;   /* inline-block + overflow: its baseline is its bottom edge */
+  width: 0; height: .9em; margin: 0; border-radius: 26%; overflow: hidden; color: var(--t-ink); background: var(--t-bg);
+  box-shadow: inset 0 .018em 0 rgba(255, 255, 255, .28), inset 0 -.03em 0 rgba(0, 0, 0, .1),
+              0 .05em .12em -.03em color-mix(in srgb, var(--ink) 30%, transparent);
+  /* hidden: no width, so the sentence reads as plain text; small */
+  opacity: 0; transform: scale(.6) rotate(-8deg);
+  --at: calc(1200ms + var(--k) * 260ms);
+  transition: width .9s cubic-bezier(.65, 0, .25, 1) var(--at), margin .9s cubic-bezier(.65, 0, .25, 1) var(--at),
+              opacity .5s ease calc(var(--at) + 250ms), transform .8s cubic-bezier(.34, 1.5, .64, 1) calc(var(--at) + 250ms);
+}
+/* arriving: the tile opens its own space in the line (the words slide apart), then settles in */
+.grain-hero .rv[data-in] .it, .grain-hero .rv.in .it { width: .9em; opacity: 1; transform: none; }
+.grain-hero .rv[data-in] .it.tail, .grain-hero .rv.in .it.tail { margin-right: .24em; }
+.grain-hero .rv[data-in] .it.lead, .grain-hero .rv.in .it.lead { margin-left: .24em; margin-right: .03em; }
+.grain-hero .it[data-arrived] { transition: transform .35s cubic-bezier(.34, 1.4, .64, 1); }
+.grain-hero .rv[data-in] .it[data-arrived]:hover { transform: translateY(-.04em) rotate(-6deg); }
+.grain-hero .it > div { position: absolute; inset: 0; display: grid; place-items: center; }
+.grain-hero .it svg { width: 52% !important; height: 52% !important; stroke-width: 2.2; }
+/* the logo's sequence; each palette supplies its own rust/coral */
+.grain-hero .it-orb { --t-bg: var(--o3-deep); }
+.grain-hero .it-violet { --t-bg: var(--o3); }
+.grain-hero .it-cyan { --t-bg: color-mix(in srgb, var(--o3) 38%, var(--paper)); --t-ink: var(--o3-deep); }
+.grain-hero .it-rasp { --t-bg: var(--ink); --t-ink: var(--paper); }
+@media (max-width: 700px) {
+  .grain-hero .pk-line { white-space: normal; display: inline; }
+}
+@media (prefers-reduced-motion: reduce) { .grain-hero .it { transition: none !important; } }
+.grain-hero .sx-packet .sx-sub { max-width: 620px; text-wrap: balance; }
+
+/* ───── CTA: no box, no orb. Two big lines on the page, foggy round the cursor, the hero's pills ───── */
+.grain-hero .sx-cta { padding: clamp(96px, 14vh, 160px) 0 clamp(40px, 6vh, 72px); }
+.grain-hero .ct-wrap { display: grid; justify-items: center; text-align: center; }
+.grain-hero .sx h2.ct-title {   /* beats the generic .sx h2 size */
+  --mx: 50%; --my: 50%; --sk: 0;
+  position: relative; display: grid; cursor: default;
+  font-size: clamp(26px, 8.4vw, 104px); letter-spacing: -0.055em; line-height: .98;
+}
+.grain-hero .ct-title > span { grid-area: 1 / 1; display: grid; }
+.grain-hero .ct-title > span > span { white-space: nowrap; }           /* always exactly two lines */
+.grain-hero .ct-sharp {
+  -webkit-mask: radial-gradient(circle calc(var(--sk) * 150px + .5px) at var(--mx) var(--my), rgb(0 0 0 / 0) 0%, rgb(0 0 0 / .05) 25%, rgb(0 0 0 / .22) 45%, rgb(0 0 0 / .52) 62%, rgb(0 0 0 / .82) 80%, #000 100%);
+          mask: radial-gradient(circle calc(var(--sk) * 150px + .5px) at var(--mx) var(--my), rgb(0 0 0 / 0) 0%, rgb(0 0 0 / .05) 25%, rgb(0 0 0 / .22) 45%, rgb(0 0 0 / .52) 62%, rgb(0 0 0 / .82) 80%, #000 100%);
+}
+/* the soft copy reaches 48px past the text on every side (padding cancelled by the margin), so the blur can fade
+   out freely instead of being cut along the text box's edge; its mask is shifted by the same 48px */
+.grain-hero .ct-soft {
+  --pad: 48px; margin: calc(var(--pad) * -1); padding: var(--pad);
+  filter: blur(9px); will-change: transform; pointer-events: none;
+  -webkit-mask: radial-gradient(circle calc(var(--sk) * 150px + .5px) at calc(var(--mx) + var(--pad)) calc(var(--my) + var(--pad)), #000 0%, rgb(0 0 0 / .95) 25%, rgb(0 0 0 / .78) 45%, rgb(0 0 0 / .48) 62%, rgb(0 0 0 / .18) 80%, rgb(0 0 0 / 0) 100%);
+          mask: radial-gradient(circle calc(var(--sk) * 150px + .5px) at calc(var(--mx) + var(--pad)) calc(var(--my) + var(--pad)), #000 0%, rgb(0 0 0 / .95) 25%, rgb(0 0 0 / .78) 45%, rgb(0 0 0 / .48) 62%, rgb(0 0 0 / .18) 80%, rgb(0 0 0 / 0) 100%);
+}
+.grain-hero .sx-cta .sx-sub { margin: 26px auto 0; max-width: 520px; text-wrap: balance; }
+.grain-hero .ct-actions { margin-top: 38px; display: flex; justify-content: center; align-items: center; gap: 12px; flex-wrap: wrap; }
+.grain-hero .ct-actions .pill { color: var(--ink); }
+/* Start a workflow: the beam button, like Send in the contact form, sized to match the pill beside it */
+.grain-hero .ct-actions .ct-go { padding: 14px 24px; gap: 8px; font-size: 16px; font-weight: 500; letter-spacing: -0.015em; background: var(--btn); color: var(--btn-ink); }
+.grain-hero .ct-actions .ct-go:hover { background: var(--btn); color: var(--btn-ink); }

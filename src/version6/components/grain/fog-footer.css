@@ -1,0 +1,42 @@
+/* FogFooter (v6): simple type over soft pastel smoke. Aligns with the nav (max 1440px, page gutters). */
+.grain-hero .ff { position: relative; z-index: 2; overflow: hidden; isolation: isolate; background: var(--paper); color: var(--ink); }
+.grain-hero .ff-smoke { position: absolute; inset: 0; z-index: -1; width: 100%; height: 100%; display: block; pointer-events: none; }
+.grain-hero .ff-wrap { max-width: 1440px; margin: 0 auto; padding: clamp(96px, 14vh, 160px) var(--gutter) clamp(40px, 6vh, 64px); }
+
+.grain-hero .ff-r { opacity: 0; transform: translateY(10px); filter: blur(6px); transition: opacity .9s cubic-bezier(.2, .7, .1, 1), transform 1s cubic-bezier(.2, .7, .1, 1), filter .9s ease; transition-delay: calc(var(--d, 0) * 1ms); }
+.grain-hero .ff-in .ff-r { opacity: 1; transform: none; filter: none; }
+
+.grain-hero .ff-top { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: clamp(48px, 8vw, 140px); align-items: start; }
+.grain-hero .ff-brand { display: grid; gap: 16px; justify-items: start; }
+.grain-hero .ff-logo { display: inline-flex; align-items: center; gap: 12px; font-size: clamp(30px, 2.6vw, 40px); font-weight: 600; letter-spacing: -0.05em; color: var(--ink); text-decoration: none; }
+.grain-hero .ff-mark { width: 1.05em; height: 1.05em; }
+.grain-hero .ff-brand p { margin: 4px 0 0; max-width: 32ch; font-size: 16px; line-height: 1.5; color: var(--body); }
+.grain-hero .ff-go { display: inline-flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 17px; font-weight: 500; color: var(--ink); text-decoration: none; transition: gap .3s cubic-bezier(.3, 1.4, .5, 1), opacity .2s ease; }
+.grain-hero .ff-go:hover { gap: 12px; }
+.grain-hero .ff-go svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+.grain-hero .ff-cols { display: grid; grid-template-columns: repeat(3, auto); gap: clamp(40px, 5vw, 96px); }
+.grain-hero .ff-col h3 { margin: 0 0 22px; font-size: 15.5px; font-weight: 500; letter-spacing: -0.01em; color: var(--ink); }
+.grain-hero .ff-col ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; justify-items: start; }
+.grain-hero .ff-list { position: relative; isolation: isolate; margin-left: -12px; }   /* room for the pill's padding */
+.grain-hero .ff-list ul { position: relative; z-index: 1; padding-left: 12px; }
+.grain-hero .ff-col a { position: relative; font-size: 15.5px; color: var(--muted); text-decoration: none; transition: color .2s ease; }
+/* the pill: the nav pill's look (sharp/soft outline pair), positioned and sized by usePillList */
+.grain-hero .ff-list .ff-pill { top: 0; left: 0; height: 0; border-radius: 12px; }   /* beats the nav pill's centred placement */
+.grain-hero .ff-col a:hover { color: var(--ink); }
+
+.grain-hero .ff-bottom { margin-top: clamp(72px, 11vh, 128px); display: grid; gap: 14px; max-width: 760px; }
+.grain-hero .ff-copy { margin: 0; font-size: 15.5px; color: var(--body); }
+.grain-hero .ff-about { margin: 0; font-size: 13.5px; line-height: 1.6; color: var(--muted); }
+
+@media (max-width: 960px) {
+  .grain-hero .ff-top { grid-template-columns: 1fr; }
+  .grain-hero .ff-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 520px) { .grain-hero .ff-cols { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .grain-hero .ff-r { opacity: 1; transform: none; filter: none; transition: none; } }
+
+/* Nia beside her link; winks on hover (see Nia.tsx m-wink) */
+.grain-hero .ff-col a.ff-nia { display: inline-flex; align-items: center; gap: 7px; }
+.grain-hero .ff-nia .ff-nia-mark { margin: -6px 0; transition: transform .35s cubic-bezier(.3, 1.6, .5, 1); }
+.grain-hero .ff-nia:hover .ff-nia-mark, .grain-hero .ff-nia:focus-visible .ff-nia-mark { transform: scale(1.12); }

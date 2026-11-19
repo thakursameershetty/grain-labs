@@ -1,0 +1,168 @@
+/* v4 palettes. One place for every colour the page uses; the section files only reference these tokens.
+   Switch with ?palette=luxury | marshmallow | logo (the swatch picker bottom-left does the same).
+   Token names keep v2's roles so the section files stay readable:
+     --o1 / --o1-deep   was cyan     → "output" role, secondary highlight
+     --o2 / --o2-deep   was raspberry → approval role
+     --o3 / --o3-deep   was violet   → main accent
+     --in / --in-deep   was indigo   → input role
+     --o4               was teal     → soft highlight in orbs
+     --o-navy*          was the orb's indigo base → the deep base colour of orbs and dark boxes
+   "-deep" variants are for text and lines on light surfaces; the plain ones are for dark surfaces.
+   Logo colours (fixed brand): rust #C85636 · coral #E27A5F · peach #F0BFA7. */
+
+/* ───────── Elegant Luxury (default): shadcn/studio preset, warmed toward the Grain logo ───────── */
+.grain-hero[data-palette="luxury"] {
+  --paper: #faf7f5; --ink: #1e1916; --body: #4d433d; --muted: #7d716a; --soft: #ab9d94;
+  --btn: #1e1916; --btn-hover: #3a302b; --btn-ink: #faf7f5; --btn-shadow: rgba(60, 30, 20, .16);
+  --line: rgba(60, 30, 20, .12);
+  --word: #f2e7e1; --word-hi: #ead9d0;
+
+  --o1: #e9b949; --o1-deep: #93700f;
+  --o2: #f29a7e; --o2-deep: #9e2c2c;
+  --o3: #E27A5F; --o3-deep: #b4482b;
+  --in: #d8c3a5; --in-deep: #7a5634;
+  --o4: #fef2c5;
+  --o-navy: #3d1b12; --o-navy-hi: #6e2b1b; --o-navy-deep: #1e1210;
+
+  --dark-bg: #1e1916; --dark-ink: #f7f1ec; --dark-accent: #E27A5F;
+  --next-bg: #faf7f5; --next-ink: #1e1916; --next-muted: var(--o3-deep);
+  --lg-a: #C85636; --lg-b: #E27A5F; --lg-c: #F0BFA7;
+}
+.grain-hero[data-palette="luxury"][data-theme="dark"] {
+  --paper: #1e1916; --ink: #f7f1ec; --body: #cfc3bb; --muted: #9d9088; --soft: #7d716a;
+  --btn: #f7f1ec; --btn-hover: #e6dcd5; --btn-ink: #1e1916; --btn-shadow: rgba(255, 230, 215, .08);
+  --line: rgba(255, 235, 220, .12);
+  --word: #2b2421; --word-hi: #3a312d;
+  --dark-bg: #151110;
+  --next-bg: #1e1916; --next-ink: #f7f1ec; --next-muted: var(--o3);
+}
+
+/* ───────── Marshmallow: shadcn/studio pastel preset ───────── */
+.grain-hero[data-palette="marshmallow"] {
+  --paper: #f2f5fc; --ink: #1b1b1b; --body: #44464d; --muted: #6c707b; --soft: #a2a6b2;
+  --btn: #1b1b1b; --btn-hover: #333; --btn-ink: #ffffff; --btn-shadow: rgba(40, 40, 80, .14);
+  --line: rgba(20, 20, 50, .12);
+  --word: #e4e9f5; --word-hi: #d6ddee;
+
+  --o1: #98cdff; --o1-deep: #2f74c0;
+  --o2: #ff97cc; --o2-deep: #c2367f;
+  --o3: #cc99ff; --o3-deep: #7e3fc9;
+  --in: #ffcc97; --in-deep: #a8621d;
+  --o4: #cbfe98;
+  --o-navy: #2a2350; --o-navy-hi: #463c86; --o-navy-deep: #15112a;
+
+  --dark-bg: #1b1b1b; --dark-ink: #f7f8fc; --dark-accent: #cc99ff;
+  --next-bg: #f2f5fc; --next-ink: #1b1b1b; --next-muted: var(--o3-deep);
+  --lg-a: #C85636; --lg-b: #E27A5F; --lg-c: #F0BFA7;
+}
+.grain-hero[data-palette="marshmallow"][data-theme="dark"] {
+  --paper: #1b1b1b; --ink: #f7f8fc; --body: #c7c9d1; --muted: #9295a0; --soft: #6c707b;
+  --btn: #f7f8fc; --btn-hover: #e2e5ee; --btn-ink: #1b1b1b; --btn-shadow: rgba(200, 210, 255, .08);
+  --line: rgba(230, 235, 255, .12);
+  --word: #262628; --word-hi: #333336;
+  --dark-bg: #141414;
+  --next-bg: #1b1b1b; --next-ink: #f7f8fc; --next-muted: var(--o3);
+}
+
+/* ───────── Logo: only the logo's own colours; black becomes the deepest rust ───────── */
+.grain-hero[data-palette="logo"] {
+  --paper: #fff8f4; --ink: #2a1612; --body: #5a3d33; --muted: #87685c; --soft: #b8998b;
+  --btn: #C85636; --btn-hover: #a9452a; --btn-ink: #fff8f4; --btn-shadow: rgba(200, 86, 54, .25);
+  --line: rgba(120, 50, 30, .14);
+  --word: #fbe8de; --word-hi: #f5d9ca;
+
+  --o1: #F0BFA7; --o1-deep: #a35a40;
+  --o2: #ff9a78; --o2-deep: #9e2c2c;
+  --o3: #E27A5F; --o3-deep: #C85636;
+  --in: #e9d2c4; --in-deep: #7a4636;
+  --o4: #fff1e8;
+  --o-navy: #4a1f14; --o-navy-hi: #7a3220; --o-navy-deep: #2a1612;
+
+  --dark-bg: #2a1612; --dark-ink: #fff4ee; --dark-accent: #F0BFA7;
+  --next-bg: #fff8f4; --next-ink: #2a1612; --next-muted: var(--o3-deep);
+  --lg-a: #C85636; --lg-b: #E27A5F; --lg-c: #F0BFA7;
+}
+.grain-hero[data-palette="logo"][data-theme="dark"] {
+  --paper: #2a1612; --ink: #fff4ee; --body: #e3cbbf; --muted: #b8998b; --soft: #87685c;
+  --btn: #E27A5F; --btn-hover: #ec9278; --btn-ink: #2a1612; --btn-shadow: rgba(226, 122, 95, .2);
+  --line: rgba(255, 220, 200, .13);
+  --word: #36201a; --word-hi: #442a22;
+  --dark-bg: #1f100c;
+  --next-bg: #2a1612; --next-ink: #fff4ee; --next-muted: var(--o1);
+}
+
+/* the page itself follows the palette as it switches */
+.grain-hero { transition: background-color .5s var(--ease), color .5s var(--ease); }
+
+/* ───────── Palette picker (bottom-left, for comparing) ───────── */
+.grain-hero .pal-pick {
+  position: fixed; left: 16px; bottom: 16px; z-index: 60; display: flex; align-items: center; gap: 4px;
+  padding: 5px; border-radius: 999px; background: var(--paper); border: 1px solid var(--line);
+  box-shadow: 0 10px 30px -12px rgba(0, 0, 0, .25); font-size: 12.5px;
+}
+.grain-hero .pal-pick button {
+  display: inline-flex; align-items: center; gap: 7px; padding: 6px 11px 6px 7px; border: 0; border-radius: 999px;
+  background: transparent; color: var(--muted); font: inherit; cursor: pointer; transition: background-color .2s ease, color .2s ease;
+}
+.grain-hero .pal-pick button:hover { color: var(--ink); }
+.grain-hero .pal-pick button[aria-pressed="true"] { background: color-mix(in srgb, var(--ink) 8%, transparent); color: var(--ink); }
+.grain-hero .pal-pick button:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+.grain-hero .pal-dots { display: inline-flex; }
+.grain-hero .pal-dots i { width: 12px; height: 12px; border-radius: 50%; box-shadow: 0 0 0 1.5px var(--paper); }
+.grain-hero .pal-dots i + i { margin-left: -4px; }
+@media (max-width: 560px) {
+  .grain-hero .pal-pick button span:last-child { display: none; }
+  .grain-hero .pal-pick button { padding: 6px; }
+}
+
+/* ───────── Loader: the mark builds on a blank page, then flies into the nav ───────── */
+.grain-hero .gl-loader { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; pointer-events: none; }
+.grain-hero .gl-veil { position: absolute; inset: 0; background: var(--dark-bg); }   /* v6: the hero is dark, so the opening is too */
+.grain-hero .gl-mark { position: relative; width: clamp(88px, 11vw, 132px); aspect-ratio: 1; will-change: transform; }
+.grain-hero .gl-svg { width: 100%; height: 100%; }
+/* the nav logo waits for the flying mark to land in its place */
+.grain-hero.is-loading .site-header .brand .logo-mark { visibility: hidden; }
+/* with the loader, the header only fades (no slide), so the mark lands exactly on the logo */
+.grain-hero.with-loader.intro.go .site-header { animation: gh-fade .7s ease .15s backwards; }   /* backwards, not both: a held opacity animation would cut the nav glass off from the page behind it */
+/* page can't scroll away under the opening */
+html:has(.grain-hero.is-loading) { overflow: hidden; }
+
+/* ───────── Hero background (HeroField.tsx): rings from the mark over a square grid ───────── */
+.grain-hero .hero-field {
+  position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; pointer-events: none;
+  opacity: clamp(0, calc(1 - var(--p) * 3), 1);
+}
+.grain-hero.intro:not(.go) .hero-field { opacity: 0; }
+.grain-hero.intro.go .hero-field { animation: gh-fade 1.6s ease .3s both; }
+/* the big word sits over the field */
+.grain-hero .bigword { z-index: 1; }
+
+/* picker open/close: the × tucks it away into a notch on the left edge */
+.grain-hero .pal-pick { transform-origin: 0 100%; transition: opacity .3s ease, transform .45s cubic-bezier(.3, 1.2, .4, 1); }
+.grain-hero .pal-pick.off { opacity: 0; transform: translateX(-24px) scale(.9); pointer-events: none; }
+.grain-hero .pal-x {
+  position: absolute; top: -7px; right: -7px; width: 20px; height: 20px; padding: 0 !important; display: grid !important; place-items: center;
+  border-radius: 50% !important; border: 1px solid var(--line) !important; background: var(--paper) !important; color: var(--muted);
+  box-shadow: 0 2px 6px -2px rgba(0, 0, 0, .2);
+}
+.grain-hero .pal-x:hover { color: var(--ink); }
+.grain-hero .pal-x svg { width: 9px; height: 9px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
+.grain-hero .pal-notch {
+  position: fixed; left: 0; bottom: 22px; z-index: 60; display: grid; gap: 2px; justify-items: center;
+  padding: 5px 5px 7px 3px; border: 1px solid var(--line); border-left: 0; border-radius: 0 14px 14px 0;
+  background: var(--paper); box-shadow: 0 8px 20px -10px rgba(0, 0, 0, .3);
+  transform: translateX(-110%); transition: transform .4s cubic-bezier(.3, 1.2, .4, 1) .1s, padding .25s ease;
+}
+.grain-hero .pal-notch.on { transform: none; }
+.grain-hero .pal-notch:hover { padding-left: 6px; }
+.grain-hero .pal-notch button { border: 0; background: transparent; color: var(--muted); cursor: pointer; padding: 0; font: inherit; }
+.grain-hero .pal-notch button:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; border-radius: 8px; }
+.grain-hero .pal-open { display: grid; gap: 4px; justify-items: center; padding: 5px 4px !important; }
+.grain-hero .pal-open i { width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 0 1px var(--line); }   /* a ring, so a dot matching the notch still shows */
+/* the theme switch, in the notch and in the open picker */
+.grain-hero .pal-theme { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50% !important; transition: color .2s ease, background-color .2s ease, transform .35s var(--ease); }
+.grain-hero .pal-pick .pal-theme { width: 30px; height: 30px; padding: 0 !important; justify-content: center; }
+.grain-hero .pal-theme:hover { color: var(--ink) !important; background: color-mix(in srgb, var(--ink) 8%, transparent) !important; transform: rotate(-20deg); }
+.grain-hero .pal-theme svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.grain-hero .pal-sep { width: 1px; height: 18px; margin: 0 2px; background: var(--line); flex: none; }
+@media (prefers-reduced-motion: reduce) { .grain-hero .pal-pick, .grain-hero .pal-notch { transition: none; } }

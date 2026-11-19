@@ -1,0 +1,166 @@
+/* "How it runs" — continues on the surface the portal opened into.
+   Light theme: near-black (not brown). Dark theme: warm paper.
+   Desktop: one screen; the 5 steps autoplay in order; left = copy + step list, right = a big canvas with a dot grid.
+   Rounded corners throughout. */
+
+.grain-hero .hw {
+  --s-bg: var(--next-bg);
+  --s-ink: var(--next-ink);
+  --s-accent: var(--next-muted);
+  --s-body: color-mix(in srgb, var(--next-ink) 72%, transparent);
+  --s-dim: color-mix(in srgb, var(--next-ink) 45%, transparent);
+  --s-line: color-mix(in srgb, var(--next-ink) 12%, transparent);
+  --s-line-strong: color-mix(in srgb, var(--next-ink) 26%, transparent);
+  --s-canvas: color-mix(in srgb, var(--next-ink) 3%, var(--next-bg));
+  --s-node: color-mix(in srgb, var(--next-ink) 7%, var(--next-bg));
+  --s-inset: color-mix(in srgb, var(--next-ink) 3.5%, var(--next-bg));
+  position: relative; z-index: 2;
+  background: var(--s-bg); color: var(--s-ink);
+}
+
+/* ───── pinned stage ───── */
+.grain-hero .hw-stage {
+  position: relative; height: 100svh; min-height: 720px;
+  display: grid; grid-template-columns: minmax(260px, 0.7fr) 2fr; gap: clamp(28px, 3.5vw, 56px);
+  padding: 92px var(--gutter) 32px;
+}
+
+/* left column */
+.grain-hero .hw-side { display: flex; flex-direction: column; min-height: 0; }
+.grain-hero .hw-kicker { font-family: var(--mono); font-size: 11px; letter-spacing: .07em; text-transform: uppercase; color: var(--s-accent); }
+.grain-hero .hw-kicker::before { content: "■ "; }
+.grain-hero .hw-copies { position: relative; flex: 1; min-height: 240px; margin-top: 28px; }
+.grain-hero .hw-copy { position: absolute; inset: 0 0 auto 0; opacity: 0; transform: translateY(14px); transition: opacity .5s var(--ease), transform .6s var(--ease); pointer-events: none; }
+.grain-hero .hw-copy.on { opacity: 1; transform: none; pointer-events: auto; }
+.grain-hero .hw-n { font-family: var(--mono); font-size: 11px; letter-spacing: .06em; color: var(--s-dim); }
+.grain-hero .hw-n span { color: var(--s-accent); }
+.grain-hero .hw h3 { margin: 12px 0 0; font-size: clamp(40px, 4.4vw, 76px); font-weight: 500; letter-spacing: -0.05em; line-height: .95; }
+.grain-hero .hw-d { margin-top: 16px; font-size: clamp(16px, 1.25vw, 19px); line-height: 1.42; color: var(--s-body); }
+.grain-hero .hw-case { margin-top: 18px; font-size: 15px; line-height: 1.4; color: var(--s-ink); }
+.grain-hero .hw-case span { display: block; margin-bottom: 4px; font-family: var(--mono); font-size: 10px; letter-spacing: .07em; text-transform: uppercase; color: var(--s-accent); }
+
+/* step list */
+.grain-hero .hw-tabs { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.grain-hero .hw-tabs button {
+  position: relative; overflow: hidden; width: 100%; display: flex; align-items: center; gap: 12px;
+  padding: 11px 14px; border-radius: 12px; border: 1px solid transparent; background: transparent;
+  color: var(--s-dim); font: 500 15px var(--sans); text-align: left; cursor: pointer;
+  transition: background .3s ease, color .3s ease, border-color .3s ease;
+}
+.grain-hero .hw-tabs button:hover { color: var(--s-ink); }
+.grain-hero .hw-tabs button.done { color: var(--s-body); }
+.grain-hero .hw-tabs button.on { background: var(--s-node); border-color: var(--s-line); color: var(--s-ink); }
+/* the active step's box is its own progress bar: a soft tint fills it left to right as the workflow runs */
+.grain-hero .hw-tabs button > span { position: relative; z-index: 1; }
+/* The fill is light that stays still and is *uncovered* by progress (never stretched): Siri colours drift
+   slowly inside, the filled part fades toward the start, and a thin bright edge leads at the front. */
+.grain-hero .hw-tabs button::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; opacity: 0;
+  background:
+    /* one 200%-wide tile that repeats as it drifts: every blob ends inside the tile (centre ± radius stays
+       within 0–100%), so the wrap is seamless and no hard edge ever slides through the bar */
+    radial-gradient(17% 150% at 18% 50%, color-mix(in srgb, var(--o1) 85%, transparent), transparent),
+    radial-gradient(16% 160% at 40% 85%, color-mix(in srgb, var(--o2) 80%, transparent), transparent),
+    radial-gradient(17% 150% at 61% 15%, color-mix(in srgb, var(--o3) 90%, transparent), transparent),
+    radial-gradient(16% 160% at 82% 70%, color-mix(in srgb, var(--o1) 70%, transparent), transparent),
+    var(--o-navy);
+  background-size: 200% 100%; background-repeat: repeat-x;
+  animation: hw-flow 9s linear infinite;
+  clip-path: inset(0 calc((1 - var(--step-p, 0)) * 100%) 0 0);
+  -webkit-mask-image: linear-gradient(90deg, rgba(0, 0, 0, .35), #000 calc(var(--step-p, 0) * 100%));
+          mask-image: linear-gradient(90deg, rgba(0, 0, 0, .35), #000 calc(var(--step-p, 0) * 100%));
+  transition: opacity .3s ease;   /* nothing else transitions: progress is written every frame */
+}
+.grain-hero .hw-tabs button.on::before { opacity: .85; }
+@keyframes hw-flow { to { background-position: -200% 0; } }
+/* the leading edge: a hairline of white light with a soft coloured glow; it shows only mid-run */
+.grain-hero .hw-tabs button::after {
+  content: ""; position: absolute; top: 5px; bottom: 5px; left: calc(var(--step-p, 0) * 100%); width: 1.5px; margin-left: -1px;
+  border-radius: 2px; pointer-events: none; opacity: 0;
+  background: linear-gradient(180deg, transparent, #fff 30%, #fff 70%, transparent);
+  box-shadow: 0 0 10px 1px color-mix(in srgb, var(--o3) 55%, transparent), 0 0 22px 4px color-mix(in srgb, var(--o1) 25%, transparent);
+}
+.grain-hero .hw-tabs button.on::after { opacity: min(calc(var(--step-p, 0) * 25), calc((1 - var(--step-p, 0)) * 25), 1); }
+/* pause / play: a bare icon at the right end of the active step box (no circle).
+   The whole end of the rectangle is the hit area; the icon shows on hover and stays while paused. */
+.grain-hero .hw-tabs li { position: relative; }
+.grain-hero .hw-tabs .hw-pp {
+  position: absolute; right: 0; top: 0; bottom: 0; z-index: 2; width: 52px; padding: 0; gap: 0;
+  display: grid; place-items: center; border: 0; border-radius: 0 12px 12px 0; background: transparent;
+  color: var(--s-dim); cursor: pointer; opacity: 0; pointer-events: none;
+  transition: opacity .2s ease, color .2s ease;
+}
+.grain-hero .hw-tabs li.on:hover .hw-pp,
+.grain-hero .hw-tabs li.on .hw-pp:focus-visible,
+.grain-hero .hw-tabs li.is-paused .hw-pp { opacity: 1; pointer-events: auto; }
+.grain-hero .hw-tabs li.on:hover .hw-pp { color: var(--s-body); }
+.grain-hero .hw-tabs li.is-paused .hw-pp { color: var(--s-accent); }
+.grain-hero .hw-tabs li .hw-pp:hover, .grain-hero .hw-tabs li.is-paused .hw-pp:hover { color: var(--s-ink); background: transparent; }
+.grain-hero .hw-tabs .hw-pp:focus-visible { outline: 2px solid var(--s-accent); outline-offset: -4px; }
+.grain-hero .hw-tabs .hw-pp-ico { display: grid; place-items: center; }
+.grain-hero .hw-tabs .hw-pp-ico svg { stroke-width: 2.2; }
+.grain-hero .hw-tabs li.is-paused .hw-pp-ico { transform: translateX(1px); }   /* optical centring of the triangle */
+/* while paused the fill holds and gently breathes so it reads as paused, not stuck */
+.grain-hero .hw-tabs li.is-paused button.on::before { animation-play-state: paused; }
+.grain-hero .hw-tabs li.is-paused button.on::after { animation: hw-breathe 1.6s ease-in-out infinite; }
+@keyframes hw-breathe { 50% { opacity: .3; } }
+@media (prefers-reduced-motion: reduce) { .grain-hero .hw-tabs button::before { animation: none; } }
+
+.grain-hero .hw-tab-n { font-family: var(--mono); font-size: 11px; letter-spacing: .05em; }
+.grain-hero .hw-tabs button.on .hw-tab-n { color: var(--s-accent); }
+
+/* the canvas: rounded, a faint dot grid, workflows cross-fade inside it */
+.grain-hero .hw-canvas {
+  position: relative; min-height: 0; border-radius: 24px; border: 1px solid var(--s-line);
+  background-color: var(--s-canvas);
+  background-image: radial-gradient(color-mix(in srgb, var(--next-ink) 13%, transparent) 1px, transparent 1.4px);
+  background-size: 22px 22px; background-position: 11px 11px;
+  overflow: hidden;
+}
+.grain-hero .hw-flow {
+  position: absolute; inset: 0; display: flex; align-items: center; padding: 28px clamp(24px, 2.6vw, 40px);
+  opacity: 0; transition: opacity .5s var(--ease); pointer-events: none;
+}
+.grain-hero .hw-flow.on { opacity: 1; pointer-events: auto; }
+
+/* short screens: tighten the stage */
+@media (max-height: 820px) {
+  .grain-hero .hw-stage { padding-top: 84px; padding-bottom: 24px; }
+  .grain-hero .hw h3 { font-size: clamp(36px, 3.6vw, 60px); }
+  .grain-hero .hw-tabs button { padding: 8px 12px; }
+}
+
+/* ───── nav after the hero: translucent, Gaussian-blurred bar tinted with the section underneath ───── */
+.grain-hero.past-hero .site-header {
+  filter: none;
+  background: color-mix(in srgb, var(--paper) 68%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(140%); backdrop-filter: blur(18px) saturate(140%);
+  border-bottom: 1px solid var(--line);
+  transition: background-color .3s ease;
+}
+.grain-hero.past-hero[data-surface="inverse"] .site-header {
+  --ink: var(--next-ink); --line: color-mix(in srgb, var(--next-ink) 14%, transparent);
+  --btn: var(--next-ink); --btn-hover: color-mix(in srgb, var(--next-ink) 85%, var(--next-bg)); --btn-ink: var(--next-bg); --btn-shadow: transparent;
+  background: color-mix(in srgb, var(--next-bg) 68%, transparent); color: var(--next-ink);
+}
+
+/* ───── phones / narrow: steps stack, each with its own canvas ───── */
+.grain-hero .hw.narrow { height: auto; padding: 96px var(--gutter) 12vh; }
+.grain-hero .hw.narrow .hw-block { padding-top: 64px; }
+.grain-hero .hw.narrow h3 { font-size: 44px; }
+.grain-hero .hw.narrow .hw-canvas { margin-top: 24px; padding: 22px 16px; border-radius: 20px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .grain-hero .hw-copy, .grain-hero .hw-flow { transition: none; }
+}
+
+/* breathing room between the workflow canvas and the seam below */
+.grain-hero .hw:not(.narrow) { padding-bottom: clamp(64px, 10vh, 112px); }
+.grain-hero .hw.narrow { padding-bottom: clamp(72px, 14vh, 120px); }
+
+/* nav over the dark How-it-runs surface */
+.grain-hero.past-hero[data-surface="dark"] .site-header {
+  --ink: var(--dark-ink); --line: color-mix(in srgb, var(--dark-ink) 14%, transparent);
+  --btn: var(--dark-ink); --btn-hover: #e2e2e2; --btn-ink: var(--dark-bg); --btn-shadow: transparent;
+  background: color-mix(in srgb, var(--dark-bg) 72%, transparent); color: var(--dark-ink);
+}

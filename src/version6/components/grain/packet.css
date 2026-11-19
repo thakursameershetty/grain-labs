@@ -1,0 +1,155 @@
+/* The packet (v4): inputs → a tabbed stack of pages with Nia peeking over it → the front page's evidence. */
+.grain-hero .pkx {
+  --pk-cyan: var(--o1-deep); --pk-violet: var(--o3-deep); --pk-rasp: var(--o2-deep);
+  --pk-line: color-mix(in srgb, var(--ink) 12%, transparent);
+  --pk-paper: var(--paper);
+  position: relative; width: 100%; max-width: 1120px; padding: 22px 26px 28px;
+  border-radius: 24px; border: 1px solid var(--pk-line);
+  background: color-mix(in srgb, var(--ink) 2%, var(--paper));
+  box-shadow: 0 40px 80px -50px color-mix(in srgb, var(--o-navy-deep) 35%, transparent);
+}
+.grain-hero[data-theme="dark"] .pkx { --pk-cyan: var(--o1); --pk-violet: var(--o3); --pk-rasp: var(--o2); }
+
+.grain-hero .pkx-top { display: flex; align-items: baseline; gap: 14px; padding-bottom: 16px; border-bottom: 1px solid var(--pk-line); }
+.grain-hero .pkx-name { font-size: 17px; font-weight: 500; letter-spacing: -0.01em; color: var(--ink); }
+.grain-hero .pkx-meta { font-size: 13px; color: var(--muted); }
+.grain-hero .pkx-badge { margin-left: auto; align-self: center; padding: 5px 11px; border-radius: 999px; font-size: 12px; font-weight: 500;
+  color: var(--ok); background: color-mix(in srgb, var(--ok) 12%, transparent); }
+.grain-hero .pkx-badge.busy { color: var(--pk-violet); background: color-mix(in srgb, var(--pk-violet) 12%, transparent); }
+
+.grain-hero .pkx-cols { display: grid; grid-template-columns: 220px minmax(0, 1fr) 270px; gap: 36px; align-items: center; }
+.grain-hero .pkx-h { margin: 0 0 10px; font-size: 12px; font-weight: 500; color: var(--muted); }
+
+/* inputs: quiet rows; the ones the front page came from light up in rust */
+.grain-hero .pkx-inputs ul { list-style: none; margin: 0; padding: 0; display: grid; }
+.grain-hero .pkx-inputs li {
+  position: relative; display: flex; align-items: center; gap: 9px; padding: 9px 2px; border-bottom: 1px solid var(--pk-line);
+  font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden;
+  transition: color .35s ease, padding .45s var(--ease);
+}
+.grain-hero .pkx-inputs li:first-child { border-top: 1px solid var(--pk-line); }
+.grain-hero .pkx-inputs li span { overflow: hidden; text-overflow: ellipsis; }
+.grain-hero .pkx-inputs li .msym { flex: none; font-size: 16px; color: var(--soft); transition: color .35s ease; }
+.grain-hero .pkx-inputs li.lit { color: var(--ink); padding-left: 8px; }
+.grain-hero .pkx-inputs li.lit .msym { color: var(--pk-violet); }
+.grain-hero .pkx-inputs li::before { content: ""; position: absolute; left: 0; top: 50%; width: 2px; height: 0; margin-top: 0; border-radius: 2px;
+  background: var(--pk-violet); transition: height .35s var(--ease), margin .35s var(--ease); }
+.grain-hero .pkx-inputs li.lit::before { height: 16px; margin-top: -8px; }
+
+/* wires: one thin rust line per source, from its row to the front page, with a slow flow */
+.grain-hero .pkx-wires { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; z-index: 3; }
+.grain-hero .pkx-wires path { fill: none; stroke: var(--pk-violet); stroke-width: 1.2; stroke-dasharray: 2 5; stroke-linecap: round; opacity: .85;
+  animation: pkx-draw .6s var(--ease) both, pkx-flow 1.4s linear infinite; }
+.grain-hero .pkx-wires circle { fill: var(--pk-violet); animation: pkx-draw .4s ease both; }
+@keyframes pkx-draw { from { opacity: 0; } }
+@keyframes pkx-flow { to { stroke-dashoffset: -14; } }
+
+/* the stack: the front page in full, the rest stepped back behind it so only their tabs (titles) show */
+.grain-hero .pkx-stage { position: relative; z-index: 2; height: calc(var(--ph) + var(--tab) * 4 + 30px); }
+.grain-hero .pkx-page {
+  position: absolute; left: 50%; bottom: 0; width: min(var(--pw), 92%); height: var(--ph); margin: 0; padding: 16px 18px 44px;
+  display: flex; flex-direction: column; justify-content: flex-start; align-items: stretch;   /* buttons centre their content by default */
+  text-align: left; font: inherit; color: var(--body); cursor: pointer;
+  border-radius: 14px; border: 1px solid var(--pk-line); background: var(--pk-paper);
+  box-shadow: 0 -1px 0 color-mix(in srgb, var(--ink) 3%, transparent), 0 14px 30px -24px color-mix(in srgb, var(--ink) 45%, transparent);
+  transform-origin: 50% 0;   /* scale from the top edge, so each tab shows a full --tab strip */
+  transform: translateX(-50%) translateY(calc(var(--d) * var(--tab) * -1)) scale(calc(1 - var(--d) * .035));
+  transition: transform .7s cubic-bezier(.2, .8, .2, 1), box-shadow .4s ease, opacity .5s ease, background-color .4s ease;
+  opacity: 0;
+}
+.grain-hero .pkx-page.in { opacity: 1; }
+.grain-hero .pkx-page:not(.in) { transform: translateX(-50%) translateY(40px) scale(.96); }
+/* behind the front: a touch deeper in tone so the tabs read as layers; the title sits in the tab strip */
+.grain-hero .pkx-page.in:not(.on) { padding-top: 10px; }
+.grain-hero .pkx-page.in:not(.on) { background: color-mix(in srgb, var(--ink) calc(var(--d) * 1.6%), var(--pk-paper)); }
+.grain-hero .pkx-page.in:not(.on):hover { background: color-mix(in srgb, var(--pk-violet) 6%, var(--pk-paper)); }
+/* the page that just went to the back: it fades as it passes behind the others, so it never cuts across them */
+.grain-hero .pkx-page.in.last { animation: pkx-sink .7s ease; }
+@keyframes pkx-sink { 0% { opacity: 1; } 25% { opacity: 0; } 70% { opacity: 0; } 100% { opacity: 1; } }
+.grain-hero .pkx-page.on {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--pk-violet) 22%, transparent), 0 30px 50px -28px color-mix(in srgb, var(--ink) 50%, transparent);
+}
+.grain-hero .pkx-page:focus-visible { outline: 2px solid var(--pk-violet); outline-offset: 3px; }
+
+/* Nia sits on the front page's top-right corner, like the one who just put it together; beams (and bounces) when a
+   page comes forward; hover and click her */
+.grain-hero .pkx-nia {
+  position: absolute; z-index: 40; bottom: calc(var(--ph) - 30px); left: calc(50% + min(var(--pw), 92%) / 2 - 38px);
+  transform: rotate(6deg); filter: drop-shadow(0 6px 8px color-mix(in srgb, var(--ink) 22%, transparent));
+}
+@keyframes pkx-hop { 0% { transform: translateY(10px) rotate(6deg); } 55% { transform: translateY(-8px) rotate(-4deg); } 100% { transform: rotate(6deg); } }
+
+/* status: a chip on the front page, a coloured dot on every tab */
+.grain-hero .pkx-st { position: absolute; bottom: 9px; right: 12px; z-index: 1; padding: 2px 8px; border-radius: 999px; font-size: 10.5px; font-weight: 500; }
+.grain-hero .pkx-page:not(.on) .pkx-st { bottom: auto; top: 15px; right: 16px; width: 7px; height: 7px; padding: 0; font-size: 0; }
+.grain-hero .pkx-st.st-verified { color: var(--ok); background: color-mix(in srgb, var(--ok) 12%, transparent); }
+.grain-hero .pkx-st.st-derived { color: var(--pk-violet); background: color-mix(in srgb, var(--pk-violet) 12%, transparent); }
+.grain-hero .pkx-st.st-pending { color: var(--wait); background: color-mix(in srgb, var(--wait) 12%, transparent); }
+.grain-hero .pkx-st.st-review { color: var(--bad); background: color-mix(in srgb, var(--bad) 11%, transparent); }
+.grain-hero .pkx-page:not(.on) .pkx-st.st-verified { background: var(--ok); }
+.grain-hero .pkx-page:not(.on) .pkx-st.st-derived { background: var(--pk-violet); }
+.grain-hero .pkx-page:not(.on) .pkx-st.st-pending { background: var(--wait); }
+.grain-hero .pkx-page:not(.on) .pkx-st.st-review { background: var(--bad); }
+.grain-hero .pkx-file { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 6px; padding: 9px 120px 9px 14px; min-width: 0;
+  border-top: 1px solid var(--pk-line); font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.grain-hero .pkx-file .msym { flex: none; font-size: 14px; color: var(--soft); }
+.grain-hero .pkx-fn { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* page contents */
+.grain-hero .pkx-page p { margin: 0; }
+.grain-hero .pg-h { padding-right: 18px; font-size: 14px; font-weight: 600; letter-spacing: -0.01em; color: var(--ink); line-height: 1.2; }
+.grain-hero .pg-s { margin-top: 3px !important; font-size: 11px; color: var(--muted); }
+.grain-hero .pg-k { margin-top: 13px !important; font-size: 10.5px; font-weight: 600; color: var(--ink); }
+.grain-hero .pkx-page .pl { display: block; height: 5px; margin-top: 6px; border-radius: 3px; background: color-mix(in srgb, var(--ink) 9%, transparent); }
+.grain-hero .pg-task { display: grid; grid-template-columns: 12px 46px 1fr; align-items: center; gap: 7px; margin-top: 12px; font-size: 11px; color: var(--ink); }
+.grain-hero .pg-task:first-of-type { margin-top: 14px; }
+.grain-hero .pg-task b { width: 11px; height: 11px; border-radius: 3px; border: 1.5px solid color-mix(in srgb, var(--ink) 25%, transparent); }
+.grain-hero .pg-task b.done { border-color: var(--pk-violet); background: var(--pk-violet); box-shadow: inset 0 0 0 2px var(--pk-paper); }
+.grain-hero .pg-wk { color: var(--muted); }
+.grain-hero .pg-grid { display: grid; grid-template-columns: 28px 1fr; margin-top: 11px; border: 1px solid var(--pk-line); border-radius: 4px; overflow: hidden; font-size: 10.5px; }
+.grain-hero .pg-grid span { padding: 4px 6px; border-bottom: 1px solid var(--pk-line); color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.grain-hero .pg-grid span:nth-child(odd) { color: var(--muted); border-right: 1px solid var(--pk-line); }
+.grain-hero .pg-grid span:nth-child(-n+2) { background: color-mix(in srgb, var(--ink) 4%, transparent); font-weight: 600; color: var(--muted); }
+.grain-hero .pg-mail { padding: 6px 0; margin-top: 4px; border-bottom: 1px solid var(--pk-line); font-size: 11px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.grain-hero .pg-mail span { display: inline-block; width: 44px; color: var(--muted); }
+.grain-hero .pg-mail + .pg-mail + .pl { margin-top: 12px; }
+.grain-hero .pg-send { display: inline-block; margin-top: 14px; padding: 4px 9px; border-radius: 6px; font-size: 10.5px;
+  color: var(--wait); border: 1px dashed color-mix(in srgb, var(--wait) 45%, transparent); }
+.grain-hero .pg-flag { margin-top: 10px !important; padding: 5px 7px; border-radius: 5px; font-size: 10.5px; line-height: 1.3; color: var(--ink);
+  background: color-mix(in srgb, var(--bad) 9%, transparent); box-shadow: inset 2px 0 0 var(--bad); }
+
+/* evidence */
+.grain-hero .pkx-ev { position: relative; z-index: 2; padding: 18px; border-radius: 16px; border: 1px solid var(--pk-line); background: var(--pk-paper);
+  box-shadow: 0 20px 40px -30px color-mix(in srgb, var(--o-navy-deep) 35%, transparent); animation: pkx-in .5s var(--ease); }
+@keyframes pkx-in { from { opacity: 0; transform: translateY(8px); filter: blur(4px); } }
+.grain-hero .pkx-ev-t { font-size: 16px; font-weight: 500; letter-spacing: -0.01em; color: var(--ink); }
+.grain-hero .pkx-ev-k { margin-top: 2px; font-size: 12.5px; color: var(--muted); }
+.grain-hero .pkx-ev dl { display: grid; gap: 4px; margin: 14px 0 0; padding-top: 12px; border-top: 1px solid var(--pk-line); font-size: 13px; }
+.grain-hero .pkx-ev dt { margin-top: 8px; font-size: 11.5px; color: var(--muted); }
+.grain-hero .pkx-ev dt:first-child { margin-top: 0; }
+.grain-hero .pkx-ev dd { margin: 0; color: var(--ink); }
+.grain-hero .pkx-srcs { display: grid; gap: 4px; }
+.grain-hero .pkx-srcs span { display: flex; align-items: center; gap: 6px; font-size: 12.5px; }
+.grain-hero .pkx-srcs .msym { font-size: 15px; color: var(--pk-violet); }
+.grain-hero .pkx-by { display: flex; align-items: center; gap: 7px; }
+.grain-hero .pkx-hash { display: flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 12px; letter-spacing: .03em; }
+.grain-hero .pkx-hash svg { width: 16px; height: 16px; fill: none; stroke: var(--pk-violet); stroke-width: 1.8; stroke-linecap: round; }
+
+/* the old hint now says what to do with the stack */
+@media (max-width: 1000px) {
+  .grain-hero .pkx-cols { grid-template-columns: minmax(0, 1fr) 260px; }
+  .grain-hero .pkx-inputs, .grain-hero .pkx-wires { display: none; }
+}
+@media (max-width: 700px) {
+  .grain-hero .pkx { padding: 18px 16px 20px; overflow: hidden; }
+  .grain-hero .pkx-top { flex-wrap: wrap; row-gap: 2px; }
+  .grain-hero .pkx-badge { display: none; }
+  .grain-hero .pkx-cols { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .grain-hero .pkx-stage { --tab: 28px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .grain-hero .pkx-page, .grain-hero .pkx-inputs li { transition: none; }
+  .grain-hero .pkx-wires path, .grain-hero .pkx-ev, .grain-hero .pkx-nia, .grain-hero .pkx-page.in.last { animation: none; }
+}
+/* tabs show only the title; the subtitle would peek out half-cut under it */
+.grain-hero .pkx-page:not(.on) .pg-s { visibility: hidden; }

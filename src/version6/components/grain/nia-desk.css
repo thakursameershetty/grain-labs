@@ -1,0 +1,106 @@
+/* Nia's desk (NiaDesk.tsx): the three asks as tabs, then one wide rounded desk: Nia on the left with what she's
+   saying, the work itself on the right. Page tokens only (works light and dark). Nia's own blue stays on Nia. */
+.grain-hero .nd { margin-top: clamp(48px, 6vw, 76px); }
+
+/* the asks */
+.grain-hero .nd-asks { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.grain-hero .nd-asks button {
+  position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: 9px;
+  padding: 10px 16px 10px 10px; border-radius: 999px; border: 1px solid var(--x-line); background: transparent;
+  font: inherit; font-size: 14.5px; letter-spacing: -0.01em; color: var(--x-body); cursor: pointer;
+  transition: color .3s ease, border-color .3s ease, background-color .3s ease;
+}
+.grain-hero .nd-asks button:hover { color: var(--x-ink); border-color: color-mix(in srgb, var(--x-ink) 30%, transparent); }
+.grain-hero .nd-asks button.on { color: var(--x-ink); border-color: color-mix(in srgb, var(--x-ink) 34%, transparent); background: var(--x-card); }
+.grain-hero .nd-asks button:focus-visible { outline: 2px solid var(--x-ink); outline-offset: 2px; }
+.grain-hero .nd-n { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; font-family: var(--mono); font-size: 11px; background: var(--x-inset); color: var(--x-muted); }
+.grain-hero .nd-asks button.on .nd-n { background: var(--x-ink); color: var(--x-bg); }
+/* how far along this ask is: a hairline along the bottom of the active tab */
+.grain-hero .nd-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--c-action); transform-origin: 0 50%; transition: transform .12s linear; }
+
+/* the desk */
+.grain-hero .nd-desk {
+  display: grid; grid-template-columns: minmax(220px, 300px) 1fr; min-height: 380px; border-radius: 26px; overflow: hidden;
+  background: color-mix(in srgb, var(--ink) 2.5%, var(--paper));
+  box-shadow: inset 0 0 0 1px var(--x-line), 0 50px 90px -70px color-mix(in srgb, var(--ink) 45%, transparent);
+}
+.grain-hero .nd-nia {
+  display: grid; align-content: center; justify-items: center; gap: 6px; padding: 18px 24px 32px; text-align: center;
+  border-right: 1px solid var(--x-line);
+  background: radial-gradient(80% 60% at 50% 42%, color-mix(in srgb, #5874BD 9%, transparent), transparent 70%);
+}
+.grain-hero .nd-say { max-width: 230px; font-size: 15.5px; line-height: 1.4; color: var(--x-ink); animation: nd-say .45s var(--ease) both; }
+@keyframes nd-say { from { opacity: 0; transform: translateY(6px); filter: blur(4px); } }
+.grain-hero .nd-work { position: relative; display: grid; align-content: center; padding: clamp(24px, 3.4vw, 44px); }
+
+/* 1 · items arrive, then get routed */
+.grain-hero .nd-items { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.grain-hero .nd-items li {
+  display: grid; grid-template-columns: 36px 1fr auto; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px;
+  background: var(--x-bg); box-shadow: inset 0 0 0 1px var(--x-line);
+  opacity: 0; transform: translateY(10px); transition: opacity .45s var(--ease), transform .55s var(--ease);
+}
+.grain-hero .nd-items li.in { opacity: 1; transform: none; }
+.grain-hero .nd-items .msym { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; background: var(--x-inset); color: var(--c-input); font-size: 19px; }
+.grain-hero .nd-it { display: grid; gap: 2px; min-width: 0; }
+.grain-hero .nd-it b { font-size: 15px; font-weight: 500; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.grain-hero .nd-it small { font-size: 12.5px; color: var(--x-muted); }
+.grain-hero .nd-to {
+  padding: 5px 10px; border-radius: 999px; font-size: 12.5px; white-space: nowrap; color: var(--c-action);
+  background: color-mix(in srgb, var(--c-action) 10%, transparent);
+  opacity: 0; transform: translateX(-8px); transition: opacity .35s ease, transform .45s var(--ease);
+}
+.grain-hero .nd-items li.routed .nd-to { opacity: 1; transform: none; }
+
+/* 2 · the letter writes itself */
+.grain-hero .nd-doc { border-radius: 16px; padding: 22px 24px 18px; background: var(--x-bg); box-shadow: inset 0 0 0 1px var(--x-line); }
+.grain-hero .nd-doc header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding-bottom: 14px; margin-bottom: 14px; border-bottom: 1px solid var(--x-line); }
+.grain-hero .nd-doc header b { font-size: 15.5px; font-weight: 500; }
+.grain-hero .nd-doc header small { font-size: 12.5px; color: var(--x-muted); }
+.grain-hero .nd-doc p { margin: 0 0 10px; font-size: 15px; line-height: 1.5; color: var(--x-body); opacity: 0; transform: translateY(4px); transition: opacity .35s ease, transform .4s var(--ease); }
+.grain-hero .nd-doc p.in { opacity: 1; transform: none; }
+.grain-hero .nd-src {
+  display: inline-block; margin: 0 1px; padding: 1px 7px; border-radius: 6px; font-style: normal; font-family: var(--mono); font-size: 11px; vertical-align: 1px;
+  color: var(--c-output); background: color-mix(in srgb, var(--c-output) 11%, transparent);
+}
+.grain-hero .nd-caret { display: inline-block; width: 2px; height: 1.05em; margin-left: 2px; vertical-align: -2px; background: var(--x-ink); animation: nd-blink 1s steps(1) infinite; }
+@keyframes nd-blink { 50% { opacity: 0; } }
+
+/* 3 · the send waits at the gate */
+.grain-hero .nd-send { border-radius: 16px; background: var(--x-bg); box-shadow: inset 0 0 0 1px var(--x-line); overflow: hidden; }
+.grain-hero .nd-send dl { margin: 0; padding: 8px 22px; }
+.grain-hero .nd-send dl div { display: grid; grid-template-columns: 96px 1fr; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--x-line); }
+.grain-hero .nd-send dl div:last-child { border-bottom: 0; }
+.grain-hero .nd-send dt { font-size: 13px; color: var(--x-muted); }
+.grain-hero .nd-send dd { margin: 0; font-size: 14.5px; color: var(--x-ink); }
+.grain-hero .nd-gate {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; padding: 16px 22px;
+  background: color-mix(in srgb, var(--c-gate) 7%, var(--x-bg)); border-top: 1px solid color-mix(in srgb, var(--c-gate) 22%, transparent);
+  transition: background-color .4s ease;
+}
+.grain-hero .nd-gate p { display: inline-flex; align-items: center; gap: 10px; margin: 0; font-size: 14.5px; color: var(--x-ink); }
+.grain-hero .nd-wait { width: 8px; height: 8px; border-radius: 50%; background: var(--wait); box-shadow: 0 0 0 0 color-mix(in srgb, var(--wait) 50%, transparent); animation: nd-ping 1.6s ease-out infinite; }
+@keyframes nd-ping { to { box-shadow: 0 0 0 8px transparent; } }
+.grain-hero .nd-gate button {
+  padding: 10px 16px; border-radius: 999px; border: 0; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer;
+  background: var(--x-ink); color: var(--x-bg); transition: transform .2s ease, opacity .2s ease;
+}
+.grain-hero .nd-gate button:hover { transform: translateY(-1px); opacity: .9; }
+.grain-hero .nd-send.sent .nd-gate { background: color-mix(in srgb, var(--ok) 8%, var(--x-bg)); border-top-color: color-mix(in srgb, var(--ok) 25%, transparent); }
+.grain-hero .nd-ok { color: var(--ok) !important; animation: nd-say .4s var(--ease) both; }
+.grain-hero .nd-tick { width: 16px; height: 16px; border-radius: 50%; background: var(--ok); position: relative; flex: none; }
+.grain-hero .nd-tick::after { content: ""; position: absolute; left: 5px; top: 3px; width: 4px; height: 7px; border: solid var(--x-bg); border-width: 0 2px 2px 0; transform: rotate(45deg); }
+
+/* the captions under the desk reuse the Board's (bd-points) */
+
+@media (max-width: 860px) {
+  .grain-hero .nd-desk { grid-template-columns: 1fr; }
+  .grain-hero .nd-nia { border-right: 0; border-bottom: 1px solid var(--x-line); grid-auto-flow: column; justify-content: start; align-items: center; text-align: left; padding: 20px 22px; gap: 16px; }
+  .grain-hero .nd-say { max-width: none; }
+  .grain-hero .nd-items li { grid-template-columns: 32px 1fr; }
+  .grain-hero .nd-to { grid-column: 2; justify-self: start; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .grain-hero .nd-items li, .grain-hero .nd-to, .grain-hero .nd-doc p, .grain-hero .nd-say { transition: none; animation: none; }
+  .grain-hero .nd-caret, .grain-hero .nd-wait { animation: none; }
+}

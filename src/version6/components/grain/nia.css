@@ -1,0 +1,38 @@
+/* Nia: breathe + blink always (from the mascot file). Moods: work = eyes read and a small bob,
+   happy = a little bounce, love = heart eyes that pulse. */
+.nia { display: block; overflow: visible; flex: none; }
+.nia .nia-body { transform-origin: 128px 200px; animation: nia-breathe 5.5s ease-in-out infinite; }
+.nia .nia-eyes { transform-box: fill-box; transform-origin: center; animation: nia-blink 6.5s linear infinite; }
+.nia.working .nia-body { animation: nia-bob .9s ease-in-out infinite; }
+.nia.working .nia-look { animation: nia-read 1.6s cubic-bezier(.5, 0, .5, 1) infinite; }
+.nia.m-happy .nia-body { animation: nia-bounce .5s cubic-bezier(.3, 1.6, .5, 1) 2 alternate; }
+.nia.m-love .nia-hearts-eyes path { transform-box: fill-box; transform-origin: center; animation: nia-pulse .7s ease-in-out infinite; }
+.nia.m-wink .nia-body { animation: nia-tilt .45s cubic-bezier(.3, 1.6, .5, 1) forwards; }
+.nia.m-wink .nia-wink-eye { transform-box: fill-box; transform-origin: center; animation: nia-shut .22s ease-out; }
+@keyframes nia-tilt { from { transform: rotate(0) translateY(0); } to { transform: rotate(-7deg) translateY(-3px); } }
+@keyframes nia-shut { from { transform: scaleY(2.4); opacity: .4; } to { transform: scaleY(1); opacity: 1; } }
+@keyframes nia-breathe { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+@keyframes nia-blink { 0%, 43%, 47%, 100% { transform: scaleY(1); } 45% { transform: scaleY(.12); } }
+@keyframes nia-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@keyframes nia-read { 0%, 100% { transform: translateX(-5px); } 50% { transform: translateX(5px); } }
+@keyframes nia-bounce { from { transform: translateY(0) scale(1, 1); } to { transform: translateY(-9px) scale(.96, 1.04); } }
+@keyframes nia-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.25); } }
+@media (prefers-reduced-motion: reduce) { .nia .nia-body, .nia .nia-eyes, .nia .nia-look, .nia .nia-hearts-eyes path, .nia .nia-wink-eye { animation: none !important; } }
+
+/* NiaPal: the reacting wrapper (hover = love + hearts, click = spin + dots) */
+.nia-pal { position: relative; display: inline-grid; place-items: center; cursor: pointer; outline: none; border-radius: 30%; flex: none; }
+.nia-pal:focus-visible { box-shadow: 0 0 0 2px #E27A5F; }
+.nia-pal-spin { display: block; transition: transform .35s cubic-bezier(.3, 1.6, .5, 1); }
+.nia-pal:hover .nia-pal-spin { transform: translateY(-2px) scale(1.08) rotate(-4deg); }
+.nia-pal-spin.go { animation: np-spin .8s cubic-bezier(.3, 1.3, .5, 1); }
+@keyframes np-spin { 0% { rotate: 0deg; scale: 1; } 40% { rotate: 200deg; scale: 1.18; } 100% { rotate: 360deg; scale: 1; } }
+.np-bit { position: absolute; left: 50%; top: 50%; z-index: 5; width: var(--s); height: var(--s); margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2);
+  pointer-events: none; animation: np-pop 1.2s cubic-bezier(.2, .8, .3, 1) forwards; }
+.np-bit.dot { background: var(--c); border-radius: 2px; }
+.np-bit.heart::before { content: "♥"; display: block; font-style: normal; font-size: var(--s); line-height: 1; color: var(--c); }
+@keyframes np-pop {
+  0% { transform: translate(0, 0) scale(.3); opacity: 0; }
+  15% { opacity: 1; } 70% { opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)) scale(1) rotate(25deg); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .nia-pal-spin.go, .np-bit { animation: none !important; } .np-bit { display: none; } }

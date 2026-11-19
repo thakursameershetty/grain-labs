@@ -1,0 +1,193 @@
+/* Nia's stage (NiaStage.tsx). The root is Nia's positioning box: she can sit up by the headline (negative y) or
+   anywhere on the stage. Page tokens only, so it works light and dark; Nia's own blue stays on Nia. */
+.grain-hero .ns { position: relative; margin-top: clamp(48px, 6vw, 76px); }
+.grain-hero .ns .nd-asks { margin-bottom: 18px; }
+
+.grain-hero .ns-stage {
+  position: relative; height: clamp(460px, 38vw, 520px); border-radius: 26px; overflow: hidden;
+  background:
+    radial-gradient(60% 70% at 50% 60%, color-mix(in srgb, #5874BD 5%, transparent), transparent 70%),
+    color-mix(in srgb, var(--ink) 2.5%, var(--paper));
+  box-shadow: inset 0 0 0 1px var(--x-line), 0 50px 90px -70px color-mix(in srgb, var(--ink) 45%, transparent);
+}
+.grain-hero .ns-label { position: absolute; transition: opacity .4s ease; margin: 0; font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--x-muted); }
+
+/* the inbox pile: four cards, slightly askew */
+.grain-hero .ns-pile { position: absolute; left: 5%; top: 50%; width: 24%; height: 0; margin: 0; padding: 0; list-style: none; transition: opacity .5s ease; }
+
+/* the job folders */
+.grain-hero .ns-folders { position: absolute; right: 5%; top: 0; bottom: 0; width: 160px; display: grid; justify-items: center; align-content: center; gap: 16px; }
+/* folders as Explorer-style icons: a square manila folder (back panel with its tab, white sheets peeking out, one
+   per filed item up to three, and a lighter front flap), name and count centred underneath. The flap tips open (3D)
+   while something is filed. Manila is fixed (it's an icon), so it reads the same in light and dark. */
+.grain-hero .ns-folder { position: relative; display: grid; justify-items: center; gap: 8px; width: 150px; transition: transform .45s cubic-bezier(.3, 1.6, .5, 1); }
+.grain-hero .nf-icon { position: relative; display: block; width: 96px; height: 78px; perspective: 380px; filter: drop-shadow(0 8px 10px rgba(120, 80, 20, .16)); }
+.grain-hero .nf-back { position: absolute; left: 0; right: 0; top: 9px; bottom: 0; border-radius: 4px 9px 9px 9px; background: linear-gradient(180deg, #E2A73C, #D8962C); }
+.grain-hero .nf-back::before {   /* the tab */
+  content: ""; position: absolute; left: 0; top: -9px; width: 42%; height: 11px; border-radius: 6px 6px 0 0; background: #E2A73C;
+  clip-path: polygon(0 0, 78% 0, 100% 100%, 0 100%);
+}
+.grain-hero .nf-papers { position: absolute; left: 9%; right: 9%; top: 13px; bottom: 8px; }
+.grain-hero .nf-sheet {
+  position: absolute; left: calc(var(--k) * 6%); right: calc(10% - var(--k) * 5%); top: calc(var(--k) * 3px); bottom: 0; border-radius: 3px;
+  background: #fff; box-shadow: 0 0 0 1px rgba(120, 90, 40, .12);
+  transform: rotate(calc((var(--k) - 1) * 2deg));
+}
+.grain-hero .nf-sheet::before, .grain-hero .nf-sheet::after { content: ""; position: absolute; left: 12%; height: 2px; border-radius: 2px; background: rgba(60, 50, 40, .18); }
+.grain-hero .nf-sheet::before { top: 5px; width: 50%; }
+.grain-hero .nf-sheet::after { top: 10px; width: 32%; }
+.grain-hero .nf-sheet.new { animation: nf-in .42s cubic-bezier(.3, 1.4, .5, 1) both; }
+@keyframes nf-in { from { transform: translateY(-22px) rotate(-5deg); } }
+.grain-hero .nf-front {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 74%; border-radius: 6px 6px 9px 9px; transform-origin: 50% 100%;
+  background: linear-gradient(180deg, #FCD775, #F4C24F 70%, #EDB441);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .65), inset 0 -2px 0 rgba(180, 120, 30, .18), 0 -3px 8px -5px rgba(120, 80, 20, .35);
+  transition: transform .4s cubic-bezier(.3, 1.3, .5, 1);
+}
+.grain-hero .ns-folder.open .nf-front { transform: rotateX(-30deg); }
+.grain-hero .nf-label { display: grid; justify-items: center; gap: 1px; text-align: center; }
+.grain-hero .nf-label b { font-size: 13.5px; font-weight: 500; color: var(--x-ink); white-space: nowrap; }
+.grain-hero .nf-label small { font-size: 12px; color: var(--x-muted); font-variant-numeric: tabular-nums; }
+.grain-hero .ns-folder.bump { transform: scale(1.06); }
+/* the card on its way into a folder */
+.grain-hero .ns-filing { position: absolute; left: 0; top: 0; z-index: 6; margin: 0; pointer-events: none; transform-origin: 50% 50%; filter: drop-shadow(0 10px 14px rgb(40 25 15 / .16)); }
+
+/* the letter and the send: one panel slot in the middle */
+.grain-hero .ns-panel {
+  position: absolute; left: 31%; width: 40%; top: 50%; border-radius: 16px; background: var(--x-bg);
+  box-shadow: inset 0 0 0 1px var(--x-line), 0 24px 50px -30px color-mix(in srgb, var(--ink) 45%, transparent);
+  opacity: 0; transform: translateY(-46%) scale(.97); pointer-events: none;
+  transition: opacity .45s ease, transform .55s cubic-bezier(.3, 1.4, .5, 1);
+}
+.grain-hero .ns-panel.on { opacity: 1; transform: translateY(-50%); pointer-events: auto; }
+.grain-hero .ns-doc { padding: 18px 20px 12px; }
+.grain-hero .ns-doc header { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--x-line); }
+.grain-hero .ns-doc header b { font-size: 14.5px; font-weight: 500; }
+.grain-hero .ns-doc header small { font-size: 12px; color: var(--x-muted); }
+.grain-hero .ns-doc p { margin: 0 0 9px; font-size: 14px; line-height: 1.5; color: var(--x-body); opacity: 0; transform: translateY(4px); transition: opacity .35s ease, transform .4s var(--ease); }
+.grain-hero .ns-doc p.in { opacity: 1; transform: none; }
+.grain-hero .ns-src {
+  display: inline-block; margin: 0 1px 0 5px; padding: 1px 7px; border-radius: 6px; font-style: normal; font-family: var(--mono); font-size: 10.5px; vertical-align: 1px;
+  color: var(--c-output); background: color-mix(in srgb, var(--c-output) 12%, transparent);
+  opacity: 0; transition: opacity .2s ease;
+}
+.grain-hero .ns-src.in { opacity: 1; }
+.grain-hero .ns-fly { position: absolute; left: 0; top: 0; margin: 0; z-index: 6; opacity: 1; pointer-events: none; box-shadow: 0 6px 16px -6px color-mix(in srgb, var(--c-output) 60%, transparent); }
+
+.grain-hero .ns-send dl { margin: 0; padding: 6px 20px; }
+.grain-hero .ns-send dl div { display: grid; grid-template-columns: 86px 1fr; gap: 10px; padding: 11px 0; border-bottom: 1px solid var(--x-line); }
+.grain-hero .ns-send dl div:last-child { border-bottom: 0; }
+.grain-hero .ns-send dt { font-size: 12.5px; color: var(--x-muted); }
+.grain-hero .ns-send dd { margin: 0; font-size: 14px; color: var(--x-ink); }
+.grain-hero .ns-gate {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 14px 20px; border-radius: 0 0 16px 16px;
+  background: color-mix(in srgb, var(--c-gate) 7%, var(--x-bg)); border-top: 1px solid color-mix(in srgb, var(--c-gate) 22%, transparent);
+}
+.grain-hero .ns-gate p { display: inline-flex; align-items: center; gap: 9px; margin: 0; font-size: 14px; color: var(--x-ink); }
+.grain-hero .ns-wait { width: 8px; height: 8px; border-radius: 50%; background: var(--wait); animation: nd-ping 1.6s ease-out infinite; }
+.grain-hero .ns-gate button {
+  padding: 9px 15px; border-radius: 999px; border: 0; font: inherit; font-size: 13.5px; font-weight: 500; cursor: pointer;
+  background: var(--x-ink); color: var(--x-bg); transition: transform .15s ease, opacity .2s ease;
+}
+.grain-hero .ns-gate button:hover { opacity: .9; }
+.grain-hero .ns-gate button.press { transform: scale(.94); }
+.grain-hero .ns-send.sent .ns-gate { background: color-mix(in srgb, var(--ok) 8%, var(--x-bg)); border-top-color: color-mix(in srgb, var(--ok) 25%, transparent); }
+.grain-hero .ns-ok { color: var(--ok) !important; animation: nd-say .4s var(--ease) both; }
+.grain-hero .ns-tick { position: relative; flex: none; width: 16px; height: 16px; border-radius: 50%; background: var(--ok); }
+.grain-hero .ns-tick::after { content: ""; position: absolute; left: 5px; top: 3px; width: 4px; height: 7px; border: solid var(--x-bg); border-width: 0 2px 2px 0; transform: rotate(45deg); }
+
+/* Nia: positioned by NiaStage (transform), above the stage. The bubble and what she carries move with her. */
+.grain-hero .ns-actor { position: absolute; left: 0; top: 0; z-index: 5; width: 150px; height: 150px; transform-origin: 50% 50%; will-change: transform; transition: opacity .25s ease; }
+.grain-hero .ns-actor.pre { opacity: 0; pointer-events: none; }   /* before she pops in by the headline */
+.grain-hero .ns-bubble {
+  position: absolute; left: 50%; bottom: calc(100% - 18px); width: max-content; max-width: 250px; margin: 0; padding: 9px 13px; border-radius: 14px 14px 14px 4px;
+  font-size: 13.5px; line-height: 1.4; color: var(--x-ink); background: var(--x-bg);
+  box-shadow: inset 0 0 0 1px var(--x-line), 0 12px 28px -14px color-mix(in srgb, var(--ink) 40%, transparent);
+  transform: translateX(-12%);
+}
+.grain-hero .ns-actor.flip .ns-bubble { transform: translateX(-88%); border-radius: 14px 14px 4px 14px; }
+.grain-hero .ns-carry { position: absolute; left: 50%; top: calc(100% - 30px); width: max-content; transform: translateX(-50%) rotate(-4deg) scale(.78); transform-origin: 50% 0; filter: drop-shadow(0 12px 16px rgb(40 25 15 / .18)); }
+
+/* the Advocate's cursor */
+.grain-hero .ns-cursor { position: absolute; left: 0; top: 0; z-index: 7; display: flex; align-items: flex-start; gap: 2px; opacity: 0; pointer-events: none; transition: opacity .3s ease; }
+.grain-hero .ns-cursor svg { width: 22px; height: 22px; fill: var(--x-ink); stroke: var(--x-bg); stroke-width: 1.4; stroke-linejoin: round; filter: drop-shadow(0 3px 5px rgba(0, 0, 0, .25)); transition: transform .12s ease; }
+.grain-hero .ns-cursor span { margin-top: 16px; padding: 3px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 500; color: #fff; background: var(--c-gate); }
+.grain-hero .ns-cursor.press svg { transform: scale(.82); }
+
+/* the headline keeps a seat for Nia after "Meet Nia." */
+.grain-hero .nia-anchor { display: inline-block; width: .95em; height: 0; margin-left: .2em; vertical-align: baseline; }   /* a zero-height seat on the baseline; NiaStage stands her on it */
+
+/* jumping here from the nav: keep the headline clear of the blurred header zone */
+.grain-hero #nia { scroll-margin-top: 72px; }
+
+/* ── the inbox pile: real artifacts, piled with their own offsets and tilts (top of the pile is the last one) ── */
+.grain-hero .ns-pile li {
+  position: absolute; left: 50%; top: 0; width: max-content;
+  transform: translate(calc(-50% + var(--px, 0px)), calc(-50% + var(--py, 0px))) rotate(var(--rot, 0deg));
+  filter: drop-shadow(0 10px 14px rgb(40 25 15 / .14));
+  transition: opacity .2s ease, transform .3s ease;
+}
+.grain-hero .ns-pile li:nth-child(1) { --px: -86px; --py: -46px; --rot: -8deg; }   /* the plan document, at the bottom */
+.grain-hero .ns-pile li:nth-child(2) { --px: 56px; --py: 118px; --rot: -3deg; }      /* the voice note */
+.grain-hero .ns-pile li:nth-child(3) { --px: 92px; --py: -40px; --rot: 4deg; }     /* the envelope */
+.grain-hero .ns-pile li:nth-child(4) { --px: -14px; --py: 20px; --rot: 3deg; }     /* the receipt, on top */
+.grain-hero .ns-pile li.gone { opacity: 0; transform: translate(calc(-50% + var(--px, 0px)), calc(-80% + var(--py, 0px))) rotate(var(--rot, 0deg)) scale(.9); }
+
+/* ── the artifacts (InboxArtifact.tsx): paper and a phone bubble, fixed colours like real objects ── */
+.grain-hero .ia { position: relative; color: #2a2420; font-family: var(--sans); }
+/* receipt: a narrow thermal slip, mono type, torn zigzag bottom */
+.grain-hero .ia-receipt {
+  width: 170px; padding: 14px 14px 22px; background: #fffdf8; font-family: var(--mono); font-size: 9.5px; letter-spacing: .02em; line-height: 1.5;
+  -webkit-mask: linear-gradient(#000 0 0) top / 100% calc(100% - 7px) no-repeat, conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / 10px 7px repeat-x;
+          mask: linear-gradient(#000 0 0) top / 100% calc(100% - 7px) no-repeat, conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / 10px 7px repeat-x;
+}
+.grain-hero .ia-receipt .ia-r-head { display: block; text-align: center; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
+.grain-hero .ia-receipt small { display: block; text-align: center; color: #8a7d72; font-size: 8.5px; }
+.grain-hero .ia-receipt hr { margin: 8px 0; border: 0; border-top: 1px dashed #c9bdb2; }
+.grain-hero .ia-receipt p { display: flex; justify-content: space-between; margin: 2px 0; }
+.grain-hero .ia-receipt .ia-r-total { font-size: 11px; font-weight: 700; }
+.grain-hero .ia-receipt .ia-r-due { margin-top: 6px; color: #b4482b; }
+/* mail: an envelope with its flap, a stamp, a postmark, the sender and address lines */
+.grain-hero .ia-mail {
+  width: 236px; height: 138px; border-radius: 6px; overflow: hidden;
+  background: linear-gradient(160deg, #fbf4ea, #f3e8d8); box-shadow: inset 0 0 0 1px rgb(120 90 60 / .14);
+}
+.grain-hero .ia-m-flap { position: absolute; inset: 0; background:
+  linear-gradient(to bottom right, transparent calc(50% - 1px), rgb(120 90 60 / .16) 50%, transparent calc(50% + 1px)) left / 50% 60% no-repeat,
+  linear-gradient(to bottom left, transparent calc(50% - 1px), rgb(120 90 60 / .16) 50%, transparent calc(50% + 1px)) right / 50% 60% no-repeat; }
+.grain-hero .ia-m-from { position: absolute; left: 14px; top: 12px; display: grid; gap: 1px; }
+.grain-hero .ia-m-from b { font-size: 10.5px; font-weight: 600; letter-spacing: -.01em; }
+.grain-hero .ia-m-from small { font-size: 8.5px; color: #8a7d72; }
+.grain-hero .ia-m-stamp { position: absolute; right: 12px; top: 10px; width: 30px; height: 36px; padding: 3px; background: #fffaf2;
+  -webkit-mask: radial-gradient(circle 2.2px at 2.5px 2.5px, #0000 98%, #000) -2.5px -2.5px / 5px 5px; mask: radial-gradient(circle 2.2px at 2.5px 2.5px, #0000 98%, #000) -2.5px -2.5px / 5px 5px; }
+.grain-hero .ia-m-stamp i { display: block; width: 100%; height: 100%; border-radius: 2px; background: linear-gradient(135deg, #E27A5F, #C85636); }
+.grain-hero .ia-m-post { position: absolute; right: 30px; top: 22px; width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid rgb(90 70 120 / .35);
+  background: repeating-linear-gradient(0deg, transparent 0 5px, rgb(90 70 120 / .3) 5px 6.5px) right / 60% 70% no-repeat; }
+.grain-hero .ia-m-to { position: absolute; left: 76px; bottom: 22px; display: grid; gap: 6px; }
+.grain-hero .ia-m-to i { display: block; height: 3px; width: 92px; border-radius: 2px; background: rgb(60 45 35 / .28); }
+.grain-hero .ia-m-to i:nth-child(2) { width: 110px; } .grain-hero .ia-m-to i:nth-child(3) { width: 70px; }
+/* voice note: a chat bubble with play, waveform and duration */
+.grain-hero .ia-voice {
+  display: flex; align-items: center; gap: 10px; width: 236px; padding: 9px 14px 9px 9px; border-radius: 26px 26px 26px 8px;
+  background: #e7f6ec; box-shadow: inset 0 0 0 1px rgb(40 120 70 / .12);
+}
+.grain-hero .ia-v-play { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: #2f9e62; }
+.grain-hero .ia-v-play svg { width: 14px; height: 14px; fill: #fff; margin-left: 2px; }
+.grain-hero .ia-v-wave { flex: 1; display: flex; align-items: center; gap: 2px; height: 32px; }
+.grain-hero .ia-v-wave i { flex: 1; min-width: 2px; border-radius: 2px; background: rgb(40 110 70 / .32); }
+.grain-hero .ia-v-wave i.on { background: #2f9e62; }
+.grain-hero .ia-v-meta { display: grid; justify-items: end; gap: 1px; }
+.grain-hero .ia-v-meta b { font-size: 9.5px; font-weight: 600; }
+.grain-hero .ia-v-meta small { font-size: 9px; color: #5f7a68; font-variant-numeric: tabular-nums; }
+/* document: a portrait page with a folded corner and one highlighted section */
+.grain-hero .ia-doc {
+  display: grid; gap: 4px; align-content: start; width: 168px; height: 214px; padding: 18px 16px; background: #fffefb;
+  clip-path: polygon(0 0, calc(100% - 26px) 0, 100% 26px, 100% 100%, 0 100%);
+}
+.grain-hero .ia-d-fold { position: absolute; right: 0; top: 0; width: 26px; height: 26px; background: linear-gradient(45deg, #ece4d8 50%, transparent 50%); box-shadow: -2px 2px 4px rgb(60 40 20 / .1); }
+.grain-hero .ia-doc b { font-size: 12.5px; font-weight: 600; letter-spacing: -.02em; }
+.grain-hero .ia-doc small { font-size: 9px; color: #8a7d72; margin-bottom: 8px; }
+.grain-hero .ia-d-lines { display: grid; gap: 6px; margin: 4px 0; }
+.grain-hero .ia-d-lines i { display: block; height: 3px; border-radius: 2px; background: rgb(60 45 35 / .16); }
+.grain-hero .ia-d-lines i:nth-child(2n) { width: 82%; } .grain-hero .ia-d-lines i:last-child { width: 58%; }
+.grain-hero .ia-d-sec { margin: 6px -4px; padding: 4px 6px; border-radius: 4px; font-size: 9.5px; font-weight: 600; color: #7a4a10; background: #fbe7b8; }

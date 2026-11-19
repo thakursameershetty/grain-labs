@@ -1,0 +1,40 @@
+/* The 2D Grain mark. --i: 0 = core, 1 = inner ring, 2 = middle, 3 = outer.
+   --gm-speed scales the whole build (the loader uses 1, the nav a faster one). */
+.gmark { display: block; overflow: visible; --gm-speed: 1; }
+.gmark .gm-dot { transform-box: fill-box; transform-origin: center; }
+
+/* ───── build ───── */
+.gmark.gm-draw .gm-ring {
+  stroke-dasharray: 1 1; stroke-dashoffset: 1;
+  animation: gm-wind calc(.62s * var(--gm-speed)) cubic-bezier(.65, 0, .3, 1) calc((.12s + (var(--i) - 1) * .2s) * var(--gm-speed)) forwards;
+}
+.gmark.gm-draw .gm-fillet { opacity: 0; animation: gm-in calc(.2s * var(--gm-speed)) ease calc((.62s + (var(--i) - 1) * .2s) * var(--gm-speed)) forwards; }
+.gmark.gm-draw .gm-dot { transform: scale(0); animation: gm-drop calc(.42s * var(--gm-speed)) cubic-bezier(.34, 1.6, .6, 1) forwards; }
+.gmark.gm-draw .gm-core { animation-delay: 0s; }
+.gmark.gm-draw g .gm-dot { animation-delay: calc((.66s + (var(--i) - 1) * .2s) * var(--gm-speed)); }
+@keyframes gm-wind { to { stroke-dashoffset: 0; } }
+@keyframes gm-in { to { opacity: 1; } }
+@keyframes gm-drop { from { transform: translate(-40%, -40%) scale(0); } to { transform: none; } }
+
+/* ───── idle signal: the dots pulse outward in turn, every 4.2s ───── */
+.gmark.gm-pulse .gm-dot { animation: gm-beat 4.2s cubic-bezier(.4, 0, .2, 1) calc(1.6s + var(--i, 0) * .14s) infinite; }
+.gmark.gm-pulse g .gm-dot { animation-delay: calc(1.6s + var(--i) * .14s); }
+.gmark.gm-draw.gm-pulse .gm-dot {
+  transform: scale(0);
+  animation: gm-drop calc(.42s * var(--gm-speed)) cubic-bezier(.34, 1.6, .6, 1) forwards,
+             gm-beat 4.2s cubic-bezier(.4, 0, .2, 1) calc(2.2s + var(--i, 0) * .14s) infinite;
+}
+.gmark.gm-draw.gm-pulse g .gm-dot {
+  animation-delay: calc((.66s + (var(--i) - 1) * .2s) * var(--gm-speed)), calc(2.2s + var(--i) * .14s);
+}
+@keyframes gm-beat {
+  0%, 14%, 100% { transform: none; }
+  6% { transform: translate(18%, 18%) scale(1.22); }
+}
+
+/* hovering the brand sends one signal right away */
+a:hover > .gmark .gm-dot { animation: gm-beat 1.1s cubic-bezier(.4, 0, .2, 1) calc(var(--i, 0) * .09s) 1 both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .gmark .gm-ring, .gmark .gm-fillet, .gmark .gm-dot { animation: none !important; stroke-dashoffset: 0 !important; opacity: 1 !important; transform: none !important; }
+}

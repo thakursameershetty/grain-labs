@@ -1,0 +1,228 @@
+/* The Board section: centred two-line headline, a full-width board where runs are physically carried between
+   lanes (Nia and the Advocate's hand), and three captions underneath that light up as their moment happens. */
+.grain-hero .sx-board .bd-head { text-align: center; }
+.grain-hero .sx-board h2 { font-size: clamp(34px, 4.6vw, 72px); letter-spacing: -0.05em; line-height: 1.02; }
+.grain-hero .sx-board h2 span { display: block; white-space: nowrap; }
+.grain-hero .sx-board h2 em { font-style: normal; color: var(--c-gate); }
+.grain-hero .sx-board .bd-head .sx-sub { margin: 18px auto 0; text-wrap: balance; }
+@media (max-width: 640px) { .grain-hero .sx-board h2 span { white-space: normal; } }
+
+/* ───── the section turns dark (v6, after orchestrator.inc): a dark stage, inset with big rounded corners like the
+   hero → page seam, soft pastel light pooling behind an app window ───── */
+.grain-hero .sx.sx-runs {   /* .sx.sx-runs: sections.css loads after this file */
+  --x-bg: var(--dark-bg); --x-ink: var(--dark-ink);
+  --x-body: color-mix(in srgb, var(--dark-ink) 70%, transparent); --x-muted: color-mix(in srgb, var(--dark-ink) 46%, transparent);
+  --x-line: color-mix(in srgb, var(--dark-ink) 11%, transparent);
+  --c-gate: var(--o2); --ok: #3fcf8e;
+  margin: 0 clamp(8px, 1.2vw, 16px); border-radius: clamp(28px, 3vw, 44px); overflow: hidden; isolation: isolate;
+  background:
+    radial-gradient(45% 40% at 18% 78%, color-mix(in srgb, var(--o3) 16%, transparent), transparent 70%),
+    radial-gradient(40% 38% at 84% 70%, color-mix(in srgb, var(--in) 18%, transparent), transparent 70%),
+    radial-gradient(60% 40% at 50% 100%, color-mix(in srgb, var(--o2) 12%, transparent), transparent 75%),
+    var(--dark-bg);
+}
+.grain-hero .sx.sx-runs { --x-accent: var(--o2); }
+.grain-hero .sx.sx-runs h2 em { color: var(--o2); }
+
+/* ───── the app window (always dark) ───── */
+.grain-hero .rb {
+  --w-bg: #111113; --w-side: #0d0d0f; --w-card: #19191c; --w-ink: #ececee; --w-body: #a1a1a8; --w-mute: #6b6b73;
+  --w-line: rgb(255 255 255 / .075);
+  --s-run: #6f8cff; --s-need: #ff7a5c; --s-review: #f2b544; --s-done: #3fcf8e;
+  position: relative; margin-top: clamp(56px, 7vw, 88px); border-radius: 16px; color: var(--w-ink);
+  background: var(--w-bg);
+  box-shadow: 0 0 0 1px rgb(255 255 255 / .09), inset 0 1px 0 rgb(255 255 255 / .06), 0 60px 120px -40px rgb(0 0 0 / .8);
+  font-size: 13px;
+}
+.grain-hero .rb-ic { display: inline-block; width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.grain-hero .rb-dim { color: var(--w-mute); }
+
+/* title bar */
+.grain-hero .rb-bar-top { display: flex; align-items: center; gap: 14px; height: 52px; padding: 0 16px; border-bottom: 1px solid var(--w-line); }
+.grain-hero .rb-lights { display: inline-flex; gap: 8px; }
+.grain-hero .rb-lights i { width: 12px; height: 12px; border-radius: 50%; background: #ff5f57; }
+.grain-hero .rb-lights i:nth-child(2) { background: #febc2e; }
+.grain-hero .rb-lights i:nth-child(3) { background: #28c840; }
+.grain-hero .rb-app { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600; letter-spacing: -0.02em; }
+.grain-hero .rb-app svg { width: 18px; height: 18px; }
+.grain-hero .rb-crumb { margin-left: 10px; font-size: 14px; color: var(--w-ink); font-weight: 500; }
+.grain-hero .rb-now { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; max-width: 220px; height: 32px; padding: 0 12px; border-radius: 9px;
+  background: rgb(255 255 255 / .05); box-shadow: inset 0 0 0 1px var(--w-line); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.grain-hero .rb-now .nia { flex: none; }
+.grain-hero .rb-new { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 9px; font-weight: 500;
+  background: rgb(255 255 255 / .9); color: #111; }
+.grain-hero .rb-new .rb-ic { width: 14px; height: 14px; }
+.grain-hero .rb-bell { width: 18px; height: 18px; }
+
+.grain-hero .rb-body { display: grid; grid-template-columns: 236px minmax(0, 1fr); }
+
+/* sidebar */
+.grain-hero .rb-side { display: flex; flex-direction: column; gap: 2px; padding: 12px 10px 12px; background: var(--w-side); border-right: 1px solid var(--w-line); border-bottom-left-radius: 16px; min-width: 0; }
+.grain-hero .rb-nav, .grain-hero .rb-runs { list-style: none; margin: 0; padding: 0; }
+.grain-hero .rb-nav li { display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 8px; border-radius: 8px; color: var(--w-body); }
+.grain-hero .rb-nav kbd { margin-left: auto; font: inherit; font-size: 11.5px; color: var(--w-mute); }
+.grain-hero .rb-sh { display: flex; align-items: center; gap: 4px; margin: 14px 8px 4px; font-size: 12.5px; color: var(--w-mute); }
+.grain-hero .rb-sh .rb-ic { width: 12px; height: 12px; }
+.grain-hero .rb-runs li { display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; align-items: center; gap: 9px; height: 30px; padding: 0 8px; border-radius: 8px;
+  color: var(--w-body); animation: rb-in .4s var(--ease) both; }
+.grain-hero .rb-runs li:first-child { background: rgb(255 255 255 / .045); color: var(--w-ink); }
+.grain-hero .rb-runs span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.grain-hero .rb-runs small { font-size: 11.5px; color: var(--w-mute); font-variant-numeric: tabular-nums; }
+.grain-hero .rb-st { width: 15px; height: 15px; }
+@keyframes rb-in { from { opacity: 0; transform: translateY(-4px); } }
+.grain-hero .l-run .rb-st { color: var(--s-run); }
+.grain-hero .l-need .rb-st { color: var(--s-need); }
+.grain-hero .l-review .rb-st { color: var(--s-review); }
+.grain-hero .l-done .rb-st { color: var(--s-done); }
+.grain-hero .rb-fleets { display: grid; gap: 1px; }
+.grain-hero .rb-fleets button { display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; align-items: center; gap: 9px; height: 32px; padding: 0 8px; border: 0; border-radius: 8px;
+  background: none; font: inherit; color: var(--w-body); text-align: left; cursor: pointer; white-space: nowrap; transition: background-color .2s ease, color .2s ease; }
+.grain-hero .rb-fleets button:hover { background: rgb(255 255 255 / .04); color: var(--w-ink); }
+.grain-hero .rb-fleets button[aria-pressed="true"] { background: rgb(255 255 255 / .07); color: var(--w-ink); }
+.grain-hero .rb-fleets button:focus-visible { outline: 2px solid var(--s-run); outline-offset: -2px; }
+.grain-hero .rb-fleets button span { font-size: 11.5px; color: var(--w-mute); font-variant-numeric: tabular-nums; }
+.grain-hero .rb-ft { width: 20px; height: 20px; border-radius: 6px; display: grid; place-items: center; font-size: 10.5px; font-weight: 600; font-style: normal;
+  background: rgb(255 255 255 / .08); color: var(--w-ink); }
+.grain-hero .rb-ft.g0, .grain-hero .rb-gi.g0 { background: color-mix(in srgb, #E27A5F 22%, transparent); color: #F2A48F; }
+.grain-hero .rb-ft.g1, .grain-hero .rb-gi.g1 { background: color-mix(in srgb, #8FA4D8 22%, transparent); color: #B3C3EC; }
+.grain-hero .rb-ft.g2, .grain-hero .rb-gi.g2 { background: color-mix(in srgb, #E3B26B 22%, transparent); color: #EFCB93; }
+.grain-hero .rb-me { margin: auto 0 0; display: flex; align-items: center; gap: 10px; padding: 12px 8px 2px; font-weight: 500; }
+.grain-hero .rb-me i { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 10px; font-style: normal; font-weight: 600;
+  background: linear-gradient(135deg, #F0A585, #C85636); color: #fff; }
+.grain-hero .rb-me .rb-ic { margin-left: auto; }
+
+/* board area */
+.grain-hero .rb-main { min-width: 0; display: flex; flex-direction: column; }
+.grain-hero .rb-scroll { overflow-x: auto; overflow-y: visible; padding-top: 56px; margin-top: -56px; scrollbar-width: none; }
+.grain-hero .rb-scroll::-webkit-scrollbar { display: none; }
+.grain-hero .rb-inner { position: relative; min-width: 820px; touch-action: pan-y; }
+.grain-hero .rb-headline { position: absolute; left: 0; right: 0; top: 48px; height: 1px; background: var(--w-line); }
+.grain-hero .rb-lane { position: absolute; top: 0; bottom: 0; transition: background-color .3s ease; }
+.grain-hero .rb-lane + .rb-lane { box-shadow: inset 1px 0 0 var(--w-line); }
+.grain-hero .rb-lh { display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 18px; font-size: 14px; font-weight: 500; }
+.grain-hero .rb-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--dc); box-shadow: 0 0 0 3px color-mix(in srgb, var(--dc) 18%, transparent); }
+.grain-hero .rb-lane.l-run { --dc: var(--s-run); }
+.grain-hero .rb-lane.l-need { --dc: var(--s-need); }
+.grain-hero .rb-lane.l-review { --dc: var(--s-review); }
+.grain-hero .rb-lane.l-done { --dc: var(--s-done); }
+.grain-hero .rb-n { margin-left: auto; font-size: 12.5px; font-weight: 400; color: var(--w-mute); font-variant-numeric: tabular-nums; }
+.grain-hero .rb-lane.drop { background: color-mix(in srgb, var(--s-done) 6%, transparent); }
+.grain-hero .rb-foot { display: flex; align-items: center; gap: 8px; height: 44px; margin: 0; padding: 0 18px; border-top: 1px solid var(--w-line); color: var(--w-mute); }
+.grain-hero .rb-foot span { font-variant-numeric: tabular-nums; }
+.grain-hero .rb-foot em { margin-left: auto; font-style: normal; }
+.grain-hero .rb-foot b { font-weight: 500; color: var(--w-ink); font-variant-numeric: tabular-nums; }
+
+/* cards: travel by transform; the inner part lifts and tilts while held */
+.grain-hero .rb-card { position: absolute; left: 0; top: 0; z-index: 2; transition-property: transform; transition-timing-function: cubic-bezier(.45, .05, .25, 1); }
+.grain-hero .rb-card.held { z-index: 6; }
+.grain-hero .rb-card.l-need:not(.held) { cursor: grab; }
+.grain-hero .rb-card.by-you { cursor: grabbing; }
+.grain-hero .rb-ci {
+  --sc: var(--w-mute);
+  height: 100%; border-radius: 12px; background: var(--w-card); overflow: hidden; user-select: none;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / .07), inset 0 1px 0 rgb(255 255 255 / .04);
+  display: flex; flex-direction: column;
+  transition: transform .3s cubic-bezier(.3, 1.4, .5, 1), box-shadow .3s ease, opacity .3s ease, filter .3s ease;
+}
+.grain-hero .rb-card.l-run .rb-ci { --sc: var(--s-run); }
+.grain-hero .rb-card.l-need .rb-ci { --sc: var(--s-need); background: color-mix(in srgb, var(--s-need) 7%, var(--w-card));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--s-need) 55%, transparent), 0 0 24px -12px color-mix(in srgb, var(--s-need) 60%, transparent); }
+.grain-hero .rb-card.l-review .rb-ci { --sc: var(--s-review); }
+.grain-hero .rb-card.l-done .rb-ci { --sc: var(--s-done); }
+.grain-hero .rb-card.held .rb-ci { transform: rotate(-2.5deg) scale(1.04); box-shadow: inset 0 0 0 1px rgb(255 255 255 / .12), 0 30px 50px -18px rgb(0 0 0 / .8); }
+.grain-hero .rb-card.dim .rb-ci { opacity: .3; filter: saturate(.3); }
+.grain-hero .rb-head { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; align-items: start; padding: 13px 14px 0; }
+.grain-hero .rb-gi { width: 22px; height: 22px; border-radius: 7px; display: grid; place-items: center; font-style: normal; }
+.grain-hero .rb-gi .rb-ic { width: 14px; height: 14px; }
+.grain-hero .rb-ct { margin: 1px 0 0; font-size: 14px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.3; color: var(--w-ink);
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.grain-hero .rb-cs { margin: 8px 14px 0 46px; font-size: 12.5px; color: var(--w-body); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.grain-hero .rb-cs .rb-ic { width: 13px; height: 13px; margin-right: 7px; vertical-align: -2px; color: var(--w-mute); }
+.grain-hero .rb-cf { margin-top: auto; display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; border-top: 1px solid rgb(255 255 255 / .06);
+  font-size: 12px; color: var(--w-mute); }
+.grain-hero .rb-stat { display: inline-flex; align-items: center; gap: 6px; color: var(--sc); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.grain-hero .rb-spin { width: 13px; height: 13px; animation: rb-turn 1.6s linear infinite; }
+@keyframes rb-turn { to { transform: rotate(360deg); } }
+.grain-hero .rb-ago { margin-left: auto; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.grain-hero .rb-bar { flex: 1; min-width: 20px; max-width: 60px; height: 3px; border-radius: 3px; overflow: hidden; background: rgb(255 255 255 / .08); }
+.grain-hero .rb-bar i { display: block; height: 100%; border-radius: inherit; background: var(--s-run); animation: rb-progress 5.4s ease-in-out var(--dl, 0s) infinite alternate; }
+@keyframes rb-progress { from { width: 18%; } to { width: 86%; } }
+.grain-hero .rb-av { display: inline-grid; place-items: center; width: 19px; height: 19px; border-radius: 50%; font-size: 8.5px; font-weight: 600;
+  background: color-mix(in srgb, var(--s-need) 22%, transparent); color: var(--s-need); }
+.grain-hero .rb-ok-btn {
+  margin-left: auto; display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 10px; border: 0; border-radius: 7px; font: inherit; font-size: 12px; font-weight: 500; cursor: pointer;
+  background: var(--s-done); color: #062b17; box-shadow: inset 0 1px 0 rgb(255 255 255 / .3); transition: transform .2s var(--ease), filter .2s ease;
+}
+.grain-hero .rb-ok-btn .rb-ic { width: 13px; height: 13px; stroke-width: 2; }
+.grain-hero .rb-ok-btn:hover { transform: translateY(-1px); filter: brightness(1.08); }
+.grain-hero .rb-ok-btn:focus-visible { outline: 2px solid var(--s-done); outline-offset: 2px; }
+.grain-hero .rb-card.l-need .rb-ago { display: none; }
+.grain-hero .rb-srcs { display: inline-flex; flex: none; }
+.grain-hero .rb-srcs i { width: 12px; height: 15px; border-radius: 3px; background: var(--w-card); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--s-review) 55%, transparent); }
+.grain-hero .rb-srcs i + i { margin-left: -7px; }
+
+/* narrower: the sidebar goes, the board scrolls sideways */
+@media (max-width: 1080px) {
+  .grain-hero .rb-body { grid-template-columns: minmax(0, 1fr); }
+  .grain-hero .rb-side { display: none; }
+  .grain-hero .rb-now { display: none; }
+}
+@media (max-width: 640px) {
+  .grain-hero .rb-crumb, .grain-hero .rb-foot em { display: none; }
+}
+
+/* the Advocate's hand: a white hand cursor with a name tag, Figma-style */
+.grain-hero .rb-hand {
+  position: absolute; left: 0; top: 0; z-index: 8; pointer-events: none; opacity: 0;
+  transition-property: transform, opacity; transition-timing-function: cubic-bezier(.45, .05, .25, 1), ease;
+}
+.grain-hero .rb-hand.on { opacity: 1; }
+.grain-hero .rb-hand svg { width: 30px; height: 30px; margin: -6px 0 0 -8px; fill: #fff; stroke: #111; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round;
+  filter: drop-shadow(0 3px 4px color-mix(in srgb, var(--ink) 30%, transparent)); transition: transform .2s ease; }
+.grain-hero .rb-hand.grab svg { transform: scale(.92); }
+.grain-hero .rb-tag { position: absolute; left: 22px; top: 22px; padding: 3px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 500; white-space: nowrap;
+  background: #fff; color: #111; }
+
+/* Nia: flies about; a gentle hover-bob on her own, a tilt toward where she is going, a spin when clicked */
+.grain-hero .rb-nia {
+  position: absolute; left: 0; top: 0; z-index: 7; padding: 0; border: 0; background: none; cursor: pointer;
+  transition-property: transform; transition-timing-function: cubic-bezier(.5, .05, .25, 1);
+  filter: drop-shadow(0 10px 14px rgb(0 0 0 / .5));
+}
+.grain-hero .rb-nia:focus-visible { outline: 2px solid var(--c-gate); outline-offset: 4px; border-radius: 16px; }
+.grain-hero .rb-nia-tilt { display: block; transition: transform .5s cubic-bezier(.3, 1.4, .5, 1); animation: rb-hover 2.6s ease-in-out infinite; }
+.grain-hero .rb-nia.carrying .rb-nia-tilt { animation-duration: .7s; }
+.grain-hero .rb-nia-spin { display: block; }
+.grain-hero .rb-nia-spin.go { animation: rb-spin .8s cubic-bezier(.3, 1.3, .5, 1); }
+@keyframes rb-hover { 0%, 100% { translate: 0 0; } 50% { translate: 0 -6px; } }
+@keyframes rb-spin { 0% { transform: rotate(0) scale(1); } 40% { transform: rotate(200deg) scale(1.15); } 100% { transform: rotate(360deg) scale(1); } }
+
+/* effects: hearts float up, the logo's square dots burst out */
+.grain-hero .rb-bit { position: absolute; z-index: 9; width: var(--s); height: var(--s); margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2); pointer-events: none;
+  animation: rb-pop 1.2s cubic-bezier(.2, .8, .3, 1) forwards; }
+.grain-hero .rb-bit.dot { background: var(--c); border-radius: 2px; }
+.grain-hero .rb-bit.heart::before { content: "♥"; display: block; font-style: normal; font-size: var(--s); line-height: 1; color: var(--c); }
+@keyframes rb-pop {
+  0% { transform: translate(0, 0) scale(.3); opacity: 0; }
+  15% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)) scale(1) rotate(25deg); opacity: 0; }
+}
+
+/* ───── captions under the board: each lights up as its moment happens ───── */
+.grain-hero .bd-points { list-style: none; margin: 28px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(16px, 3vw, 40px); }
+.grain-hero .bd-points li { position: relative; padding-top: 18px; }
+.grain-hero .bd-points li::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: var(--x-line); }
+.grain-hero .bd-points li::after { content: ""; position: absolute; left: 0; top: 0; height: 2px; width: 0; background: var(--c-gate); transition: width .8s var(--ease); }
+.grain-hero .bd-points li.on::after { width: 100%; }
+.grain-hero .bd-points b { display: block; font-size: 16px; font-weight: 500; letter-spacing: -0.01em; color: var(--x-ink); }
+.grain-hero .bd-points span { display: block; margin-top: 6px; font-size: 14.5px; line-height: 1.45; color: var(--x-body); transition: color .4s ease; }
+.grain-hero .bd-points li:not(.on) b { color: var(--x-body); }
+@media (max-width: 760px) { .grain-hero .bd-points { grid-template-columns: 1fr; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .grain-hero .rb-card, .grain-hero .rb-nia, .grain-hero .rb-hand { transition-duration: .01ms !important; }
+  .grain-hero .rb-nia-tilt, .grain-hero .rb-nia-spin.go, .grain-hero .rb-bit { animation: none !important; }
+}
+
+@media (prefers-reduced-motion: reduce) { .grain-hero .rb-bar i, .grain-hero .rb-spin { animation: none; } .grain-hero .rb-bar i { width: 60%; } }
