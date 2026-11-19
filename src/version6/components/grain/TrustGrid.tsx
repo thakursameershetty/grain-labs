@@ -134,7 +134,7 @@ function Phi() {
         <div><span>prompt</span><span className="wh">withheld</span></div>
         <div><span>patient</span><span className="wh">withheld</span></div>
       </div>
-      <p className="tg-phi-h"><LockIcon size={12} /> Private journal · 23 entries</p>
+      <div className="tg-phi-h"><LockIcon size={12} /> Private journal · 23 entries</div>
       <div className={`tg-log journal${k < 0 ? " locked" : ""}`}>
         {JOURNAL.map(([key, v]) => <div key={key}><span>{key}</span><span>{k < 0 ? scramble(v, 0) : scramble(v, k)}</span></div>)}
       </div>

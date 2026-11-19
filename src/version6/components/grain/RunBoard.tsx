@@ -8,7 +8,24 @@
 // with the same duration and easing as the card they carry, so they move as one.
 // Look (v6, after orchestrator.inc): a dark app window (title bar, a sidebar with the live list of runs and the
 // fleets as filters, four hairline-divided columns with status dots, quiet dark cards with a coloured status foot).
-import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as RPointerEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ForwardRefExoticComponent, type PointerEvent as RPointerEvent, type ReactNode, type RefAttributes } from "react";
+import { SearchIcon } from "@/version6/components/ui/search";
+import { ZapIcon } from "@/version6/components/ui/zap";
+import { BoxIcon } from "@/version6/components/ui/box";
+import { GaugeIcon } from "@/version6/components/ui/gauge";
+import { PanelLeftOpenIcon } from "@/version6/components/ui/panel-left-open";
+import { PlusIcon } from "@/version6/components/ui/plus";
+import { BellIcon } from "@/version6/components/ui/bell";
+import { SettingsIcon } from "@/version6/components/ui/settings";
+import { LoaderPinwheelIcon } from "@/version6/components/ui/loader-pinwheel";
+import { BadgeAlertIcon } from "@/version6/components/ui/badge-alert";
+import { EyeIcon } from "@/version6/components/ui/eye";
+import { CircleCheckIcon } from "@/version6/components/ui/circle-check";
+import { ReceiptTextIcon } from "@/version6/components/ui/receipt-text";
+import { GavelIcon } from "@/version6/components/ui/gavel";
+import { BoxesIcon } from "@/version6/components/ui/boxes";
+import { FileTextIcon } from "@/version6/components/ui/file-text";
+import { ArchiveIcon } from "@/version6/components/ui/archive";
 import Nia, { type NiaMood } from "./Nia";
 import GrainMark from "./GrainMark";
 import "./run-board.css";
@@ -21,27 +38,39 @@ const LANES = [
   { id: "done", name: "Done" },
 ] as const;
 
-// small line icons (24-unit, stroked)
-const ICON = {
-  search: "M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM20 20l-3.5-3.5",
-  auto: "M4 7h11M4 12h7M4 17h9M17 4v6M14 7h6",
-  packet: "M4 7.5 12 4l8 3.5v9L12 20l-8-3.5zM4 7.5l8 3.5 8-3.5M12 11v9",
-  usage: "M5 18a7 7 0 1 1 14 0M12 18l3.5-5",
-  side: "M4 5h16v14H4zM9.5 5v14",
-  bell: "M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20.5h4",
-  plus: "M12 5v14M5 12h14",
-  gear: "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M5.6 18.4l1.8-1.8M16.6 7.4l1.8-1.8",
-  archive: "M4 5h16v4H4zM5.5 9v10h13V9M10 13h4",
-  doc: "M7 3.5h7l4 4v13H7zM14 3.5v4h4M10 12h5M10 15.5h5",
-  chev: "M9 6l6 6-6 6",
-  // lane status glyphs
-  s0: "M12 4v2.2M12 17.8V20M4 12h2.2M17.8 12H20M6.3 6.3l1.6 1.6M16.1 16.1l1.6 1.6M6.3 17.7l1.6-1.6M16.1 7.9l1.6-1.6",
-  s1: "M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM12 8v4.5M12 15.8v.2",
-  s2: "M7 6.5a2 2 0 1 0 0-.01M7 8.5v9M17 17.5a2 2 0 1 0 0 .01M17 15.5V10a3 3 0 0 0-3-3h-4M12 4.8 10 7l2 2.2",
-  s3: "M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM8.5 12.2l2.4 2.4 4.6-4.8",
-} as const;
-const Ico = ({ d, className = "" }: { d: string; className?: string }) => <svg viewBox="0 0 24 24" className={`rb-ic ${className}`} aria-hidden="true"><path d={d} /></svg>;
-const GROUP_ICON = ["M7 3.5h10v17l-2.5-1.5-2.5 1.5-2.5-1.5L7 20.5zM10 8h4M10 11.5h4", "M12 4v16M6 20h12M5 8h14M7.5 8 5 14a3 3 0 0 0 5 0L7.5 8M16.5 8 14 14a3 3 0 0 0 5 0z", "M4 7.5 12 4l8 3.5v9L12 20l-8-3.5zM4 7.5l8 3.5 8-3.5M12 11v9"];
+// icons: lucide-animated (motion), driven from here. Each plays when its row is hovered (`hot`), once when it appears
+// (`once`: a run landing in a lane), or on a loop (`loop`: the Running spinner).
+type Anim = { startAnimation: () => void; stopAnimation: () => void };
+type IconC = ForwardRefExoticComponent<{ size?: number; className?: string } & RefAttributes<Anim>>;
+function AI({ I, size = 16, className = "", hot = false, once = false, loop = false }: { I: IconC; size?: number; className?: string; hot?: boolean; once?: boolean; loop?: boolean }) {
+  const r = useRef<Anim>(null);
+  useEffect(() => {
+    if (!once) return;
+    r.current?.startAnimation();
+    const t = setTimeout(() => r.current?.stopAnimation(), 1100);
+    return () => clearTimeout(t);
+  }, [once]);
+  useEffect(() => { if (loop || hot) r.current?.startAnimation(); else if (!once) r.current?.stopAnimation(); }, [loop, hot, once]);
+  return <I ref={r} size={size} className={`rb-ic ${className}`} aria-hidden="true" />;
+}
+/** a row (nav item, button) whose icon plays while it's hovered */
+function Hot({ as: Tag = "li", I, size, className, children, iconClass }: { as?: "li" | "span" | "div"; I: IconC; size?: number; className?: string; iconClass?: string; children?: ReactNode }) {
+  const [hot, setHot] = useState(false);
+  return <Tag className={className} onPointerEnter={() => setHot(true)} onPointerLeave={() => setHot(false)}><AI I={I} size={size} hot={hot} className={iconClass} />{children}</Tag>;
+}
+const STATUS: IconC[] = [LoaderPinwheelIcon, BadgeAlertIcon, EyeIcon, CircleCheckIcon];
+const GROUP_ICON: IconC[] = [ReceiptTextIcon, GavelIcon, BoxesIcon];
+/** Approve: the check draws itself while hovered */
+function ApproveBtn({ onApprove }: { onApprove: () => void }) {
+  const [hot, setHot] = useState(false);
+  return (
+    <button type="button" className="rb-ok-btn" onPointerDown={(e) => e.stopPropagation()} onClick={onApprove}
+      onPointerEnter={() => setHot(true)} onPointerLeave={() => setHot(false)} onFocus={() => setHot(true)} onBlur={() => setHot(false)}>
+      <AI I={CircleCheckIcon} size={13} hot={hot} />Approve
+    </button>
+  );
+}
+const Chev = () => <svg viewBox="0 0 24 24" className="rb-chev" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>;
 
 type Group = "Finance & claims" | "Legal & contracts" | "Operations";
 type Run = {
@@ -304,26 +333,26 @@ export default function RunBoard({ onEvent }: { onEvent?: (e: BoardEvent) => voi
     <div className="rb" role="region" aria-label="Example board of runs">
       <div className="rb-bar-top">
         <span className="rb-lights" aria-hidden="true"><i /><i /><i /></span>
-        <Ico d={ICON.side} className="rb-dim" />
+        <Hot as="span" I={PanelLeftOpenIcon} className="rb-tool rb-dim" />
         <span className="rb-app"><GrainMark />Grain</span>
         <span className="rb-crumb">Board</span>
         <span className="rb-now" aria-live="off"><Nia size={16} working />{latest.title}</span>
-        <span className="rb-new"><Ico d={ICON.plus} />Run</span>
-        <Ico d={ICON.bell} className="rb-dim rb-bell" />
+        <Hot as="span" I={PlusIcon} size={14} className="rb-new">Run</Hot>
+        <Hot as="span" I={BellIcon} size={17} className="rb-tool rb-dim rb-bell" />
       </div>
       <div className="rb-body">
         <aside className="rb-side" aria-label="Board navigation">
           <ul className="rb-nav">
-            <li><Ico d={ICON.search} />Search<kbd>⌘K</kbd></li>
-            <li><Ico d={ICON.auto} />Automations</li>
-            <li><Ico d={ICON.packet} />Packets</li>
-            <li><Ico d={ICON.usage} />Usage</li>
+            <Hot I={SearchIcon}>Search<kbd>⌘K</kbd></Hot>
+            <Hot I={ZapIcon}>Automations</Hot>
+            <Hot I={BoxIcon}>Packets</Hot>
+            <Hot I={GaugeIcon}>Usage</Hot>
           </ul>
-          <p className="rb-sh">Runs <Ico d={ICON.chev} /></p>
+          <p className="rb-sh">Runs <Chev /></p>
           <ul className="rb-runs">
             {recent.slice(0, 7).map((c) => (
               <li key={c.id} className={`l-${LANES[c.lane].id}`}>
-                <Ico d={ICON[`s${c.lane}` as "s0"]} className="rb-st" />
+                <AI key={c.lane} I={STATUS[c.lane]} size={15} className="rb-st" loop={c.lane === 0} once={c.lane !== 0} />
                 <span>{BY_ID[c.id].title}</span>
                 <small>{AGO[(c.seq + c.id.length) % AGO.length].replace(" ago", "").replace("just now", "now")}</small>
               </li>
@@ -339,7 +368,7 @@ export default function RunBoard({ onEvent }: { onEvent?: (e: BoardEvent) => voi
               </button>
             ))}
           </div>
-          <p className="rb-me"><i>DR</i>Dana Reyes<Ico d={ICON.gear} className="rb-dim" /></p>
+          <Hot as="div" I={SettingsIcon} className="rb-me" iconClass="rb-dim rb-gear"><i>DR</i>Dana Reyes</Hot>
         </aside>
 
         <div className="rb-main">
@@ -373,26 +402,24 @@ export default function RunBoard({ onEvent }: { onEvent?: (e: BoardEvent) => voi
                   >
                     <div className="rb-ci">
                       <div className="rb-head">
-                        <i className={`rb-gi g${g}`}><Ico d={GROUP_ICON[g]} /></i>
+                        <i className={`rb-gi g${g}`}><AI I={GROUP_ICON[g]} size={14} /></i>
                         <p className="rb-ct">{r.title}</p>
                       </div>
-                      <p className="rb-cs"><Ico d={ICON.doc} />{text}</p>
+                      <div className="rb-cs"><AI I={FileTextIcon} size={13} className="rb-doc" />{text}</div>
                       <div className="rb-cf">
                         {c.lane === 0 && <>
-                          <span className="rb-stat"><Ico d={ICON.s0} className="rb-spin" />Step {2 + (c.id.length % (r.steps - 2))}/{r.steps}</span>
+                          <div className="rb-stat"><AI I={LoaderPinwheelIcon} size={13} loop />Step {2 + (c.id.length % (r.steps - 2))}/{r.steps}</div>
                           <span className="rb-bar" style={{ ["--dl" as string]: `${(c.id.length % 5) * -0.9}s` }}><i /></span>
                         </>}
                         {c.lane === 1 && <>
-                          <span className="rb-stat">Waiting on <b className="rb-av">{r.who}</b></span>
-                          <button type="button" className="rb-ok-btn" onPointerDown={(e) => e.stopPropagation()} onClick={() => !heldRef.current && approveByYou(c.id)}>
-                            <Ico d={ICON.s3} />Approve
-                          </button>
+                          <div className="rb-stat">Waiting on <b className="rb-av">{r.who}</b></div>
+                          <ApproveBtn onApprove={() => !heldRef.current && approveByYou(c.id)} />
                         </>}
                         {c.lane === 2 && <>
-                          <span className="rb-stat">{r.srcs} sources checked</span>
+                          <div className="rb-stat">{r.srcs} sources checked</div>
                           <span className="rb-srcs" aria-hidden="true">{Array.from({ length: Math.min(4, r.srcs) }, (_, k) => <i key={k} />)}</span>
                         </>}
-                        {c.lane === 3 && <span className="rb-stat"><Ico d={ICON.s3} />Saved {r.saved}</span>}
+                        {c.lane === 3 && <div className="rb-stat"><AI I={CircleCheckIcon} size={13} once />Saved {r.saved}</div>}
                         <span className="rb-ago">{AGO[(c.seq + c.id.length) % AGO.length]}</span>
                       </div>
                     </div>
@@ -428,7 +455,7 @@ export default function RunBoard({ onEvent }: { onEvent?: (e: BoardEvent) => voi
           ))}
             </div>
           </div>
-          <p className="rb-foot"><Ico d={ICON.archive} />Archived runs <span>20</span><em><b>{counts[1]}</b> need you · <b>{counts[0]}</b> running · <b>{counts[3]}</b> done today</em></p>
+          <Hot as="div" I={ArchiveIcon} size={15} className="rb-foot">Archived runs <span>20</span><em><b>{counts[1]}</b> need you · <b>{counts[0]}</b> running · <b>{counts[3]}</b> done today</em></Hot>
         </div>
       </div>
     </div>

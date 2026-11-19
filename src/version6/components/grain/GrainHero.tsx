@@ -1,5 +1,5 @@
 // v6 hero (rebuilt 2026-11-18 after Shiva's review of v4, which said the 3D boxy mark looked dated):
-// a dark stage in both themes. The Grain mark is a thin 3D wireframe (WireMark) that sways slowly and goes soft
+// a stage in the page's theme (paper in light, near-black in dark). The Grain mark is a thin 3D wireframe (WireMark) that sways slowly and goes soft
 // and foggy around the cursor; the headline sits centred over it; outlined pills along the bottom.
 // No big GRAIN word. Opening: Loader builds the 2D mark and flies it into the nav, then the wireframe draws in.
 // Scroll: the hero is pinned; the wireframe turns, grows and fogs out, and How it runs introduces itself.
@@ -80,6 +80,8 @@ export default function GrainHero({ theme, onToggleTheme, palette, onPalette }: 
       root.style.setProperty("--p", p.toFixed(4));
       // once the pin has released, the nav comes back as a solid bar
       root.classList.toggle("past-hero", p >= 1 && r.bottom < window.innerHeight - 40);
+      // light theme: the stage turns dark for the hand-off into How it runs; past this point the nav reads it as dark
+      if (root.hasAttribute("data-hero-dark") !== p > 0.32) root.toggleAttribute("data-hero-dark", p > 0.32);
       // the nav steps aside while the hero hands over. Opacity only while it's actually fading: any filter or
       // opacity below 1 on the header would cut the glass bar off from the page behind it.
       const hdr = root.querySelector<HTMLElement>(".site-header");
@@ -151,7 +153,7 @@ export default function GrainHero({ theme, onToggleTheme, palette, onPalette }: 
       </header>
 
       {/* tall box: the hero stays pinned while this scrolls past, and that scroll turns the G */}
-      <div className="hero-scroll" ref={scrollBoxRef} data-surface="dark">
+      <div className="hero-scroll" ref={scrollBoxRef} data-surface={theme === "dark" ? "dark" : "base"}>
         <section className="hero" id="top" aria-labelledby="hero-title">
           <WireMark className="hero-object" progress={progress} start={go} scale={0.6} veil=".hero-center" />
           <span className="hero-thread" aria-hidden="true" />

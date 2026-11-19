@@ -362,3 +362,20 @@
 .grain-hero .nav-bar .header-cta:hover { border-color: transparent; opacity: .86; }
 @media (max-width: 1100px) { .grain-hero .nav-bar .desktop-nav a { padding: 7px 9px; } }
 @media (max-width: 760px) { .grain-hero .nav-bar, .grain-hero .site-header.site-header { height: 62px; } .grain-hero .top-blur { height: 100px; } }
+
+/* ───── Light hero (light theme): the stage opens on the page's paper and ink, then turns dark as you scroll into
+   the hand-off ("From request to reviewed output." and the line), so it flows into How it runs as before.
+   Everything in the hero (and the nav over it) is drawn from --dark-bg / --dark-ink, so re-pointing those two at the
+   page colours flips the opening. --page-* carry the palette's own values down (pointing --dark-ink straight at
+   --ink would loop, since the nav sets --ink from --dark-ink). The wireframe drops its lift toward white. ───── */
+.grain-hero { --page-ink: var(--ink); --page-paper: var(--paper); --page-dark: var(--dark-bg); --page-dark-ink: var(--dark-ink); }
+.grain-hero:not([data-theme="dark"]) .hero-scroll,
+.grain-hero:not([data-theme="dark"]):not(.past-hero):not([data-hero-dark]) .site-header {
+  --dark-bg: var(--page-paper); --dark-ink: var(--page-ink); --dark-accent: var(--o3-deep);
+}
+.grain-hero:not([data-theme="dark"]) .hero-object { --mark-lift: 0; }
+/* paper → dark with the scroll (--dim runs 0 → 1 as the headline leaves and before the hand-off text arrives) */
+.grain-hero:not([data-theme="dark"]) .hero { background: color-mix(in srgb, var(--page-dark) calc(var(--dim) * 100%), var(--page-paper)); }
+/* the hand-off text and the line of light are on the dark stage, as before */
+.grain-hero:not([data-theme="dark"]) .hero-next,
+.grain-hero:not([data-theme="dark"]) .hero-thread { --dark-ink: var(--page-dark-ink); --dark-bg: var(--page-dark); --dark-accent: var(--o3); }

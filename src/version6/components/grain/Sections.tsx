@@ -171,7 +171,7 @@ function Board() {
   const ref = useReveal<HTMLElement>();
   const [on, setOn] = useState<BoardEvent>("placed");
   return (
-    <section className="sx sx-board sx-runs" data-surface="dark" ref={ref} aria-labelledby="bd-title">
+    <section className="sx sx-board sx-runs" data-surface="base" ref={ref} aria-labelledby="bd-title">
       <div className="sx-wrap">
         <div className="bd-head">
           <h2 className="rv" id="bd-title"><span>Every run, sorted by</span><span>what it <em>needs from you</em>.</span></h2>

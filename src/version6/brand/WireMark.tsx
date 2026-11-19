@@ -251,6 +251,8 @@ export default function WireMark({ className = "wire-mark", progress, start = tr
     let W = 0, H = 0, dpr = 1, raf = 0, visible = true, t0 = 0, drawAt = 0;
     let markY = 0.5, markScale = 1;   // from CSS: --mark-y (0–1 of the height), --mark-scale
     let mx = -1e4, my = -1e4, dmx = -1e4, dmy = -1e4, over = false, hover = 0, last = 0;
+    // the lean toward the cursor, on a critically damped spring (position + velocity per axis)
+    let lx = 0, ly = 0, vlx = 0, vly = 0;
     // the current pose, kept for mapping a click onto the mark
     let R = [1, 0, 0, 0, 1, 0, 0, 0, 1], sNow = 1, cxNow = 0, cyNow = 0, pNow = 0;
     // click ripples: when, and how far (logo units) the click was from each part
@@ -259,8 +261,10 @@ export default function WireMark({ className = "wire-mark", progress, start = tr
 
     const readColors = () => {
       const cs = getComputedStyle(cv);
-      // a little lift toward white: the logo's rust is dark on the near-black stage
-      const lift = (c: [number, number, number], k: number) => c.map((v) => v + (1 - v) * k) as [number, number, number];
+      // a little lift toward white: the logo's rust is dark on the near-black stage (--mark-lift: 0 on a light stage)
+      const lk = parseFloat(cs.getPropertyValue("--mark-lift"));
+      const amt = Number.isFinite(lk) ? lk : 1;
+      const lift = (c: [number, number, number], k: number) => c.map((v) => v + (1 - v) * k * amt) as [number, number, number];
       gl.uniform3fv(U.uC0, lift(hexToRgb(cs.getPropertyValue("--lg-a"), [0.78, 0.34, 0.21]), 0.12));
       gl.uniform3fv(U.uC1, lift(hexToRgb(cs.getPropertyValue("--lg-b"), [0.89, 0.48, 0.37]), 0.06));
       gl.uniform3fv(U.uC2, lift(hexToRgb(cs.getPropertyValue("--lg-c"), [0.94, 0.75, 0.65]), 0));
@@ -288,16 +292,25 @@ export default function WireMark({ className = "wire-mark", progress, start = tr
 
       // damped cursor (as in the reference), and how present it is
       dmx += (mx - dmx) * Math.min(1, 8 * dt); dmy += (my - dmy) * Math.min(1, 8 * dt);
-      hover += ((over && !reduce ? 1 : 0) - hover) * Math.min(1, 4 * dt);
+      hover += ((over && !reduce ? 1 : 0) - hover) * Math.min(1, 2.5 * dt);
 
       const s = Math.min(W, H) * scale * markScale;
       const cx = W / 2, cy = H * markY;
-      // lean toward the cursor: -1..1 from the mark's centre
-      const lx = Math.max(-1, Math.min(1, (dmx - cx) / (W / 2))) * hover;
-      const ly = Math.max(-1, Math.min(1, (dmy - cy) / (H / 2))) * hover;
+      // lean toward the cursor. People look at the core, so the middle is calm: the offset is measured against the
+      // mark's own size (not the window) and eased in (x·|x|), so small moves around the centre barely tilt it and the
+      // lean only builds as the pointer moves out. It rides a critically damped spring, so it eases in and settles.
+      const ease = (v: number) => { const c = Math.max(-1, Math.min(1, v)); return c * Math.abs(c); };
+      // vertical: measured from the middle of the screen, not the mark. The mark sits high and the cursor mostly lives
+      // on the text and pills below it, so measuring from the mark kept it tipped down.
+      const tx = ease((dmx - cx) / (s * 1.5)) * hover, ty = ease((dmy - H * 0.5) / (s * 1.5)) * hover;
+      const K = 34, C = 2 * Math.sqrt(K);
+      vlx += (K * (tx - lx) - C * vlx) * dt; lx += vlx * dt;
+      vly += (K * (ty - ly) - C * vly) * dt; ly += vly * dt;
+      // while you're on it, its own sway quiets down so it settles and faces you
+      const sway = 1 - hover * 0.6;
       const intro = 1 - smooth(0, 1, Math.min(1, draw / 1.2));
-      const ry = Math.sin(t * 0.22) * 0.5 + lx * 0.45 + intro * 0.9 + p * 1.4;
-      const rx = 0.16 + Math.sin(t * 0.17) * 0.2 + ly * 0.3 - intro * 0.35 + p * 0.25;
+      const ry = Math.sin(t * 0.22) * 0.5 * sway + lx * 0.3 + intro * 0.9 + p * 1.4;
+      const rx = 0.02 + Math.sin(t * 0.17) * 0.12 * sway + ly * 0.14 - intro * 0.35 + p * 0.25;   // faces you: no built-in downward pitch
       const rz = Math.sin(t * 0.1) * 0.04;
       const [sx, cxr, sy, cyr, sz, czr] = [Math.sin(rx), Math.cos(rx), Math.sin(ry), Math.cos(ry), Math.sin(rz), Math.cos(rz)];
       // R = Ry * Rx * Rz, column-major for GLSL

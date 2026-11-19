@@ -4,3 +4,6 @@
 html { background: #ffffff; scroll-behavior: smooth; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 html[data-theme="dark"] { background: #0a0a0a; color-scheme: dark; }
+
+/* no rubber-band bounce (or pull-to-refresh glow) when a scroll reaches the top or bottom of the page */
+html, body { overscroll-behavior: none; }
