@@ -257,7 +257,6 @@
   /* clears the palette picker (a review tool, bottom-left) */
   .grain-hero .hero-pills { bottom: 88px; flex-wrap: nowrap; gap: 8px; }
   .grain-hero .pill { padding: 11px 16px; font-size: 14.5px; }
-  .grain-hero .pill:nth-child(3) { display: none; }
   .grain-hero .hero-thread { top: 66%; height: 24%; }
   .grain-hero .hero-next { bottom: 34%; }
   .grain-hero .scroll-arrow { bottom: 26px; }

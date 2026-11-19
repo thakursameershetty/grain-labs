@@ -2,8 +2,12 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <!-- ?v= busts the browsers' long-lived favicon cache; bump it whenever the icon changes. PNGs for browsers
+         without SVG favicons (older Safari). Every version (/, /version1-6, articles) shares this page. -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png?v=2" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=2" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2" />
     <meta name="theme-color" content="#faf7f5" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- Zen Dots (SIL Open Font License, free for commercial use), self-hosted: the big background word -->

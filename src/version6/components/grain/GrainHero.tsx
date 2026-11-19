@@ -95,7 +95,11 @@ export default function GrainHero({ theme, onToggleTheme, palette, onPalette }: 
       let surface = "base";
       root.querySelectorAll<HTMLElement>("[data-surface]").forEach((el) => {
         const b = el.getBoundingClientRect();
-        if (b.top <= 60 && b.bottom > 60) surface = el.dataset.surface || "base";
+        if (b.top <= 60 && b.bottom > 60) {
+          surface = el.dataset.surface || "base";
+          // light theme: the hero stage turns dark for the hand-off, so the nav over it should read it as dark
+          if (el === scrollBoxRef.current && root.hasAttribute("data-hero-dark")) surface = "dark";
+        }
       });
       if (root.dataset.surface !== surface) root.dataset.surface = surface;
       // which section you're reading: its nav link gets the active pill
@@ -180,7 +184,6 @@ export default function GrainHero({ theme, onToggleTheme, palette, onPalette }: 
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9" /></svg>
               </a>
               <a className="pill" href="#how">See how it runs</a>
-              <a className="pill" href="#uses">Use cases</a>
             </div>
 
             <ScrollArrow />
