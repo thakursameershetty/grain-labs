@@ -164,3 +164,52 @@
   --btn: var(--dark-ink); --btn-hover: #e2e2e2; --btn-ink: var(--dark-bg); --btn-shadow: transparent;
   background: color-mix(in srgb, var(--dark-bg) 72%, transparent); color: var(--dark-ink);
 }
+
+/* ───── phones: the compact player (MobileRuns) ───── */
+.grain-hero .hw.hw-m { --c-input: var(--in); --c-action: var(--o3); --c-gate: var(--o2); --c-output: var(--o1);
+  height: auto; padding: 32px var(--gutter) clamp(64px, 10vh, 96px); }
+.grain-hero .hwm-chips { display: flex; gap: 6px; margin: 0 calc(var(--gutter) * -1); padding: 0 var(--gutter) 2px; overflow-x: auto; scrollbar-width: none; scroll-snap-type: x proximity; }
+.grain-hero .hwm-chips::-webkit-scrollbar { display: none; }
+.grain-hero .hwm-chips button {
+  position: relative; overflow: hidden; flex: none; scroll-snap-align: start; display: inline-flex; align-items: center; gap: 7px;
+  height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--s-line); background: transparent;
+  font: inherit; font-size: 13.5px; color: var(--s-dim); cursor: pointer; transition: color .2s ease, border-color .2s ease, background-color .2s ease;
+}
+.grain-hero .hwm-chips button span { font-family: var(--mono); font-size: 10.5px; color: var(--s-dim); }
+.grain-hero .hwm-chips button.on { color: var(--s-ink); border-color: var(--s-line-strong); background: var(--s-node); }
+.grain-hero .hwm-chips button.on span { color: var(--s-accent); }
+.grain-hero .hwm-chips button i { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; transform-origin: left; background: var(--s-accent); transition: transform .35s ease; }
+
+.grain-hero .hwm-copy { min-height: 190px; margin-top: 26px; animation: hwm-in .45s var(--ease) both; }
+.grain-hero .hwm-copy h3 { margin: 0; font-size: clamp(38px, 11vw, 48px); font-weight: 500; letter-spacing: -0.05em; line-height: 1; color: var(--s-ink); }
+.grain-hero .hwm-copy .hw-d { margin-top: 12px; }
+@keyframes hwm-in { from { opacity: 0; transform: translateY(8px); filter: blur(4px); } }
+
+.grain-hero .hwm-chain { position: relative; list-style: none; margin: 12px 0 0; min-height: 440px; align-content: start; padding: 0; display: grid; gap: 10px; }
+.grain-hero .hwm-chain > li:not(:last-child)::after { content: ""; position: absolute; left: 6px; top: 28px; bottom: -10px; width: 1px; background: var(--s-line); }
+.grain-hero .hwm-chain > li { --c: var(--c-input); position: relative; display: grid; grid-template-columns: 13px minmax(0, 1fr); gap: 12px; align-items: start;
+  opacity: .28; transform: translateY(6px); transition: opacity .4s ease, transform .5s cubic-bezier(.3, 1.4, .5, 1); }
+.grain-hero .hwm-chain > li.k-action { --c: var(--c-action); }
+.grain-hero .hwm-chain > li.k-gate { --c: var(--c-gate); }
+.grain-hero .hwm-chain > li.k-output { --c: var(--c-output); }
+.grain-hero .hwm-chain > li.in { opacity: 1; transform: none; }
+.grain-hero .hwm-dot { position: relative; z-index: 1; width: 13px; height: 13px; margin-top: 15px; border-radius: 50%; background: var(--s-bg); box-shadow: inset 0 0 0 2px var(--c); }
+.grain-hero .hwm-chain > li.in .hwm-dot { background: var(--c); box-shadow: 0 0 0 4px color-mix(in srgb, var(--c) 18%, transparent); }
+.grain-hero .hwm-chain > li.run .hwm-dot { animation: hwm-pulse 1s ease-in-out infinite; }
+@keyframes hwm-pulse { 50% { box-shadow: 0 0 0 7px color-mix(in srgb, var(--c) 10%, transparent); } }
+.grain-hero .hwm-card { padding: 12px 14px; border-radius: 14px; background: var(--s-node); box-shadow: inset 0 0 0 1px var(--s-line); transition: box-shadow .3s ease; }
+.grain-hero .hwm-chain > li.run .hwm-card { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 60%, transparent); }
+.grain-hero .hwm-type { display: flex; justify-content: space-between; gap: 10px; margin: 0 0 3px; font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--c); }
+.grain-hero .hwm-type span { color: var(--s-dim); letter-spacing: 0; text-transform: none; font-family: var(--sans); font-size: 11.5px; }
+.grain-hero .hwm-card > b { display: block; font-size: 15px; font-weight: 500; color: var(--s-ink); }
+.grain-hero .hwm-card ul { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 5px; }
+.grain-hero .hwm-card ul li { position: relative; padding-left: 18px; font-size: 13px; line-height: 1.4; color: var(--s-dim); transition: color .25s ease; }
+.grain-hero .hwm-card ul li::before { content: ""; position: absolute; left: 2px; top: 6px; width: 7px; height: 7px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--s-line-strong); transition: background-color .25s ease, box-shadow .25s ease; }
+.grain-hero .hwm-card ul li.on { color: var(--s-body); }
+.grain-hero .hwm-card ul li.on::before { background: var(--ok); box-shadow: none; }
+.grain-hero .hwm-card ul li.on.warn { color: var(--wait); }
+.grain-hero .hwm-card ul li.on.warn::before { background: var(--wait); }
+.grain-hero .hwm-approve { margin-top: 10px; height: 34px; padding: 0 16px; border: 0; border-radius: 999px; font: inherit; font-size: 13.5px; font-weight: 500; cursor: pointer;
+  background: var(--s-ink); color: var(--s-bg); animation: hwm-in .35s var(--ease) both; }
+.grain-hero .hwm-ok { margin: 10px 0 0; font-size: 13px; color: var(--ok); animation: hwm-in .35s var(--ease) both; }
+@media (prefers-reduced-motion: reduce) { .grain-hero .hwm-copy, .grain-hero .hwm-chain > li, .grain-hero .hwm-dot { animation: none !important; transition: none !important; } }

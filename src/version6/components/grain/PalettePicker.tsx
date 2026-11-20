@@ -19,7 +19,14 @@ const KEY = "grain.palpick";
 type Props = { palette: Palette; onChange: (p: Palette) => void; theme: Theme; onToggleTheme: () => void };
 
 export default function PalettePicker({ palette, onChange, theme, onToggleTheme }: Props) {
-  const [closed, setClosed] = useState(() => { try { return localStorage.getItem(KEY) === "closed"; } catch { return false; } });
+  // phones start with it tucked away as the small notch (it would sit over the content otherwise), unless this
+  // browser opened it before
+  const [closed, setClosed] = useState(() => {
+    let saved: string | null = null;
+    try { saved = localStorage.getItem(KEY); } catch { /* ignore */ }
+    if (saved) return saved === "closed";
+    return typeof window !== "undefined" && window.matchMedia("(max-width: 760px)").matches;
+  });
   useEffect(() => { try { localStorage.setItem(KEY, closed ? "closed" : "open"); } catch { /* ignore */ } }, [closed]);
   const cur = PALETTES.find((p) => p.id === palette) ?? PALETTES[0];
   const next = theme === "dark" ? "light" : "dark";

@@ -104,3 +104,9 @@
   .grain-hero .nd-items li, .grain-hero .nd-to, .grain-hero .nd-doc p, .grain-hero .nd-say { transition: none; animation: none; }
   .grain-hero .nd-caret, .grain-hero .nd-wait { animation: none; }
 }
+
+/* step 1 (v6, fetch story): the question, and the answer once the files are in */
+.grain-hero .nd-q { margin: 0 0 12px; padding: 10px 14px; border-radius: 4px 14px 14px 14px; background: color-mix(in srgb, var(--ink) 4%, var(--paper));
+  font-size: 14.5px; line-height: 1.45; color: var(--x-ink); animation: nd-say .45s var(--ease) both; }
+.grain-hero .nd-q b { display: block; margin-bottom: 2px; font-size: 12.5px; font-weight: 500; color: var(--x-muted); }
+.grain-hero .nd-ans { margin: 12px 0 0; font-size: 14.5px; line-height: 1.5; color: var(--x-body); animation: nd-say .45s var(--ease) both; }

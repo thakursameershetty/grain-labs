@@ -1,8 +1,9 @@
 // v6 hero (rebuilt 2026-11-18 after Shiva's review of v4, which said the 3D boxy mark looked dated):
-// a stage in the page's theme (paper in light, near-black in dark). The Grain mark is a thin 3D wireframe (WireMark) that sways slowly and goes soft
-// and foggy around the cursor; the headline sits centred over it; outlined pills along the bottom.
-// No big GRAIN word. Opening: Loader builds the 2D mark and flies it into the nav, then the wireframe draws in.
-// Scroll: the hero is pinned; the wireframe turns, grows and fogs out, and How it runs introduces itself.
+// a stage in the page's theme (paper in light, near-black in dark). The Grain mark is plain 2D (MistMark): crisp at
+// rest, it goes soft and misty where the pointer is and gathers back (after the Gemini glyph and the 21st.dev blur
+// mesh); tiny marks drift across the stage. The headline sits under it; two outlined pills along the bottom.
+// No big GRAIN word. Opening: Loader builds the 2D mark and flies it into the nav, then the mark resolves out of mist.
+// Scroll: the hero is pinned; the mark mists over and drifts up, the stage turns dark and How it runs introduces itself.
 // Theme switch lives in the palette notch (bottom-left), not the nav.
 // Nav: NavPill, one pill that stretches like liquid between tabs and goes soft-edged while it moves.
 import { HOME } from "@/version6/base";
@@ -12,7 +13,7 @@ import NavPill from "./NavPill";
 import useLiquidGlass from "./useLiquidGlass";
 import Sections from "./Sections";
 import GrainMark from "./GrainMark";
-import WireMark from "@/version6/brand/WireMark";
+import MistMark from "@/version6/brand/MistMark";
 import Loader from "./Loader";
 import PalettePicker from "./PalettePicker";
 import type { Palette, Theme } from "./useTheme";
@@ -28,9 +29,9 @@ const navigation = [
   { label: "Capabilities", href: "#capabilities" },
   { label: "Use cases", href: "#uses" },
   { label: "Trust", href: "#trust" },
+  { label: "Articles", href: `${HOME}/articles` },
   { label: "FAQ", href: "#faq" },
   { label: "Contact", href: "#contact" },
-  { label: "Articles", href: `${HOME}/articles` },
 ];
 
 const CONTACT = "https://www.grainlabs.ai/contact.html";
@@ -159,7 +160,7 @@ export default function GrainHero({ theme, onToggleTheme, palette, onPalette }: 
       {/* tall box: the hero stays pinned while this scrolls past, and that scroll turns the G */}
       <div className="hero-scroll" ref={scrollBoxRef} data-surface={theme === "dark" ? "dark" : "base"}>
         <section className="hero" id="top" aria-labelledby="hero-title">
-          <WireMark className="hero-object" progress={progress} start={go} scale={0.6} veil=".hero-center" />
+          <MistMark className="hero-object" progress={progress} start={go} scale={0.48} />
           <span className="hero-thread" aria-hidden="true" />
 
           {/* the hand-off: the How it runs heading sits above the line, then the section takes over */}

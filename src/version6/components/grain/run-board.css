@@ -157,6 +157,8 @@
 
 /* narrower: the sidebar goes, the board scrolls sideways */
 @media (max-width: 1080px) {
+  /* the columns scroll sideways here: the right edge fades so it's clear there's more */
+  .grain-hero .rb-scroll { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 56px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 56px), transparent); }
   .grain-hero .rb-body { grid-template-columns: minmax(0, 1fr); }
   .grain-hero .rb-side { display: none; }
   .grain-hero .rb-now { display: none; }

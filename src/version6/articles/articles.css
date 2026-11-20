@@ -22,7 +22,8 @@
   display: grid; place-items: center; align-content: center; gap: 34px; padding: 140px var(--gutter) 120px;
   background: var(--dark-bg); color: var(--dark-ink);
 }
-.grain-hero .ar-wire { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; display: block; pointer-events: none; --mark-y: .4; --mark-scale: .95; }
+/* the vapor mark behind the title, faint like the reference's big glyph, so "Articles" reads over it */
+.grain-hero .ar-wire { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; display: block; pointer-events: none; --mark-y: .4; --mark-scale: .95; opacity: .26; }
 .grain-hero .ar-stage-center { position: relative; z-index: 1; display: grid; justify-items: center; text-align: center; width: max-content; max-width: 100%; }
 .grain-hero .ar-stage h1 { margin: 0; font-size: clamp(72px, 11vw, 168px); font-weight: 500; letter-spacing: -0.06em; line-height: .88; color: var(--dark-ink); }
 .grain-hero .ar-stage-center p { margin: 22px 0 0; max-width: 34ch; font-size: clamp(16px, 1.3vw, 19px); line-height: 1.45; color: color-mix(in srgb, var(--dark-ink) 66%, transparent); text-wrap: balance; }

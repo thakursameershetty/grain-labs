@@ -1,7 +1,9 @@
 // "How it runs": continues straight on from the portal at the end of the hero (same surface).
 // Desktop: one screen; the five steps play automatically one after the other (and loop). Left: the step
 // copy and a clickable step list. Right: one large canvas (dot grid) where that step's workflow plays.
-// Phones: the steps simply stack, each with its workflow.
+// Phones (Shiva, 2026-11-19: the graph canvas doesn't work there): a compact player instead. Step chips with a
+// progress bar; the step's copy; its workflow as a short vertical chain whose checks tick off as it runs; the
+// approval waits for a tap (or the advocate). One step on screen at a time, playing while the section is in view.
 // Step copy comes from grainlabs.ai; the case (patient bill advocacy) is an illustrative example.
 import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import Workflow, { FileGlyph, runNode, type WfEdge, type WfNode, type WfScript } from "./Workflow";
@@ -199,6 +201,117 @@ const STEPS: Step[] = [
   { n: "05", t: "Inspect", d: "Evidence, safe previews and output lineage are reviewed before anything ships.", caseLine: "The finished packet, with every source attached.", flow: INSPECT },
 ];
 
+/* ───────── phones: the compact player ───────── */
+type Phase = { row: number; tick: number; approved: boolean };
+const ROW_MS = 520, TICK_MS = 340, HOLD_MS = 2200, AUTO_APPROVE_MS = 2600;
+
+function MobileRuns() {
+  const host = useRef<HTMLElement>(null);
+  const [step, setStep] = useState(0);
+  const [ph, setPh] = useState<Phase>({ row: 0, tick: 0, approved: false });
+  const [inView, setInView] = useState(false);
+  const approveRef = useRef<() => void>(() => {});
+  const nodes = STEPS[step].flow.nodes;
+  // the chain, top to bottom: inputs first, then actions / the gate, then outputs (the graph order, flattened)
+  const order = ["input", "action", "gate", "output"] as const;
+  const rows = [...nodes].sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind));
+
+  useEffect(() => {
+    const el = host.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([e]) => setInView(e.isIntersecting), { threshold: 0.35 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  // the script for one step: rows appear one by one, an action row ticks its checks, the gate waits for a person
+  useEffect(() => {
+    if (!inView) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) { setPh({ row: rows.length, tick: 99, approved: true }); return; }
+    let alive = true;
+    const timers: number[] = [];
+    const wait = (ms: number) => new Promise<void>((r) => { timers.push(window.setTimeout(r, ms)); });
+    (async () => {
+      setPh({ row: 0, tick: 0, approved: false });
+      for (let r = 0; r < rows.length && alive; r++) {
+        await wait(ROW_MS);
+        if (!alive) return;
+        setPh((p) => ({ ...p, row: r + 1, tick: 0 }));
+        const n = rows[r];
+        if (n.items) for (let t = 0; t < n.items.length && alive; t++) { await wait(TICK_MS); setPh((p) => ({ ...p, tick: t + 1 })); }
+        if (n.kind === "gate") {
+          await new Promise<void>((done) => {
+            approveRef.current = () => done();
+            timers.push(window.setTimeout(done, AUTO_APPROVE_MS));
+          });
+          if (!alive) return;
+          setPh((p) => ({ ...p, approved: true }));
+        }
+      }
+      await wait(HOLD_MS);
+      if (alive) setStep((s) => (s + 1) % STEPS.length);
+    })();
+    return () => { alive = false; timers.forEach(clearTimeout); approveRef.current = () => {}; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, inView]);
+
+  // keep the active chip in view (scroll the chip row only, never the page)
+  const chips = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const row = chips.current, b = row?.children[step] as HTMLElement | undefined;
+    if (row && b) row.scrollTo({ left: b.offsetLeft - row.clientWidth / 2 + b.offsetWidth / 2, behavior: "smooth" });
+  }, [step]);
+
+  const s = STEPS[step];
+  const total = rows.length + rows.reduce((a, n) => a + (n.items?.length ?? 0), 0);
+  const done = rows.slice(0, ph.row).reduce((a, n, i) => a + 1 + (i < ph.row - 1 ? n.items?.length ?? 0 : Math.min(ph.tick, n.items?.length ?? 0)), 0);
+
+  return (
+    <section ref={host} className="hw narrow hw-m" data-surface="dark" aria-label="How it runs">
+      <div className="hwm-chips" ref={chips} role="tablist" aria-label="Steps">
+        {STEPS.map((x, i) => (
+          <button key={x.n} type="button" role="tab" aria-selected={i === step} className={i === step ? "on" : ""} onClick={() => setStep(i)}>
+            <span>{x.n}</span>{x.t}
+            {i === step && <i style={{ transform: `scaleX(${Math.min(1, done / Math.max(1, total))})` }} />}
+          </button>
+        ))}
+      </div>
+      <div className="hwm-copy" key={s.n}>
+        <h3>{s.t}</h3>
+        <p className="hw-d">{s.d}</p>
+        <p className="hw-case"><span>In this case</span>{s.caseLine}</p>
+      </div>
+      <ol className="hwm-chain" key={`c${s.n}`}>
+        {rows.map((n, r) => {
+          const shown = r < ph.row, running = r === ph.row - 1 && !(n.kind === "gate" && ph.approved) && (n.items ? ph.tick < n.items.length : n.kind === "gate");
+          return (
+            <li key={n.id} className={`k-${n.kind}${shown ? " in" : ""}${running ? " run" : ""}`}>
+              <i className="hwm-dot" aria-hidden="true" />
+              <div className="hwm-card">
+                <p className="hwm-type">{n.type}{n.time && shown && !running && <span>{n.time}</span>}</p>
+                <b>{n.title}</b>
+                {n.items && (
+                  <ul>
+                    {n.items.map((it, t) => (
+                      <li key={it.text} className={`${shown && (r < ph.row - 1 || t < ph.tick) ? "on" : ""}${it.tone ? ` ${it.tone}` : ""}`}>{it.text}</li>
+                    ))}
+                  </ul>
+                )}
+                {n.kind === "gate" && shown && (
+                  ph.approved
+                    ? <p className="hwm-ok">Approved · recorded on the task</p>
+                    : <button type="button" className="hwm-approve" onClick={() => approveRef.current()}>Approve</button>
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+    </section>
+  );
+}
+
 export default function HowItRuns() {
   const [active, setActive] = useState(0);
   const [narrow, setNarrow] = useState(() => window.matchMedia("(max-width: 900px)").matches);
@@ -293,21 +406,7 @@ export default function HowItRuns() {
     />
   );
 
-  if (narrow) {
-    return (
-      <section className="hw narrow" data-surface="dark" aria-label="How it runs">
-        {STEPS.map((s, i) => (
-          <article key={s.n} className="hw-block" data-i={i} ref={(el) => { blockRefs.current[i] = el; }}>
-            <p className="hw-n"><span>{s.n}</span> / 05</p>
-            <h3>{s.t}</h3>
-            <p className="hw-d">{s.d}</p>
-            <p className="hw-case"><span>In this case</span>{s.caseLine}</p>
-            <div className="hw-canvas">{flowFor(s, i)}</div>
-          </article>
-        ))}
-      </section>
-    );
-  }
+  if (narrow) return <MobileRuns />;
 
   return (
     <section ref={sectionRef} className="hw" data-surface="dark" aria-label="How it runs" >

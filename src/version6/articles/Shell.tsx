@@ -21,9 +21,9 @@ const NAV = [
   { label: "Capabilities", href: `${HOME}/#capabilities` },
   { label: "Use cases", href: `${HOME}/#uses` },
   { label: "Trust", href: `${HOME}/#trust` },
+  { label: "Articles", href: `${HOME}/articles` },
   { label: "FAQ", href: `${HOME}/#faq` },
   { label: "Contact", href: `${HOME}/#contact` },
-  { label: "Articles", href: `${HOME}/articles` },
 ];
 
 export default function Shell({ children }: { children: ReactNode }) {

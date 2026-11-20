@@ -1,7 +1,11 @@
-// Nia's stage (v6, the Nia section on wide screens). Nia is an actor here, not a picture: she pops in as a small 3D
+// Nia's stage (v6, the Nia section, every screen size: on narrow screens the chat sits on top, full width, and the
+// folders in a row underneath; Nia is a little smaller and hops above a folder / to the end of her reply). Nia is an actor here, not a picture: she pops in as a small 3D
 // Nia beside "Meet Nia." when the headline shows, looks left and right, then hops down into the stage once it's on
 // screen (and back up if you scroll back), then works through three acts, saying what she's doing as she does it:
-//   1 · Sort    she hops to the inbox pile, picks up each card, carries it to the right folder and drops it in
+//   1 · Answer  a question comes into the case chat; she goes to the right folder, pulls out what answers it (the
+//              flap opens, the item rises into her hands), hops back and throws it into the chat, then types the
+//              answer citing each one. (Shiva, 2026-11-19: Nia fetches from the files, she doesn't file things away.
+//              The folders stay stocked; she takes copies, so the stage is never empty.)
 //   2 · Draft   she dictates the appeal beside the letter; each citation flies out of the folder it came from
 //   3 · Send    she prepares the send and says it needs a human; the Advocate's cursor comes in and clicks Approve
 //              (or you do). She's delighted.
@@ -10,19 +14,25 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Nia3D, { type Expr, type NiaApi } from "@/version6/brand/Nia3D";
 import InboxArtifact, { type ArtifactKind } from "./InboxArtifact";
+import Nia from "./Nia";
+import "./nia-desk.css";   // the step tabs
 import "./nia-stage.css";
 
 export type NiaAct = 0 | 1 | 2;
-const ACTS = ["Sort what came in", "Draft the appeal", "Send it to the payer"];
+const ACTS = ["Answer from the files", "Draft the appeal", "Send it to the payer"];
 const SIZE = 150;                      // Nia's canvas on the stage
 
-const ITEMS: { kind: ArtifactKind; t: string; to: number; say: string }[] = [
-  { kind: "doc", t: "Plan document", to: 2, say: "And the plan document. That's our rulebook." },
-  { kind: "voice", t: "Voicemail from the patient", to: 1, say: "A voicemail from the patient. Into the case notes." },
-  { kind: "mail", t: "EOB from the payer", to: 0, say: "The payer's EOB. Same case." },
-  { kind: "receipt", t: "Bill from Northside Clinic", to: 0, say: "A bill from Northside Clinic. That's the billing dispute." },
-];   // last = top of the pile (picked first)
+// act 1: the question, what she pulls for it (and from which folder), and her answer
+const QUESTION = { who: "Dana Reyes", role: "patient advocate", text: "Why was the ER visit billed out-of-network?" };
+const FETCH: { kind: ArtifactKind; label: string; from: number; say: string }[] = [
+  { kind: "mail", label: "EOB · Apex Health", from: 0, say: "The payer's EOB, from the billing folder." },
+  { kind: "receipt", label: "Bill · Northside", from: 0, say: "The clinic's bill, same folder." },
+  { kind: "doc", label: "Plan §4.3", from: 2, say: "And the plan's rules. Section 4.3." },
+];
+const ANSWER = "It was an emergency, so the plan covers it at the in-network rate (Plan §4.3). The EOB applied the out-of-network rate instead, and the bill charges the full amount. That's the error to appeal.";
 const FOLDERS = ["Billing dispute", "Case notes", "Rules"];
+const STOCK = [6, 3, 4];   // what each folder holds: always stocked, she pulls copies
+const KINDS: ArtifactKind[] = ["mail", "receipt", "doc", "voice"];
 const LETTER: { text: string; src?: string; from?: number; say: string }[] = [
   { text: "Re: the claim denied for an out-of-network charge.", say: "Starting the appeal." },
   { text: "The visit was an emergency, which the plan covers at the in-network rate", src: "Plan §4.3", from: 2, say: "The plan covers emergencies in-network. Section 4.3." },
@@ -32,6 +42,9 @@ const LETTER: { text: string; src?: string; from?: number; say: string }[] = [
 ];
 
 type Pt = { x: number; y: number };
+// narrow screens stack the stage (see nia-stage.css); her spots and size follow
+const narrow = () => typeof window !== "undefined" && window.matchMedia("(max-width: 860px)").matches;
+const sc = () => (narrow() ? 0.72 : 1);
 const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const sleep = (ms: number) => new Promise<void>((r) => window.setTimeout(r, ms));
 
@@ -43,17 +56,19 @@ export default function NiaStage({ onAct, anchor }: { onAct?: (a: NiaAct) => voi
   const approveBtn = useRef<HTMLButtonElement>(null);
   const folderEls = useRef<(HTMLDivElement | null)[]>([]);
   const chipEls = useRef<(HTMLElement | null)[]>([]);
-  const pileEls = useRef<(HTMLLIElement | null)[]>([]);
+  const slotEls = useRef<(HTMLLIElement | null)[]>([]);         // attachment slots in Nia's reply
+  const tmpls = useRef<HTMLDivElement>(null);                    // hidden artifacts to clone for flights
   const carryEl = useRef<HTMLDivElement>(null);
   const nia = useRef<NiaApi | null>(null);
 
   const [act, setAct] = useState<NiaAct>(0);
-  const [picked, setPicked] = useState<number[]>([]);           // items off the pile
-  const [carry, setCarry] = useState<number | null>(null);      // item in Nia's hands
-  const [counts, setCounts] = useState([0, 0, 0]);
+  const [asked, setAsked] = useState(false);                     // the question has arrived in the chat
+  const [attached, setAttached] = useState<number[]>([]);        // items she has thrown into her reply
+  const [answer, setAnswer] = useState(0);                       // characters of her answer typed so far
+  const [carry, setCarry] = useState<ArtifactKind | null>(null); // item in Nia's hands
+  const [carryHidden, setCarryHidden] = useState(false);         // in her hands but still flying up from the folder
   const [bump, setBump] = useState(-1);
   const [openF, setOpenF] = useState(-1);                        // folder with its flap open
-  const [fresh, setFresh] = useState(-1);                        // folder whose newest sheet is sliding in
   const [panel, setPanel] = useState<"none" | "doc" | "send">("none");
   const [lines, setLines] = useState(0);
   const [chips, setChips] = useState<number[]>([]);             // letter lines whose source chip has landed
@@ -133,9 +148,8 @@ export default function NiaStage({ onAct, anchor }: { onAct?: (a: NiaAct) => voi
 
   /* ── the acts ── */
   const reset = useCallback((a: NiaAct) => {
-    setAct(a); setCarry(null); setBump(-1); setSent(null); setBubble("");
-    setPicked(a === 0 ? [] : ITEMS.map((_, i) => i));
-    setCounts(a === 0 ? [0, 0, 0] : [2, 1, 1]);
+    setAct(a); setCarry(null); setCarryHidden(false); setBump(-1); setSent(null); setBubble("");
+    setAsked(a !== 0); setAttached(a === 0 ? [] : FETCH.map((_, i) => i)); setAnswer(a === 0 ? 0 : ANSWER.length);
     setPanel(a === 1 ? "doc" : a === 2 ? "send" : "none");
     setLines(0); setChips([]);
     if (cursor.current) cursor.current.style.opacity = "0";
@@ -149,38 +163,55 @@ export default function NiaStage({ onAct, anchor }: { onAct?: (a: NiaAct) => voi
     while (alive()) {
       if (a === 0) {
         nia.current?.gaze(null);
-        await hop({ ...S(0.5, 0.52), s: 1 }, 560, 50);
-        await say("Four new things came in. Let me sort them.", id, "happy");
-        await sleep(300);
-        for (let k = ITEMS.length - 1; k >= 0 && alive(); k--) {
-          const it = ITEMS[k], card = pileEls.current[k];
+        await hop({ ...(narrow() ? S(0.84, 0.6) : S(0.62, 0.5)), s: sc() }, 560, 50);
+        await sleep(400);
+        // the question comes in
+        setAsked(true);
+        await sleep(500);
+        const q = stage.current?.querySelector(".nc-q");
+        if (q) nia.current?.gaze(toClient(centreOf(q)));
+        await say("A question about the bill. Let me get what we have.", id, "think");
+        await sleep(250);
+        for (let k = 0; k < FETCH.length && alive(); k++) {
+          const it = FETCH[k];
+          const f = folderEls.current[it.from], icon = f?.querySelector(".nf-icon") ?? f;
           nia.current?.expr("focus");
-          if (card) nia.current?.gaze(toClient(centreOf(card)));
-          // land just above the top edge of whatever it is (a tall page, a slim voice note…)
-          const ch = card?.getBoundingClientRect().height ?? 60;
-          await hop({ ...centreOf(card, 0, -ch / 2 - 48), s: 1 }, 520, 60);
+          if (icon) nia.current?.gaze(toClient(centreOf(icon)));
+          // beside the folder, at its height, so what she pulls rises straight into her hands
+          await hop({ ...(narrow() ? centreOf(icon, 0, -86) : centreOf(icon, -118, 8)), s: sc() }, 640, 70);
           if (!alive()) break;
-          setPicked((p) => [...p, k]); setCarry(k);
-          const f = folderEls.current[it.to], icon = f?.querySelector(".nf-icon") ?? f;
-          nia.current?.gaze(icon ? toClient(centreOf(icon)) : null);
-          nia.current?.expr("idle");
+          await pullFrom(it.from, it.kind);
+          if (!alive()) break;
+          nia.current?.expr("happy", 450);
+          const slot = slotEls.current[k];
+          if (slot) nia.current?.gaze(toClient(centreOf(slot)));
           const talking = say(it.say, id);
-          // she lands right beside the folder icon, at its height, so the card goes from her hands straight in
-          await hop({ ...centreOf(icon, -118, 8), s: 1 }, 680, 80);
+          // back to the chat, just right of her reply, and in it goes
+          const thread = stage.current?.querySelector(".nc-reply"), att = stage.current?.querySelector(".nc-att");
+          const drop = narrow()
+            ? centreOf(att, (att?.getBoundingClientRect().width ?? 300) / 2 - 34, -70)        // above the end of her reply
+            : centreOf(thread, (thread?.getBoundingClientRect().width ?? 300) / 2 + 92, -10); // just right of it
+          await hop({ ...drop, s: sc() }, 660, 80);
           if (!alive()) break;
-          await fileInto(it.to);
-          nia.current?.expr("happy", 500);
+          await throwTo(k);
           await talking;
-          await sleep(250);
+          await sleep(200);
         }
         if (!alive()) break;
+        // she types the answer, citing what she pulled
+        nia.current?.expr("focus");
+        const words = say("Here's the answer, with the files to back it.", id);
+        for (let c = 1; c <= ANSWER.length && alive(); c += 2) { setAnswer(c); await sleep(14); }
+        setAnswer(ANSWER.length);
+        await words;
+        if (!alive()) break;
         nia.current?.gaze(null);
-        await say("All sorted. Now the appeal.", id, "wink");
-        await sleep(900);
+        await say("Now the appeal.", id, "wink");
+        await sleep(1100);
         a = 1; setAct(1);
       } else if (a === 1) {
         setPanel("doc"); setLines(0); setChips([]);
-        await hop({ ...S(0.14, 0.6), s: 1 }, 600, 60, true);
+        await hop({ ...(narrow() ? S(0.86, 0.7) : S(0.14, 0.6)), s: sc() }, 600, 60, true);
         nia.current?.expr("focus");
         for (let j = 0; j < LETTER.length && alive(); j++) {
           const L = LETTER[j];
@@ -200,7 +231,7 @@ export default function NiaStage({ onAct, anchor }: { onAct?: (a: NiaAct) => voi
         a = 2; setAct(2);
       } else {
         setPanel("send"); setSent(null);
-        await hop({ ...S(0.14, 0.6), s: 1 }, 300, 30, true);
+        await hop({ ...(narrow() ? S(0.86, 0.7) : S(0.14, 0.6)), s: sc() }, 300, 30, true);
         await say("Ready to send. This one needs a human.", id, "think");
         if (!alive()) break;
         nia.current?.expr("wait");
@@ -247,39 +278,59 @@ export default function NiaStage({ onAct, anchor }: { onAct?: (a: NiaAct) => voi
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [S, centreOf, hop, reset, say, toClient]);
 
-  /** the card in Nia's hands is filed: it arcs to the folder's mouth, shrinks to a sheet and slides in behind the
-      flap (which tips open for it), then the folder settles with one more sheet in it */
-  const fileInto = async (to: number) => {
-    const c = carryEl.current, f = folderEls.current[to]?.querySelector(".nf-icon") ?? folderEls.current[to], r = root.current;
-    if (!c || !f || !r) { setCarry(null); setCounts((v) => v.map((n, i) => (i === to ? n + 1 : n))); return; }
-    const rr = r.getBoundingClientRect(), cr = c.getBoundingClientRect(), fr = f.getBoundingClientRect();
+  /** she pulls an item out of a folder: the flap tips open, the item rises out of the folder's mouth (small, like a
+      sheet) and grows into her hands. The folder keeps its stock: she takes a copy. */
+  const pullFrom = async (from: number, kind: ArtifactKind) => {
+    const f = folderEls.current[from]?.querySelector(".nf-icon") ?? folderEls.current[from], r = root.current;
+    const tmpl = tmpls.current?.querySelector(`[data-kind="${kind}"] > .ia`);
+    setOpenF(from); setBump(from);
+    setCarry(kind); setCarryHidden(true);
+    await sleep(60);   // let her hands render, so we know where the item ends up
+    const c = carryEl.current;
+    if (!f || !r || !tmpl || !c) { setCarryHidden(false); setOpenF(-1); setBump(-1); return; }
+    const fly = document.createElement("div");
+    fly.className = "ns-filing";
+    fly.appendChild(tmpl.cloneNode(true));
+    r.appendChild(fly);
+    const w = fly.offsetWidth, h = fly.offsetHeight;
+    const rr = r.getBoundingClientRect(), fr = f.getBoundingClientRect(), cr = c.getBoundingClientRect();
+    const x0 = fr.left - rr.left + fr.width / 2 - w / 2, y0 = fr.top - rr.top + 16 - h / 2;
+    const x1 = cr.left - rr.left + cr.width / 2 - w / 2, y1 = cr.top - rr.top + cr.height / 2 - h / 2;
+    const k1 = cr.width / w;
+    await fly.animate([
+      { transform: `translate(${x0}px, ${y0 + 18}px) scale(.3, .2)`, opacity: 0 },
+      { transform: `translate(${x0}px, ${y0 - 10}px) scale(.38)`, opacity: 1, offset: 0.3 },
+      { transform: `translate(${(x0 + x1) / 2}px, ${Math.min(y0, y1) - 40}px) rotate(-6deg) scale(.6)`, offset: 0.65 },
+      { transform: `translate(${x1}px, ${y1}px) rotate(-4deg) scale(${k1})` },
+    ], { duration: 620, easing: "cubic-bezier(.3,.7,.3,1)", fill: "forwards" }).finished.catch(() => {});
+    setCarryHidden(false);
+    fly.remove();
+    await sleep(120);
+    setOpenF(-1); setBump(-1);
+  };
+
+  /** she throws what she's holding into the chat: it arcs from her hands and lands as an attachment in her reply */
+  const throwTo = async (slotIndex: number) => {
+    const c = carryEl.current, slot = slotEls.current[slotIndex], r = root.current;
+    if (!c || !slot || !r) { setCarry(null); setAttached((v) => [...v, slotIndex]); return; }
+    const rr = r.getBoundingClientRect(), cr = c.getBoundingClientRect(), sr = slot.getBoundingClientRect();
     const w = c.offsetWidth, h = c.offsetHeight;
-    const clone = c.cloneNode(true) as HTMLElement;
-    // it leaves her hands as its own element: drop the "hanging under Nia" placement, the animation positions it
-    clone.className = "ns-filing";   // the artifact inside keeps its own look
-    clone.style.cssText = `left:0;top:0;width:${w}px;transform:none`;
-    r.appendChild(clone);
+    const fly = c.cloneNode(true) as HTMLElement;
+    fly.className = "ns-filing";
+    fly.style.cssText = `left:0;top:0;width:${w}px;transform:none`;
+    r.appendChild(fly);
     setCarry(null);
-    setOpenF(to);
+    nia.current?.squash(-0.3);
     const x0 = cr.left - rr.left + cr.width / 2 - w / 2, y0 = cr.top - rr.top + cr.height / 2 - h / 2;
-    const tx = fr.left - rr.left + fr.width / 2 - w / 2, ty = fr.top - rr.top + 14 - h / 2;
-    await clone.animate([
-      { transform: `translate(${x0}px, ${y0}px) rotate(-3deg) scale(.86)` },
-      { transform: `translate(${(x0 + tx) / 2}px, ${Math.min(y0, ty) - 46}px) rotate(5deg) scale(.66)`, offset: 0.55 },
-      { transform: `translate(${tx}px, ${ty}px) rotate(0deg) scale(.36, .34)` },
-    ], { duration: 460, easing: "cubic-bezier(.3,.7,.3,1)", fill: "forwards" }).finished.catch(() => {});
-    // into the folder: the sheet inside takes over from the card, sliding down behind the flap
-    setCounts((v) => v.map((n, i) => (i === to ? n + 1 : n)));
-    setFresh(to);
-    await clone.animate([
-      { transform: `translate(${tx}px, ${ty}px) scale(.36, .34)`, opacity: 1 },
-      { transform: `translate(${tx}px, ${ty + 20}px) scale(.32, .22)`, opacity: 0 },
-    ], { duration: 220, easing: "ease-in", fill: "forwards" }).finished.catch(() => {});
-    clone.remove();
-    setBump(to);
-    await sleep(240);
-    setOpenF(-1); setFresh(-1);
-    window.setTimeout(() => setBump(-1), 260);
+    const k = Math.min(sr.width / w, sr.height / h);
+    const x1 = sr.left - rr.left + sr.width / 2 - w / 2, y1 = sr.top - rr.top + sr.height / 2 - h / 2;
+    await fly.animate([
+      { transform: `translate(${x0}px, ${y0}px) rotate(-4deg) scale(${cr.width / w})` },
+      { transform: `translate(${(x0 + x1) / 2}px, ${Math.min(y0, y1) - 70}px) rotate(-14deg) scale(${(cr.width / w + k) / 2})`, offset: 0.5 },
+      { transform: `translate(${x1}px, ${y1}px) rotate(0deg) scale(${k})` },
+    ], { duration: 560, easing: "cubic-bezier(.3,.7,.3,1)", fill: "forwards" }).finished.catch(() => {});
+    setAttached((v) => [...v, slotIndex]);
+    fly.remove();
   };
 
   /** a source chip flies out of its folder into the letter line */
@@ -322,7 +373,7 @@ export default function NiaStage({ onAct, anchor }: { onAct?: (a: NiaAct) => voi
       if (!ready || !stageOn || inStage || cancelled) return;
       inStage = true; seated = false; setHome(false);
       nia.current?.gaze(null); nia.current?.expr("happy", 700);
-      void hop({ ...S(0.5, 0.52), s: 1 }, 950, 150, true).then(() => { if (inStage) void play(0); });
+      void hop({ ...(narrow() ? S(0.84, 0.6) : S(0.5, 0.52)), s: sc() }, 950, 150, true).then(() => { if (inStage) void play(0); });
     };
     const intro = async () => {
       // pop in: grow from nothing with an overshoot, then a squash as she "lands" in her seat
@@ -358,7 +409,7 @@ export default function NiaStage({ onAct, anchor }: { onAct?: (a: NiaAct) => voi
       if (stageOn) { enter(); return; }
       if (!e.isIntersecting && inStage && e.boundingClientRect.top > 0) {
         // the stage went back below the fold: she goes home to the headline
-        inStage = false; run.current++; setBubble(""); setCarry(null);
+        inStage = false; run.current++; setBubble(""); setCarry(null); setCarryHidden(false);
         nia.current?.gaze(null); nia.current?.expr("happy", 600);
         void hop(homeSpot(), 800, 120, true).then(() => { setHome(true); if (!inStage) seated = true; });
       } else if (!e.isIntersecting && inStage) {
@@ -390,28 +441,42 @@ export default function NiaStage({ onAct, anchor }: { onAct?: (a: NiaAct) => voi
       </div>
 
       <div className="ns-stage" ref={stage}>
-        {/* 1 · the inbox pile and the job folders */}
-        <p className="ns-label" style={{ left: "6%", top: "9%", opacity: panel === "none" ? 1 : 0 }}>Inbox</p>
-        <ul className="ns-pile" style={{ opacity: panel === "none" ? 1 : 0 }}>
-          {ITEMS.map((it, i) => (
-            <li key={it.t} ref={(n) => { pileEls.current[i] = n; }} className={picked.includes(i) ? "gone" : ""} style={{ "--i": i } as React.CSSProperties}>
-              <InboxArtifact kind={it.kind} />
-            </li>
-          ))}
-        </ul>
+        {/* 1 · the case chat: a question comes in, Nia's reply fills with what she pulls from the folders */}
+        <div className={`ns-chat${panel === "none" ? " on" : ""}`} aria-hidden={panel !== "none"}>
+          <header><b>Case chat</b><small>Patient bill advocacy</small></header>
+          <div className={`nc-msg nc-q${asked ? " in" : ""}`}>
+            <i className="nc-av" aria-hidden="true">DR</i>
+            <div><span className="nc-who">{QUESTION.who} <small>{QUESTION.role}</small></span><p>{QUESTION.text}</p></div>
+          </div>
+          <div className={`nc-msg nc-reply${attached.length || answer ? " in" : ""}`}>
+            <i className="nc-av nia" aria-hidden="true"><Nia size={30} mood={answer >= ANSWER.length ? "happy" : "work"} /></i>
+            <div>
+              <span className="nc-who">Nia <small>{answer >= ANSWER.length ? "answered" : "pulling files…"}</small></span>
+              <ul className="nc-att">
+                {FETCH.map((it, i) => (
+                  <li key={it.label} ref={(n) => { slotEls.current[i] = n; }} className={attached.includes(i) ? "in" : ""}>
+                    <span className="nc-thumb"><InboxArtifact kind={it.kind} /></span>
+                    <small>{it.label}</small>
+                  </li>
+                ))}
+              </ul>
+              {answer > 0 && <p className="nc-a">{ANSWER.slice(0, answer)}</p>}
+            </div>
+          </div>
+        </div>
         <div className="ns-folders">
           {FOLDERS.map((f, i) => (
             <div key={f} ref={(n) => { folderEls.current[i] = n; }} className={`ns-folder${bump === i ? " bump" : ""}${openF === i ? " open" : ""}`}>
               <span className="nf-icon" aria-hidden="true">
                 <i className="nf-back" />
                 <span className="nf-papers">
-                  {Array.from({ length: Math.min(3, counts[i]) }, (_, k) => (
-                    <i key={k} className={`nf-sheet${fresh === i && k === Math.min(3, counts[i]) - 1 ? " new" : ""}`} style={{ "--k": k } as React.CSSProperties} />
+                  {Array.from({ length: Math.min(3, STOCK[i]) }, (_, k) => (
+                    <i key={k} className="nf-sheet" style={{ "--k": k } as React.CSSProperties} />
                   ))}
                 </span>
                 <i className="nf-front" />
               </span>
-              <span className="nf-label"><b>{f}</b><small>{counts[i]} {counts[i] === 1 ? "item" : "items"}</small></span>
+              <span className="nf-label"><b>{f}</b><small>{STOCK[i]} {STOCK[i] === 1 ? "item" : "items"}</small></span>
             </div>
           ))}
         </div>
@@ -453,10 +518,15 @@ export default function NiaStage({ onAct, anchor }: { onAct?: (a: NiaAct) => voi
         {bubble && !home && <p className="ns-bubble" aria-live="polite">{bubble}</p>}
         <Nia3D size={SIZE} api={nia} label="Nia, Grain's agent. Click her, or drag to spin." />
         {carry !== null && (
-          <div className="ns-carry" ref={carryEl}>
-            <InboxArtifact kind={ITEMS[carry].kind} />
+          <div className={`ns-carry${carryHidden ? " arriving" : ""}`} ref={carryEl}>
+            <InboxArtifact kind={carry} />
           </div>
         )}
+      </div>
+
+      {/* hidden copies of each artifact, cloned for the flight out of a folder */}
+      <div className="ns-templates" ref={tmpls} aria-hidden="true">
+        {KINDS.map((k) => <div key={k} data-kind={k}><InboxArtifact kind={k} /></div>)}
       </div>
 
       {/* the Advocate's cursor */}

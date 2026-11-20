@@ -361,7 +361,7 @@
 .grain-hero .sx-packet .sx-sub { max-width: 620px; text-wrap: balance; }
 
 /* ───── CTA: no box, no orb. Two big lines on the page, foggy round the cursor, the hero's pills ───── */
-.grain-hero .sx-cta { padding: clamp(96px, 14vh, 160px) 0 clamp(40px, 6vh, 72px); }
+.grain-hero .sx-cta { padding: clamp(96px, 14vh, 160px) 0 clamp(40px, 6vh, 72px); overflow-x: clip; }   /* the title's soft copy reaches 48px past it: never let that widen the page */
 .grain-hero .ct-wrap { display: grid; justify-items: center; text-align: center; }
 .grain-hero .sx h2.ct-title {   /* beats the generic .sx h2 size */
   --mx: 50%; --my: 50%; --sk: 0;
@@ -388,3 +388,7 @@
 /* Start a workflow: the beam button, like Send in the contact form, sized to match the pill beside it */
 .grain-hero .ct-actions .ct-go { padding: 14px 24px; gap: 8px; font-size: 16px; font-weight: 500; letter-spacing: -0.015em; background: var(--btn); color: var(--btn-ink); }
 .grain-hero .ct-actions .ct-go:hover { background: var(--btn); color: var(--btn-ink); }
+
+/* hints that name the gesture: "Hover" with a mouse, "Tap" on touch screens */
+.grain-hero .on-touch { display: none; }
+@media (hover: none) { .grain-hero .on-hover { display: none; } .grain-hero .on-touch { display: inline; } }

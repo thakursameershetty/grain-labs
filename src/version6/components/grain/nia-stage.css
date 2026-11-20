@@ -13,7 +13,6 @@
 .grain-hero .ns-label { position: absolute; transition: opacity .4s ease; margin: 0; font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--x-muted); }
 
 /* the inbox pile: four cards, slightly askew */
-.grain-hero .ns-pile { position: absolute; left: 5%; top: 50%; width: 24%; height: 0; margin: 0; padding: 0; list-style: none; transition: opacity .5s ease; }
 
 /* the job folders */
 .grain-hero .ns-folders { position: absolute; right: 5%; top: 0; bottom: 0; width: 160px; display: grid; justify-items: center; align-content: center; gap: 16px; }
@@ -120,18 +119,6 @@
 /* jumping here from the nav: keep the headline clear of the blurred header zone */
 .grain-hero #nia { scroll-margin-top: 72px; }
 
-/* ── the inbox pile: real artifacts, piled with their own offsets and tilts (top of the pile is the last one) ── */
-.grain-hero .ns-pile li {
-  position: absolute; left: 50%; top: 0; width: max-content;
-  transform: translate(calc(-50% + var(--px, 0px)), calc(-50% + var(--py, 0px))) rotate(var(--rot, 0deg));
-  filter: drop-shadow(0 10px 14px rgb(40 25 15 / .14));
-  transition: opacity .2s ease, transform .3s ease;
-}
-.grain-hero .ns-pile li:nth-child(1) { --px: -86px; --py: -46px; --rot: -8deg; }   /* the plan document, at the bottom */
-.grain-hero .ns-pile li:nth-child(2) { --px: 56px; --py: 118px; --rot: -3deg; }      /* the voice note */
-.grain-hero .ns-pile li:nth-child(3) { --px: 92px; --py: -40px; --rot: 4deg; }     /* the envelope */
-.grain-hero .ns-pile li:nth-child(4) { --px: -14px; --py: 20px; --rot: 3deg; }     /* the receipt, on top */
-.grain-hero .ns-pile li.gone { opacity: 0; transform: translate(calc(-50% + var(--px, 0px)), calc(-80% + var(--py, 0px))) rotate(var(--rot, 0deg)) scale(.9); }
 
 /* ── the artifacts (InboxArtifact.tsx): paper and a phone bubble, fixed colours like real objects ── */
 .grain-hero .ia { position: relative; color: #2a2420; font-family: var(--sans); }
@@ -191,3 +178,61 @@
 .grain-hero .ia-d-lines i { display: block; height: 3px; border-radius: 2px; background: rgb(60 45 35 / .16); }
 .grain-hero .ia-d-lines i:nth-child(2n) { width: 82%; } .grain-hero .ia-d-lines i:last-child { width: 58%; }
 .grain-hero .ia-d-sec { margin: 6px -4px; padding: 4px 6px; border-radius: 4px; font-size: 9.5px; font-weight: 600; color: #7a4a10; background: #fbe7b8; }
+
+/* ── act 1 · the case chat (left): a question comes in; Nia's reply fills with what she pulls from the folders ── */
+.grain-hero .ns-chat {
+  position: absolute; left: 5%; top: 50%; width: 44%; padding: 16px 18px 18px; border-radius: 18px; background: var(--x-bg);
+  box-shadow: inset 0 0 0 1px var(--x-line), 0 24px 50px -32px color-mix(in srgb, var(--ink) 40%, transparent);
+  opacity: 0; transform: translateY(-46%) scale(.97); pointer-events: none;
+  transition: opacity .45s ease, transform .55s cubic-bezier(.3, 1.4, .5, 1);
+}
+.grain-hero .ns-chat.on { opacity: 1; transform: translateY(-50%); }
+.grain-hero .ns-chat header { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding-bottom: 12px; margin-bottom: 14px; border-bottom: 1px solid var(--x-line); }
+.grain-hero .ns-chat header b { font-size: 14.5px; font-weight: 500; color: var(--x-ink); }
+.grain-hero .ns-chat header small { font-size: 12px; color: var(--x-muted); }
+.grain-hero .nc-msg { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 10px; align-items: start;
+  opacity: 0; transform: translateY(8px); transition: opacity .4s ease, transform .5s cubic-bezier(.3, 1.4, .5, 1); }
+.grain-hero .nc-msg.in { opacity: 1; transform: none; }
+.grain-hero .nc-msg + .nc-msg { margin-top: 14px; }
+.grain-hero .nc-av { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-size: 10.5px; font-style: normal; font-weight: 600;
+  background: linear-gradient(135deg, #F0A585, #C85636); color: #fff; }
+.grain-hero .nc-av.nia { border-radius: 0; background: none; }
+.grain-hero .nc-who { display: block; font-size: 13px; font-weight: 500; color: var(--x-ink); }
+.grain-hero .nc-who small { margin-left: 4px; font-size: 12px; font-weight: 400; color: var(--x-muted); }
+.grain-hero .nc-msg p { margin: 4px 0 0; font-size: 14px; line-height: 1.5; color: var(--x-body); }
+.grain-hero .nc-q p { display: inline-block; padding: 8px 12px; border-radius: 4px 14px 14px 14px; background: color-mix(in srgb, var(--ink) 4%, var(--paper)); color: var(--x-ink); }
+.grain-hero .nc-a { min-height: 4.5em; }
+/* the attachment slots: empty (and invisible) until she throws an item into one, then it pops in */
+.grain-hero .nc-att { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 8px 0 0; padding: 0; list-style: none; }
+.grain-hero .nc-att li { display: grid; gap: 5px; justify-items: center; padding: 8px 6px 6px; border-radius: 12px; background: color-mix(in srgb, var(--ink) 3%, var(--paper));
+  box-shadow: inset 0 0 0 1px var(--x-line); opacity: 0; transform: scale(.85); transition: opacity .25s ease, transform .45s cubic-bezier(.3, 1.6, .5, 1); }
+.grain-hero .nc-att li.in { opacity: 1; transform: none; }
+.grain-hero .nc-att small { font-size: 11px; color: var(--x-muted); white-space: nowrap; }
+.grain-hero .nc-thumb { display: grid; place-items: center; height: 64px; width: 100%; overflow: hidden; }
+.grain-hero .nc-thumb > .ia { zoom: .36; pointer-events: none; }
+
+/* in her hands, but still flying up out of the folder */
+.grain-hero .ns-carry.arriving { visibility: hidden; }
+/* copies of each artifact, cloned for flights; never shown */
+.grain-hero .ns-templates { position: absolute; left: -9999px; top: 0; visibility: hidden; pointer-events: none; }
+
+/* ── narrow screens: the stage stacks. The chat on top, full width; the folders in a row underneath; the letter and
+   the send open over the chat. Nia's spots and size follow in NiaStage.tsx (same 860px breakpoint). ── */
+@media (max-width: 860px) {
+  .grain-hero .ns-stage { height: auto; display: grid; gap: 14px; padding: 14px 14px 16px; }
+  .grain-hero .ns-chat { position: relative; left: auto; top: auto; width: auto; min-height: 430px; transform: scale(.985); }
+  .grain-hero .ns-chat.on { transform: none; }
+  .grain-hero .ns-chat header b, .grain-hero .ns-chat header small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .grain-hero .ns-folders { position: relative; inset: auto; right: auto; width: auto; grid-template-columns: repeat(3, minmax(0, 1fr)); align-content: start; gap: 6px; }
+  .grain-hero .ns-folder { width: auto; gap: 4px; }
+  .grain-hero .ns-folder .nf-icon { zoom: .74; }
+  .grain-hero .nf-label b { font-size: 12.5px; }
+  .grain-hero .ns-panel { left: 14px; right: 14px; width: auto; top: 14px; transform: translateY(6px) scale(.98); }
+  .grain-hero .ns-panel.on { transform: none; }
+  .grain-hero .ns-doc header { align-items: flex-start; }
+  .grain-hero .ns-doc header small { white-space: nowrap; }
+  /* the step tabs: one row that scrolls sideways, not a column */
+  .grain-hero .ns .nd-asks { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; scrollbar-width: none; margin: 0 calc(var(--gutter) * -1) 14px; padding: 0 var(--gutter) 2px; }
+  .grain-hero .ns .nd-asks::-webkit-scrollbar { display: none; }
+  .grain-hero .ns .nd-asks button { flex: none; }
+}

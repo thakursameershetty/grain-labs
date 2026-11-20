@@ -17,8 +17,7 @@ import PacketStage from "./PacketStage";
 import UseCasesGrid from "./UseCases";
 import TrustGrid from "./TrustGrid";
 import RunBoard, { type BoardEvent } from "./RunBoard";
-import NiaDesk, { type NiaStep } from "./NiaDesk";
-import NiaStage from "./NiaStage";
+import NiaStage, { type NiaAct } from "./NiaStage";
 import useFogSpot from "./useFogSpot";
 import BeamButton from "./BeamButton";
 import FogFooter from "./FogFooter";
@@ -104,7 +103,7 @@ function Packet() {
               <span className="pk-line">send<Tile side="lead" tone="cyan" k={2} icon={SendIcon} label="" />, or archive<Tile side="lead" tone="rasp" k={3} icon={ArchiveIcon} label="" />.</span>
             </span>}
             sub="Each artifact carries its source references, origin, content fingerprint, checkpoint and run details. The output is a packet, not a chat response." />
-          <p className="pk-hint rv">Hover a page to trace it back to its sources.</p>
+          <p className="pk-hint rv"><span className="on-hover">Hover</span><span className="on-touch">Tap</span> a page to trace it back to its sources.</p>
         </div>
 
         <div className="rv" style={{ width: "100%", display: "grid", justifyItems: "center" }}><PacketStage /></div>
@@ -189,24 +188,22 @@ function Board() {
 }
 
 /* ───────────────────────── Nia: the agent, called out (Shiva's review, 2026-11-18) ───────────────────────── */
-const NIA_POINTS: { s: NiaStep; t: string; d: string }[] = [
-  { s: 0, t: "Takes everything in once", d: "Emails, files, calls and notes land in one place, already sorted to the job they belong to." },
+const NIA_POINTS: { s: NiaAct; t: string; d: string }[] = [
+  { s: 0, t: "Answers from the files", d: "Ask about a case and Nia pulls what answers it from its folders: the bill, the EOB, the plan. Nothing is guessed." },
   { s: 1, t: "Shows where every line came from", d: "Drafts carry their sources, so a reviewer checks facts instead of hunting for them." },
   { s: 2, t: "Asks before anything leaves", d: "Nia prepares the send. A person approves it. Nothing goes out on its own." },
 ];
 function NiaSection() {
   const ref = useReveal<HTMLElement>();
-  const [on, setOn] = useState<NiaStep>(0);
-  // wide screens: Nia acts on a stage (and starts by the headline); narrow screens: the stacked desk
-  const [wide] = useState(() => typeof window === "undefined" || window.matchMedia("(min-width: 861px)").matches);
+  const [on, setOn] = useState<NiaAct>(0);
   return (
     <section className="sx sx-board sx-nia" id="nia" data-surface="base" ref={ref} aria-labelledby="nia-title">
       <div className="sx-wrap">
         <div className="bd-head">
-          <h2 className="rv" id="nia-title"><span>Meet Nia.{wide && <i className="nia-anchor" aria-hidden="true" />}</span><span>She does the work, <em>you make the calls</em>.</span></h2>
+          <h2 className="rv" id="nia-title"><span>Meet Nia.<i className="nia-anchor" aria-hidden="true" /></span><span>She does the work, <em>you make the calls</em>.</span></h2>
           <p className="sx-sub rv">Nia is the agent inside Grain. She reads what comes in, works each step with the right profile and stops to ask before anything leaves.</p>
         </div>
-        {wide ? <NiaStage onAct={setOn} anchor="#nia .nia-anchor" /> : <div className="rv"><NiaDesk onStep={setOn} /></div>}
+        <NiaStage onAct={setOn} anchor="#nia .nia-anchor" />
         <ol className="bd-points">
           {NIA_POINTS.map((p) => (
             <li key={p.s} className={`rv${on === p.s ? " on" : ""}`}><b>{p.t}</b><span>{p.d}</span></li>

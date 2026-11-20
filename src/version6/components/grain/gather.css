@@ -158,20 +158,19 @@
 .grain-hero .ga-models { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
 .grain-hero .ga.narrow .ga-model { position: relative; transform: none; width: auto; opacity: 1; padding: 9px 12px; font-size: 13.5px; }
 
-/* the hub (v6): the dark-mode Grain logo. The mark in its own colours on a near-black tile (the logo's darkest tone,
-   in both themes), a hairline rim, and a glow in the mark's rust that grows as the wires reach it (--w). */
+/* the hub: the Grain mark itself, straight on the page (no tile; Shiva 2026-11-19 / Thakur 2026-11-20), with a soft
+   glow in the mark's rust behind it that grows as the wires reach it (--w) */
 .grain-hero .ga-tile {
-  display: grid; place-items: center; width: 116px; height: 116px; border-radius: 30px;
-  background: radial-gradient(120% 120% at 30% 20%, #2a211d, #15100e 70%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, .08),
-    inset 0 0 0 1px rgba(255, 255, 255, .05),
-    0 0 calc(18px + var(--w) * 46px) rgba(200, 86, 54, calc(.12 + var(--w) * .3)),
-    0 28px 56px -28px rgba(30, 12, 6, .55);
+  position: relative; display: grid; place-items: center; width: 116px; height: 116px; background: none; box-shadow: none;
 }
-.grain-hero .ga-tile .ga-logo { width: 62px; height: 62px; }
+.grain-hero .ga-tile::before {
+  content: ""; position: absolute; inset: -30%; z-index: -1; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(closest-side, rgba(200, 86, 54, calc(.1 + var(--w) * .2)), rgba(240, 191, 167, calc(.04 + var(--w) * .1)) 55%, transparent);
+  filter: blur(12px);
+}
+.grain-hero .ga-tile .ga-logo { width: 92px; height: 92px; }
 .grain-hero .ga-tile.sm { width: 72px; height: 72px; border-radius: 20px; flex: none; }
-.grain-hero .ga-tile.sm .ga-logo { width: 38px; height: 38px; }
+.grain-hero .ga-tile.sm .ga-logo { width: 54px; height: 54px; }
 .grain-hero .rp-tx { margin-top: 10px !important; color: var(--muted); font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* model tiles: the provider's mark on the left, name and a plain note */
