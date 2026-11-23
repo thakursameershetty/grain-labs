@@ -6,9 +6,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Shell, { HOME } from "./Shell";
 import ArticleCover from "./ArticleCover";
-import VapourMark from "@/version6/brand/VapourMark";
+import VapourHero from "@/version6/brand/VapourHero";
 import usePillList from "@/version6/components/grain/usePillList";
 import { ARTICLES, CATEGORIES, type Article } from "./data";
+
+const CHIP_PAD = { x: 0, y: 0 };
 
 const ROWS = [[8, 4], [4, 4, 4], [5, 7], [4, 8], [4, 4, 4]];
 const DROP = [[0, 72], [36, 0, 64], [56, 0], [0, 40], [48, 0, 24]];
@@ -45,7 +47,8 @@ export default function ArticlesPage() {
   const rows = useMemo(() => lay(list), [list]);
   const spread = useRef<HTMLDivElement>(null);
   const chips = useRef<HTMLDivElement>(null), chipPill = useRef<HTMLSpanElement>(null);
-  usePillList(chips, chipPill, "button");
+  // the chips have their own outline: the pill sits exactly on it (no padding) and fills it, rather than ringing it
+  usePillList(chips, chipPill, "button", CHIP_PAD);
 
   useEffect(() => { document.title = "Articles · Grain"; }, []);
   useEffect(() => {
@@ -59,7 +62,9 @@ export default function ArticlesPage() {
   return (
     <Shell>
       <section className="ar-stage" data-surface="dark">
-        <VapourMark className="ar-wire" scale={0.5} />
+        {/* the homepage's vapour stage behind the title, without the big mark: same warm atmosphere and drifting marks,
+            so it reads as the same site while the title, intro and chips stay clean (the mark belongs to the home hero) */}
+        <VapourHero className="ar-vapour vapour-hero" markAlpha={0} />
         <div className="ar-stage-center">
           <h1>Articles</h1>
           <p>Notes on running governed AI work: how Grain is built, and what it's like on the job.</p>

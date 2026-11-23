@@ -79,9 +79,9 @@
   background: var(--dark-bg); color: var(--dark-ink);
 }
 
-/* the vapour mark (VapourMark.tsx): canvases over the whole stage. It reads the pointer from the window,
+/* the vapour stage (VapourHero.tsx): canvases over the whole stage. It reads the pointer from the window,
    so it never blocks clicks; the scroll turn and fog-out happen in the canvas. */
-/* over the mark it is clickable: a click blows a burst of smoke (VapourMark) */
+/* (legacy: .mark-hot came from the old VapourMark's click burst; VapourHero doesn't set it) */
 .grain-hero .hero.mark-hot { cursor: pointer; }
 .grain-hero .hero-object { position: absolute; inset: 0; z-index: 1; display: block; width: 100%; height: 100%; pointer-events: none;
   /* the mark owns the top of the stage, so its core and inner rings sit in clear space above the headline */

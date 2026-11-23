@@ -27,6 +27,11 @@ type Props = {
   progress?: RefObject<number>;
   /** the heading the mist condenses into: an invisible copy laid out where the real one lands (measured word by word) */
   textRef?: RefObject<HTMLElement | null>;
+  /** the mark's size (share of its mask square, ~0.9 × that of the stage height on wide screens) and centre (0 top → 1) */
+  markSize?: number;
+  markY?: number;
+  /** how strongly the mark shows, 0–1; 0 = atmosphere and drifting marks only (the Articles header) */
+  markAlpha?: number;
   className?: string;
   /** radius of the hover mist blob, in stage heights (the palette picker's "Mist" slider) */
   blobSize?: number;
@@ -39,10 +44,12 @@ const S = { density: 0.78, expansion: 1.05, turbulence: 0.85, recondense: 0.011,
 // where the mark sits in its mask square (fractions of the square, y down) and the hover blob's radius (stage heights)
 // (MARK_SIZE 0.71 ≈ 65% of the stage height on wide screens; 0.8 felt too big, 0.62 too small)
 // BLOB_R is the default blob radius; the live one comes from the blobSize prop
-const MARK_CY = 0.46, MARK_SIZE = 0.71, BLOB_R = 0.2;
-// the hover mist's flow, in noise units per second: its normal drift, and the sink it turns into when the hover
-// gets heavy (dwelling long or stirring a lot). The mist pattern moves opposite to these offsets, so +y = falls.
-const DRIFT: [number, number] = [1.0, -0.67], SINK: [number, number] = [0.15, 2.4];
+const MARK_CY = 0.46, MARK_SIZE = 0.71, BLOB_R = 0.14;
+// the hover mist's flow, in noise units per second: a soft drift left → right, turning into an equally slow sink
+// once the pointer has rested on the mark for HEAVY_AFTER seconds. The mist pattern moves opposite to these offsets,
+// so −x = flows right and +y = falls.
+const DRIFT: [number, number] = [-0.4, 0], SINK: [number, number] = [0, 0.4];
+const HEAVY_AFTER = 7.5, HEAVY_RAMP = 2.5;   // seconds of hover before it starts sinking, and how long the turn takes
 // while the mark dissolves on scroll the mist rises instead (pattern moves up)
 const RISE: [number, number] = [0.2, -2.6];
 const smoothstep = (a: number, b: number, x: number) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
@@ -86,6 +93,7 @@ in vec2 vUv; out vec4 fragColor;
 uniform sampler2D uMask; uniform vec2 uAspect, uMaskScale; uniform float uTime;
 uniform vec2 uBlobPt, uFlow; uniform float uBlob, uBlobR, uHeavy, uDissolve, uFade;
 // hand-off: the heading's mask, how far it has condensed, and the surface it lands on
+uniform float uMarkAlpha;
 uniform sampler2D uText; uniform float uTextIn, uTextForm, uTextOut, uTextH, uStageOut; uniform vec3 uInk, uSurface;
 float hash12(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
 float vnoise(vec2 p) { vec2 i = floor(p); vec2 f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);
@@ -132,7 +140,7 @@ void main() {
   // the costly parts (blur, mist noise) only run within reach of the mark: a very coarse mask level (64px texels,
   // bilinear) says whether any of it is close enough to matter
   vec3 nearM = sampleMaskLod(vUv, 6.0);
-  bool nearMark = nearM.r + nearM.g + nearM.b > 0.002;
+  bool nearMark = uMarkAlpha > 0.0 && nearM.r + nearM.g + nearM.b > 0.002;   // no mark shown: skip it all
   float fog = 0.0, wisps = 0.0;
   float cloudTex = 0.5;
   if (nearMark) {
@@ -179,6 +187,7 @@ void main() {
   // a slight thinning right at the pointer, as the reference does
   baseMist *= 1.0 - 0.26 * exp(-bd2 / (br2 * 0.3)) * uBlob;
   baseMist *= smoothstep(0.0, 0.14, vUv.y) * 0.70 + 0.30;   // gentler than the demo: the big mark reaches low
+  baseMist *= uMarkAlpha;
   // scroll hand-off: the mark thins away into the mist (thinnest wisps last)
   baseMist *= clamp(1.0 - uFade * (1.25 - wisps * 0.5), 0.0, 1.0) * (1.0 - smoothstep(0.7, 1.0, uFade));   // fully gone at the end
 
@@ -347,11 +356,15 @@ type Micro = { x: number; y: number; size: number; opacity: number; depth: numbe
   /** nudge away from the pointer, px (eased) */
   ox: number; oy: number };
 
-export default function VapourHero({ className = "vapour-hero", blobSize = BLOB_R, progress, textRef }: Props) {
+export default function VapourHero({
+  className = "vapour-hero", blobSize = BLOB_R, progress, textRef, markSize = MARK_SIZE, markY = MARK_CY, markAlpha = 1,
+}: Props) {
   const root = useRef<HTMLDivElement>(null);
   // read every frame, so the slider changes the blob without rebuilding the GL scene
   const blobR = useRef(blobSize);
   useEffect(() => { blobR.current = blobSize; }, [blobSize]);
+  const alphaRef = useRef(markAlpha);
+  useEffect(() => { alphaRef.current = markAlpha; }, [markAlpha]);
   const glRef = useRef<HTMLCanvasElement>(null);
   const glyphRef = useRef<HTMLCanvasElement>(null);
 
@@ -382,7 +395,7 @@ export default function VapourHero({ className = "vapour-hero", blobSize = BLOB_
     let baseProg: ReturnType<typeof program>, puffProg: ReturnType<typeof program>;
     try {
       baseProg = program(QUAD_VERT, BASE_FRAG, ["uMask", "uAspect", "uMaskScale", "uTime", "uBlobPt", "uBlob", "uBlobR", "uFlow", "uHeavy", "uDissolve", "uFade",
-        "uText", "uTextIn", "uTextForm", "uTextOut", "uTextH", "uStageOut", "uInk", "uSurface"]);
+        "uText", "uTextIn", "uTextForm", "uTextOut", "uTextH", "uStageOut", "uInk", "uSurface", "uMarkAlpha"]);
       puffProg = program(PUFF_VERT, PUFF_FRAG, ["uAtlas", "uAspect"]);
     } catch (e) {
       console.error(e); host.classList.add("no-gl"); return;
@@ -569,7 +582,7 @@ export default function VapourHero({ className = "vapour-hero", blobSize = BLOB_
       maskCtx.fillStyle = "#000"; maskCtx.fillRect(0, 0, MASK_SIZE, MASK_SIZE);
       // the mark owns the stage (Shiva, 2026-11-23): 80% of the mask square, about 73% of the stage height on wide
       // screens, centred a little above the middle so the one line of text fits under it
-      const cx = MASK_SIZE * 0.5, cy = MASK_SIZE * MARK_CY, size = MASK_SIZE * MARK_SIZE;
+      const cx = MASK_SIZE * 0.5, cy = MASK_SIZE * markY, size = MASK_SIZE * markSize;
       const blur = S.blur * (MASK_SIZE / 1024);
       // one ring per channel (R outer/rust, G middle/coral, B inner/peach), added so blurred edges keep both rings
       const chans = (a: number): [string, string, string] => [`rgba(255,0,0,${a})`, `rgba(0,255,0,${a})`, `rgba(0,0,255,${a})`];
@@ -681,22 +694,21 @@ export default function VapourHero({ className = "vapour-hero", blobSize = BLOB_
     const blob = { x: 0.5, y: 0.5, a: 0 };   // the hover blob: eased position and strength 0–1
     // how much hover the mark has had: dwell builds while over it (faster while stirring), heavy (0–1) follows it and
     // turns the mist's drift into a sink; flow is the integrated offset the shader reads
-    let dwell = 0, heavy = 0, moved = 0;
+    let dwell = 0, heavy = 0;
     let dissolve = 0, fade = 0;   // scroll hand-off: the fog over the whole mark, and how far it has thinned away
     let morph = 0, puffOut = 0, stageOut = 0;   // puffs flying to the heading, fading once it's formed; atmosphere → surface
     const flow = [0, 0];
     /** is the pointer over the mark (its whole square, gaps between rings included, so the blob doesn't flicker)? */
     const overMark = (u: number, v: number) => {
       const mx = (u - 0.5) * maskScaleVec[0] + 0.5, my = (v - 0.5) * maskScaleVec[1] + 0.5;
-      const half = MARK_SIZE / 2 + 0.02;
-      return Math.abs(mx - 0.5) < half && Math.abs(my - (1 - MARK_CY)) < half;
+      const half = markSize / 2 + 0.02;
+      return Math.abs(mx - 0.5) < half && Math.abs(my - (1 - markY)) < half;
     };
     const onPointer = (e: PointerEvent) => {
       const r = host.getBoundingClientRect();
       const inside = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
       if (!inside) { pointer.has = false; return; }
       const nx = (e.clientX - r.left) / viewW, ny = 1.0 - (e.clientY - r.top) / viewH;
-      if (pointer.has) moved += Math.hypot((nx - pointer.x) * aspectVec[0], (ny - pointer.y) * aspectVec[1]);
       pointer.x = nx; pointer.y = ny; pointer.has = true;
       parallax.tx = (pointer.x - 0.5) * -1.0;
       parallax.ty = (1.0 - pointer.y - 0.5) * -1.0;
@@ -750,7 +762,7 @@ export default function VapourHero({ className = "vapour-hero", blobSize = BLOB_
         const travel = mv * (1 - mv) * 4;
         instanceData[o + 2] = p.baseSize * (1.0 + p.sizeBoost * 0.95 * S.expansion) * (1 - mv * 0.7);
         instanceData[o + 3] = p.rot;
-        instanceData[o + 4] = p.baseAlpha * S.density * (0.35 + p.excite * 0.6 + w * 1.6 + travel * 1.4) * Math.max(1 - fade, mv) * (1 - puffOut);
+        instanceData[o + 4] = p.baseAlpha * S.density * (0.35 + p.excite * 0.6 + w * 1.6 + travel * 1.4) * Math.max(1 - fade, mv) * (1 - puffOut) * alphaRef.current;
         instanceData[o + 5] = p.tile; instanceData[o + 6] = p.excite * 0.55; instanceData[o + 7] = 0.25 + p.sizeBoost * 0.45;
         // and they take on the heading's ink as they land
         const ci = mv * 0.85;
@@ -777,16 +789,15 @@ export default function VapourHero({ className = "vapour-hero", blobSize = BLOB_
       if (sp > 0.97) return;
       if (++colourTick % 30 === 0) readColours();
       // the hover blob: shows only over the mark, follows the pointer with a little ease, fades in and out
-      const over = pointer.has && overMark(pointer.x, pointer.y);
+      const over = pointer.has && alphaRef.current > 0 && overMark(pointer.x, pointer.y);
       if (blob.a < 0.01) { blob.x = pointer.x; blob.y = pointer.y; }   // it appears where the pointer is
       const follow = 1 - Math.pow(0.78, dt * 60);
       blob.x += (pointer.x - blob.x) * follow; blob.y += (pointer.y - blob.y) * follow;
       blob.a += ((over ? 1 : 0) - blob.a) * (1 - Math.pow(over ? 0.9 : 0.92, dt * 60));
-      // too much hover (about 1.5s+ of dwelling, sooner while stirring): the mist gets heavy and sinks; it eases back
-      // to its drift once the pointer leaves
-      dwell = over ? Math.min(4, dwell + dt + moved * 3) : Math.max(0, dwell - dt * 1.5);
-      moved = 0;
-      const ht = Math.min(1, Math.max(0, (dwell - 1.5) / 1.7)), heavyT = ht * ht * (3 - 2 * ht);
+      // a long hover (over HEAVY_AFTER seconds on the mark): the mist slowly turns to sink, at the same gentle speed;
+      // once the pointer leaves it eases back to drifting right
+      dwell = over ? Math.min(HEAVY_AFTER + HEAVY_RAMP + 1, dwell + dt) : Math.max(0, dwell - dt * 3);
+      const ht = Math.min(1, Math.max(0, (dwell - HEAVY_AFTER) / HEAVY_RAMP)), heavyT = ht * ht * (3 - 2 * ht);
       heavy += (heavyT - heavy) * (1 - Math.pow(0.96, dt * 60));
       const fx = DRIFT[0] + (SINK[0] - DRIFT[0]) * heavy, fy = DRIFT[1] + (SINK[1] - DRIFT[1]) * heavy;
       flow[0] += (fx + (RISE[0] - fx) * dissolve) * dt;
@@ -816,6 +827,7 @@ export default function VapourHero({ className = "vapour-hero", blobSize = BLOB_
       gl.uniform1f(baseProg.u.uStageOut, stageOut);
       gl.uniform3f(baseProg.u.uInk, ink[0], ink[1], ink[2]);
       gl.uniform3f(baseProg.u.uSurface, surface[0], surface[1], surface[2]);
+      gl.uniform1f(baseProg.u.uMarkAlpha, alphaRef.current);
       gl.uniform2f(baseProg.u.uAspect, aspectVec[0], aspectVec[1]);
       gl.uniform2f(baseProg.u.uMaskScale, maskScaleVec[0], maskScaleVec[1]);
       gl.uniform1f(baseProg.u.uTime, t);
@@ -881,7 +893,7 @@ export default function VapourHero({ className = "vapour-hero", blobSize = BLOB_
       for (const b of [screenVbo, cornerVbo, instanceVbo]) gl.deleteBuffer(b);
       gl.deleteVertexArray(screenVao); gl.deleteVertexArray(puffVao);
     };
-  }, []);
+  }, [markSize, markY]);
 
   return (
     <div ref={root} className={className} aria-hidden="true">

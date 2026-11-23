@@ -6,10 +6,15 @@
 import { useEffect, type RefObject } from "react";
 
 const LEAD = { k: 380, d: 26 }, TRAIL = { k: 120, d: 17 };
-const PAD_X = 12, PAD_Y = 6;
+// how far the pill reaches past the item: room round plain text links (footer, contents). Items that draw their own
+// outline (the article chips) pass 0, so the pill lands exactly on that outline instead of ringing it a second time.
+const PAD = { x: 12, y: 6 };
 
 /** `selector`: which children get the pill (links by default; the article chips are buttons) */
-export default function usePillList(list: RefObject<HTMLElement | null>, pill: RefObject<HTMLElement | null>, selector = "a") {
+export default function usePillList(
+  list: RefObject<HTMLElement | null>, pill: RefObject<HTMLElement | null>, selector = "a", pad: { x: number; y: number } = PAD,
+) {
+  const padX = pad.x, padY = pad.y;
   useEffect(() => {
     const box = list.current, p = pill.current;
     if (!box || !p) return;
@@ -20,8 +25,8 @@ export default function usePillList(list: RefObject<HTMLElement | null>, pill: R
 
     const target = (a: HTMLElement) => {
       const r = box.getBoundingClientRect(), q = a.getBoundingClientRect();
-      tl = q.left - r.left - PAD_X; tw = q.width + PAD_X * 2;
-      tt = q.top - r.top - PAD_Y; tb = q.bottom - r.top + PAD_Y;
+      tl = q.left - r.left - padX; tw = q.width + padX * 2;
+      tt = q.top - r.top - padY; tb = q.bottom - r.top + padY;
       if (!placed || reduce) { t = tt; b = tb; l = tl; w = tw; vt = vb = 0; restH = tb - tt; placed = true; }
       show = 1; kick();
     };
@@ -63,5 +68,5 @@ export default function usePillList(list: RefObject<HTMLElement | null>, pill: R
       links.forEach((a) => { a.removeEventListener("pointerenter", enter); a.removeEventListener("focus", enter); a.removeEventListener("blur", leave); });
       box.removeEventListener("pointerleave", leave); box.removeEventListener("pointermove", near);
     };
-  }, [list, pill, selector]);
+  }, [list, pill, selector, padX, padY]);
 }

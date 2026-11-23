@@ -22,7 +22,8 @@ import "./palette.css";
 
 // the opening plays on every visit, except for people who ask for less motion
 const PLAY_INTRO = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const MIST_KEY = "grain.mist", MIST_MIN = 0.08, MIST_MAX = 0.4, MIST_DEFAULT = 0.2;
+// (key bumped to .v2 when the default dropped from 0.2 to 0.14, so a size saved under the old default doesn't stick)
+const MIST_KEY = "grain.mist.v2", MIST_MIN = 0.06, MIST_MAX = 0.4, MIST_DEFAULT = 0.14;
 
 const navigation = [
   { label: "How it runs", href: "#how" },
