@@ -1,9 +1,9 @@
-// v6 hero (rebuilt 2026-11-18 after Shiva's review of v4, which said the 3D boxy mark looked dated):
-// a stage in the page's theme (paper in light, near-black in dark). The Grain mark is plain 2D (MistMark): crisp at
-// rest, it goes soft and misty where the pointer is and gathers back (after the Gemini glyph and the 21st.dev blur
-// mesh); tiny marks drift across the stage. The headline sits under it; two outlined pills along the bottom.
-// No big GRAIN word. Opening: Loader builds the 2D mark and flies it into the nav, then the mark resolves out of mist.
-// Scroll: the hero is pinned; the mark mists over and drifts up, the stage turns dark and How it runs introduces itself.
+// v6 hero (rebuilt 2026-11-18 after Shiva's review of v4, which said the 3D boxy mark looked dated).
+// 2026-11-23: the stage is now a straight port of the "dry-ice vapour" demo (VapourHero): navy → azure atmosphere in
+// both themes, the Grain mark as a big ice-white vapour glyph that parts into smoke puffs under the pointer and
+// re-condenses, tiny marks drifting up. The mark fills most of the stage; one short line of small text sits under it.
+// No big GRAIN word. Opening: Loader builds the 2D mark and flies it into the nav, then the vapour mark condenses in.
+// Scroll: the hero is pinned; the mark evaporates into rising smoke, the stage turns dark and How it runs introduces itself.
 // Theme switch lives in the palette notch (bottom-left), not the nav.
 // Nav: NavPill, one pill that stretches like liquid between tabs and goes soft-edged while it moves.
 import { HOME } from "@/version6/base";
@@ -13,7 +13,7 @@ import NavPill from "./NavPill";
 import useLiquidGlass from "./useLiquidGlass";
 import Sections from "./Sections";
 import GrainMark from "./GrainMark";
-import MistMark from "@/version6/brand/MistMark";
+import VapourHero from "@/version6/brand/VapourHero";
 import Loader from "./Loader";
 import PalettePicker from "./PalettePicker";
 import type { Palette, Theme } from "./useTheme";
@@ -22,6 +22,7 @@ import "./palette.css";
 
 // the opening plays on every visit, except for people who ask for less motion
 const PLAY_INTRO = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const MIST_KEY = "grain.mist", MIST_MIN = 0.08, MIST_MAX = 0.4, MIST_DEFAULT = 0.2;
 
 const navigation = [
   { label: "How it runs", href: "#how" },
@@ -54,6 +55,13 @@ export default function GrainHero({ theme, onToggleTheme, palette, onPalette }: 
   // "go" starts the hero's entrance: when the loader hands over, or on the first frame without it
   const [go, setGo] = useState(false);
   const [loading, setLoading] = useState(PLAY_INTRO);
+  // hover mist blob radius (stage heights), tuned from the palette picker's slider and remembered in this browser
+  const [mist, setMist] = useState(() => {
+    let v = NaN;
+    try { v = parseFloat(localStorage.getItem(MIST_KEY) ?? ""); } catch { /* ignore */ }
+    return Number.isFinite(v) ? Math.min(MIST_MAX, Math.max(MIST_MIN, v)) : MIST_DEFAULT;
+  });
+  useEffect(() => { try { localStorage.setItem(MIST_KEY, String(mist)); } catch { /* ignore */ } }, [mist]);
   useEffect(() => {
     if (PLAY_INTRO) return;
     const r = requestAnimationFrame(() => setGo(true));
@@ -82,7 +90,8 @@ export default function GrainHero({ theme, onToggleTheme, palette, onPalette }: 
       // once the pin has released, the nav comes back as a solid bar
       root.classList.toggle("past-hero", p >= 1 && r.bottom < window.innerHeight - 40);
       // light theme: the stage turns dark for the hand-off into How it runs; past this point the nav reads it as dark
-      if (root.hasAttribute("data-hero-dark") !== p > 0.32) root.toggleAttribute("data-hero-dark", p > 0.32);
+      // the vapour stage is dark in both themes (after the demo), so the nav over the hero always reads it as dark
+      if (!root.hasAttribute("data-hero-dark")) root.setAttribute("data-hero-dark", "");
       // the nav steps aside while the hero hands over. Opacity only while it's actually fading: any filter or
       // opacity below 1 on the header would cut the glass bar off from the page behind it.
       const hdr = root.querySelector<HTMLElement>(".site-header");
@@ -138,7 +147,8 @@ export default function GrainHero({ theme, onToggleTheme, palette, onPalette }: 
           onDone={() => setLoading(false)}
         />
       )}
-      <PalettePicker palette={palette} onChange={onPalette} theme={theme} onToggleTheme={onToggleTheme} />
+      <PalettePicker palette={palette} onChange={onPalette} theme={theme} onToggleTheme={onToggleTheme}
+        mist={{ value: mist, min: MIST_MIN, max: MIST_MAX, def: MIST_DEFAULT, onChange: setMist }} />
       <header className="site-header">
         {/* no bar: content scrolling under the header bends through a soft lens (colour fringe), blurs progressively and melts into the page colour (no edge) */}
         <div className="top-blur" aria-hidden="true"><s className="top-glass" data-glass="band" /><i /><i /><i /><i /><i /><i /><b /></div>
@@ -160,7 +170,7 @@ export default function GrainHero({ theme, onToggleTheme, palette, onPalette }: 
       {/* tall box: the hero stays pinned while this scrolls past, and that scroll turns the G */}
       <div className="hero-scroll" ref={scrollBoxRef} data-surface={theme === "dark" ? "dark" : "base"}>
         <section className="hero" id="top" aria-labelledby="hero-title">
-          <MistMark className="hero-object" progress={progress} start={go} scale={0.48} />
+          <VapourHero className="hero-object vapour-hero" blobSize={mist} />
           <span className="hero-thread" aria-hidden="true" />
 
           {/* the hand-off: the How it runs heading sits above the line, then the section takes over */}
@@ -171,20 +181,10 @@ export default function GrainHero({ theme, onToggleTheme, palette, onPalette }: 
 
           <div className="hero-ui">
             <div className="hero-center">
-              <h1 id="hero-title">
-                <span className="headline-line headline-line-muted"><span className="rise">AI operations your team</span></span>
-                <span className="headline-line"><span className="rise">can trust to run.</span></span>
+              {/* one short line under the big mark (Shiva, 2026-11-23); wording to be refined */}
+              <h1 id="hero-title" className="hero-line">
+                <span className="headline-line"><span className="rise">AI operations you can trust</span></span>
               </h1>
-              <p className="hero-copy">
-                Grain turns a request, its files and its rules into a tracked workflow. Agents do the work. Your people approve what matters.
-              </p>
-            </div>
-
-            <div className="hero-pills">
-              <a className="pill pill-solid" href={CONTACT}>Start a workflow
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9" /></svg>
-              </a>
-              <a className="pill" href="#how">See how it runs</a>
             </div>
 
             <ScrollArrow />

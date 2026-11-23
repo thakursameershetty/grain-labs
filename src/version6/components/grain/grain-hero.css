@@ -75,9 +75,9 @@
   background: var(--dark-bg); color: var(--dark-ink);
 }
 
-/* the mist mark (MistMark.tsx): canvases over the whole stage. It reads the pointer from the window,
+/* the vapour mark (VapourMark.tsx): canvases over the whole stage. It reads the pointer from the window,
    so it never blocks clicks; the scroll turn and fog-out happen in the canvas. */
-/* over the mark it is clickable: a click puffs a patch of mist (MistMark) */
+/* over the mark it is clickable: a click blows a burst of smoke (VapourMark) */
 .grain-hero .hero.mark-hot { cursor: pointer; }
 .grain-hero .hero-object { position: absolute; inset: 0; z-index: 1; display: block; width: 100%; height: 100%; pointer-events: none;
   /* the mark owns the top of the stage, so its core and inner rings sit in clear space above the headline */
@@ -368,12 +368,34 @@
    page colours flips the opening. --page-* carry the palette's own values down (pointing --dark-ink straight at
    --ink would loop, since the nav sets --ink from --dark-ink). The wireframe drops its lift toward white. ───── */
 .grain-hero { --page-ink: var(--ink); --page-paper: var(--paper); --page-dark: var(--dark-bg); --page-dark-ink: var(--dark-ink); }
-.grain-hero:not([data-theme="dark"]) .hero-scroll,
 .grain-hero:not([data-theme="dark"]):not(.past-hero):not([data-hero-dark]) .site-header {
   --dark-bg: var(--page-paper); --dark-ink: var(--page-ink); --dark-accent: var(--o3-deep);
 }
 /* paper → dark with the scroll (--dim runs 0 → 1 as the headline leaves and before the hand-off text arrives) */
-.grain-hero:not([data-theme="dark"]) .hero { background: color-mix(in srgb, var(--page-dark) calc(var(--dim) * 100%), var(--page-paper)); }
+/* 2026-11-23: the vapour stage (VapourHero) is dark in both themes, so the light-theme paper opening is off */
 /* the hand-off text and the line of light are on the dark stage, as before */
 .grain-hero:not([data-theme="dark"]) .hero-next,
 .grain-hero:not([data-theme="dark"]) .hero-thread { --dark-ink: var(--page-dark-ink); --dark-bg: var(--page-dark); --dark-accent: var(--o3); }
+
+/* ───── Vapour stage (VapourHero.tsx, 2026-11-23): a port of the dry-ice vapour demo. The GL canvas paints the
+   dark warm atmosphere itself (logo colours); the CSS gradient under it is the same look for no-WebGL2. The canvases fade out
+   with the scroll (--dim), revealing the dark stage the hand-off sits on. ───── */
+.grain-hero .vapour-hero {
+  background:
+    radial-gradient(120% 90% at 92% 18%, rgba(120, 51, 32, .7), rgba(42, 20, 13, .6) 45%, transparent 75%),
+    linear-gradient(to top right, #0d0907 30%, #2a140d);
+}
+.grain-hero .vapour-hero canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; opacity: calc(1 - var(--dim)); }
+.grain-hero .vapour-hero.no-gl canvas { display: none; }
+.grain-hero .hero:has(.vapour-hero) { --dark-bg: #0d0907; --dark-ink: #fff; }
+/* the mark owns the stage; one short line of small text sits under it (Shiva, 2026-11-23). No pills. */
+.grain-hero .hero:has(.vapour-hero) .hero-center { top: auto; bottom: clamp(56px, 9vh, 96px); transform: translateX(-50%); }
+.grain-hero .hero:has(.vapour-hero) h1.hero-line {
+  font-size: clamp(15px, 1.25vw, 19px); font-weight: 400; line-height: 1.3; letter-spacing: -0.005em;
+  color: rgba(255, 244, 238, .8); text-shadow: none;
+}
+@media (max-width: 760px) {
+  /* on a phone the mark spans the width, so it sits mid-screen and the line follows close under it */
+  .grain-hero .hero:has(.vapour-hero) .hero-center { bottom: 29%; }
+  .grain-hero .hero:has(.vapour-hero) h1.hero-line { font-size: 15px; }
+}

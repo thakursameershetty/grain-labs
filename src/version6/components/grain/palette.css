@@ -115,6 +115,24 @@
   .grain-hero .pal-pick button { padding: 6px; }
 }
 
+/* the "Mist" slider: a hairline track and a small ink knob, sized to sit in the pill */
+.grain-hero .pal-mist { display: inline-flex; align-items: center; gap: 8px; padding: 0 10px 0 6px; color: var(--muted); cursor: pointer; }
+.grain-hero .pal-mist input {
+  -webkit-appearance: none; appearance: none; width: 96px; height: 18px; margin: 0; background: transparent; cursor: pointer;
+}
+.grain-hero .pal-mist input::-webkit-slider-runnable-track { height: 2px; border-radius: 2px; background: color-mix(in srgb, var(--ink) 22%, transparent); }
+.grain-hero .pal-mist input::-moz-range-track { height: 2px; border-radius: 2px; background: color-mix(in srgb, var(--ink) 22%, transparent); }
+.grain-hero .pal-mist input::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; margin-top: -5px; border-radius: 50%; background: var(--ink); border: 0; }
+.grain-hero .pal-mist input::-moz-range-thumb { width: 12px; height: 12px; border-radius: 50%; background: var(--ink); border: 0; }
+.grain-hero .pal-mist input:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: 4px; }
+.grain-hero .pal-pick .pal-reset { width: 28px; height: 28px; padding: 0; justify-content: center; margin-left: -4px; }
+.grain-hero .pal-reset svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; transition: transform .4s var(--ease); }
+.grain-hero .pal-pick .pal-reset { animation: pal-reset-in .25s var(--ease) both; }
+.grain-hero .pal-reset:hover svg { transform: rotate(-60deg); }
+@keyframes pal-reset-in { from { opacity: 0; transform: scale(.6); } }
+@media (prefers-reduced-motion: reduce) { .grain-hero .pal-pick .pal-reset { animation: none; } }
+@media (max-width: 560px) { .grain-hero .pal-mist span { display: none; } .grain-hero .pal-mist input { width: 72px; } }
+
 /* ───────── Loader: the mark builds on a blank page, then flies into the nav ───────── */
 .grain-hero .gl-loader { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; pointer-events: none; }
 .grain-hero .gl-veil { position: absolute; inset: 0; background: var(--dark-bg); }   /* v6: the hero is dark, so the opening is too */

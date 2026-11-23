@@ -3,6 +3,7 @@
 // notch to open it again. The open/closed choice is remembered for this browser.
 // v6: the light/dark switch lives here too (moved out of the nav): first in the open picker, and on top of the
 // closed notch, where it switches straight away (the dots below it open the picker).
+// 2026-11-23: a "Mist" slider sets the size of the hero's hover mist blob (a review knob, like the palettes).
 import { useEffect, useState } from "react";
 import { PALETTES, type Palette, type Theme } from "./useTheme";
 
@@ -16,9 +17,13 @@ function ThemeIcon({ theme }: { theme: Theme }) {
 
 const KEY = "grain.palpick";
 
-type Props = { palette: Palette; onChange: (p: Palette) => void; theme: Theme; onToggleTheme: () => void };
+type Props = {
+  palette: Palette; onChange: (p: Palette) => void; theme: Theme; onToggleTheme: () => void;
+  /** the hover mist blob's size: a slider at the end of the picker */
+  mist?: { value: number; min: number; max: number; def: number; onChange: (v: number) => void };
+};
 
-export default function PalettePicker({ palette, onChange, theme, onToggleTheme }: Props) {
+export default function PalettePicker({ palette, onChange, theme, onToggleTheme, mist }: Props) {
   // phones start with it tucked away as the small notch (it would sit over the content otherwise), unless this
   // browser opened it before
   const [closed, setClosed] = useState(() => {
@@ -53,6 +58,24 @@ export default function PalettePicker({ palette, onChange, theme, onToggleTheme 
             <span>{p.name}</span>
           </button>
         ))}
+        {mist && (
+          <>
+            <i className="pal-sep" aria-hidden="true" />
+            <label className="pal-mist" title="Size of the mist blob when you hover the logo">
+              <span>Mist</span>
+              <input type="range" min={mist.min} max={mist.max} step={0.01} value={mist.value}
+                onChange={(e) => mist.onChange(parseFloat(e.target.value))} tabIndex={closed ? -1 : 0}
+                aria-label="Mist blob size" />
+            </label>
+            {/* reset shows up only once the slider has moved off its default */}
+            {mist.value !== mist.def && (
+              <button type="button" className="pal-reset" onClick={() => mist.onChange(mist.def)}
+                aria-label="Reset mist size" title="Reset mist size" tabIndex={closed ? -1 : 0}>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8" /><path d="M3 3v5h5" /></svg>
+              </button>
+            )}
+          </>
+        )}
         <button type="button" className="pal-x" onClick={() => setClosed(true)} aria-label="Hide the palette picker" tabIndex={closed ? -1 : 0}>
           <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 3l6 6M9 3l-6 6" /></svg>
         </button>

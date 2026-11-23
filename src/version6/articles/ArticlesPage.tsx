@@ -6,7 +6,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Shell, { HOME } from "./Shell";
 import ArticleCover from "./ArticleCover";
-import MistMark from "@/version6/brand/MistMark";
+import VapourMark from "@/version6/brand/VapourMark";
 import usePillList from "@/version6/components/grain/usePillList";
 import { ARTICLES, CATEGORIES, type Article } from "./data";
 
@@ -59,7 +59,7 @@ export default function ArticlesPage() {
   return (
     <Shell>
       <section className="ar-stage" data-surface="dark">
-        <MistMark className="ar-wire" scale={0.5} />
+        <VapourMark className="ar-wire" scale={0.5} />
         <div className="ar-stage-center">
           <h1>Articles</h1>
           <p>Notes on running governed AI work: how Grain is built, and what it's like on the job.</p>
