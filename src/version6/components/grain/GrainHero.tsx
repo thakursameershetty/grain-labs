@@ -68,15 +68,45 @@ export default function GrainHero({ theme, onToggleTheme, palette, onPalette }: 
     return () => cancelAnimationFrame(r);
   }, []);
 
-  // Scroll progress through the pinned hero, 0–1. The G reads the ref every frame;
-  // CSS reads --p for the dimming, the fades and the line. No React re-renders while scrolling.
+  // Scroll progress through the pinned hero, 0–1 (eased, see below). The vapour reads the ref every frame;
+  // CSS reads --p for the fades and the hand-off. No React re-renders while scrolling.
   const rootRef = useRef<HTMLDivElement>(null);
   // the glass under the nav: a lens wave with a colour fringe, melted into the progressive blur (Chromium)
   useLiquidGlass(rootRef, ".site-header .top-glass");
   const scrollBoxRef = useRef<HTMLDivElement>(null);
   const progress = useRef(0);
+  // an invisible copy of the How it runs heading, laid out where the real one lands: the mist condenses into it
+  const nextGhost = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
     let raf = 0;
+    // the hand-off is driven by an eased progress, not the raw scroll: each wheel notch or trackpad flick would
+    // otherwise jump the dissolve and the heading forward in steps. `shown` glides to `target` (time constant ~0.16s)
+    // and feeds --p, the canvas and the nav fade.
+    let target = 0, shown = 0, glideRaf = 0, last = 0;
+    const applyShown = () => {
+      const root = rootRef.current;
+      if (!root) return;
+      progress.current = shown;
+      root.style.setProperty("--p", shown.toFixed(4));
+      // the nav steps aside while the hero hands over. Opacity only while it's actually fading: any filter or
+      // opacity below 1 on the header would cut the glass bar off from the page behind it.
+      const hdr = root.querySelector<HTMLElement>(".site-header");
+      if (hdr) {
+        const o = Math.min(1, Math.max(0, (0.8 - shown) * 6));
+        const visible = o >= 1 || root.classList.contains("past-hero");
+        hdr.style.opacity = visible ? "" : o.toFixed(3);
+        hdr.style.pointerEvents = visible || o > 0.05 ? "" : "none";
+      }
+    };
+    const glide = (now: number) => {
+      const dt = Math.min(0.05, (now - last) / 1000 || 0.016);
+      last = now;
+      shown += (target - shown) * (1 - Math.exp(-dt / 0.16));
+      if (Math.abs(target - shown) < 0.0004) shown = target;
+      applyShown();
+      glideRaf = shown === target ? 0 : requestAnimationFrame(glide);
+    };
+    const kickGlide = () => { if (!glideRaf) { last = performance.now(); glideRaf = requestAnimationFrame(glide); } };
     const update = () => {
       raf = 0;
       const box = scrollBoxRef.current;
@@ -85,22 +115,13 @@ export default function GrainHero({ theme, onToggleTheme, palette, onPalette }: 
       const r = box.getBoundingClientRect();
       const range = Math.max(1, r.height - window.innerHeight);
       const p = Math.min(1, Math.max(0, -r.top / range));
-      progress.current = p;
-      root.style.setProperty("--p", p.toFixed(4));
+      target = p;
+      kickGlide();
       // once the pin has released, the nav comes back as a solid bar
       root.classList.toggle("past-hero", p >= 1 && r.bottom < window.innerHeight - 40);
       // light theme: the stage turns dark for the hand-off into How it runs; past this point the nav reads it as dark
       // the vapour stage is dark in both themes (after the demo), so the nav over the hero always reads it as dark
       if (!root.hasAttribute("data-hero-dark")) root.setAttribute("data-hero-dark", "");
-      // the nav steps aside while the hero hands over. Opacity only while it's actually fading: any filter or
-      // opacity below 1 on the header would cut the glass bar off from the page behind it.
-      const hdr = root.querySelector<HTMLElement>(".site-header");
-      if (hdr) {
-        const o = Math.min(1, Math.max(0, (0.8 - p) * 6));
-        const shown = o >= 1 || root.classList.contains("past-hero");
-        hdr.style.opacity = shown ? "" : o.toFixed(3);
-        hdr.style.pointerEvents = shown || o > 0.05 ? "" : "none";
-      }
       // which section is under the nav decides its colours
       let surface = "base";
       root.querySelectorAll<HTMLElement>("[data-surface]").forEach((el) => {
@@ -129,12 +150,15 @@ export default function GrainHero({ theme, onToggleTheme, palette, onPalette }: 
     };
     const onScroll = () => { if (!raf) raf = requestAnimationFrame(update); };
     update();
+    // a page opened part-way down (reload, anchor) starts in place rather than gliding from the top
+    shown = target; applyShown();
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
     return () => {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
       cancelAnimationFrame(raf);
+      cancelAnimationFrame(glideRaf);
     };
   }, []);
 
@@ -170,10 +194,14 @@ export default function GrainHero({ theme, onToggleTheme, palette, onPalette }: 
       {/* tall box: the hero stays pinned while this scrolls past, and that scroll turns the G */}
       <div className="hero-scroll" ref={scrollBoxRef} data-surface={theme === "dark" ? "dark" : "base"}>
         <section className="hero" id="top" aria-labelledby="hero-title">
-          <VapourHero className="hero-object vapour-hero" blobSize={mist} />
-          <span className="hero-thread" aria-hidden="true" />
+          <VapourHero className="hero-object vapour-hero" blobSize={mist} progress={progress} textRef={nextGhost} />
 
-          {/* the hand-off: the How it runs heading sits above the line, then the section takes over */}
+          {/* the hand-off: the mark dissolves into mist, its particles fly onto the How it runs heading and condense
+              into it (in the canvas), then the real heading takes over. The ghost is the layout the mist aims at. */}
+          <div className="hero-next hero-next-ghost" aria-hidden="true">
+            <h2 ref={nextGhost}>From request to reviewed output.</h2>
+            <p className="next-lead">Every job becomes a tracked workflow, with task state, approvals and evidence attached from intake to delivery.</p>
+          </div>
           <div className="hero-next">
             <h2>From request to reviewed output.</h2>
             <p className="next-lead">Every job becomes a tracked workflow, with task state, approvals and evidence attached from intake to delivery.</p>

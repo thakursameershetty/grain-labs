@@ -63,9 +63,13 @@
 
 /* ───── Stage ───── */
 .grain-hero { --p: 0;
-  --dim: clamp(0, calc((var(--p) - .18) * 3.6), 1);        /* page → How it runs surface */
-  --line-in: clamp(0, calc((var(--p) - .4) * 2.4), 1);   /* the line drawing down */
-  --next-in: clamp(0, calc((var(--p) - .44) * 2.8), 1);      /* How it runs heading */
+  /* hand-off into How it runs (2026-11-23), in the canvas (VapourHero reads the same progress): the mark dissolves
+     into mist, its particles fly onto the heading and the heading condenses out of the mist (≈ .22–.8) while the
+     atmosphere turns into How it runs' surface. Then the real heading takes over and the canvas fades. */
+  --stage-out: clamp(0, calc((var(--p) - .3) * 3.2), 1);    /* the no-WebGL backdrop → How it runs surface */
+  --next-in: clamp(0, calc((var(--p) - .7) * 6.25), 1);     /* the real heading, over the condensed mist */
+  --lead-in: clamp(0, calc((var(--p) - .82) * 7), 1);       /* then its sentence */
+  --canvas-out: clamp(0, calc((var(--p) - .88) * 12.5), 1); /* the canvas, once the real heading is in */
 }
 .grain-hero .hero-scroll { position: relative; height: 240svh; }
 .grain-hero .hero-scroll > .hero { position: sticky; top: 0; }
@@ -83,21 +87,19 @@
   /* the mark owns the top of the stage, so its core and inner rings sit in clear space above the headline */
   --mark-y: .37; --mark-scale: .8; }
 
-/* the line of light: from the G's centre down off the bottom of the screen, into How it runs */
-.grain-hero .hero-thread {
-  position: absolute; z-index: 3; left: 50%; top: 64%; width: 2px; height: 26%; margin-left: -1px;
-  transform-origin: top; transform: scaleY(var(--line-in)); opacity: min(1, calc(var(--line-in) * 3));
-  background: linear-gradient(to bottom, #fff, color-mix(in srgb, var(--dark-accent) 70%, transparent) 55%, transparent);
-  box-shadow: 0 0 14px 1px color-mix(in srgb, var(--dark-accent) 60%, transparent);
-  pointer-events: none;
-}
-
-/* How it runs introduces itself, centred above the line */
+/* How it runs introduces itself, centred, out of the fog: blurred and faint at first, sharpening as you scroll
+   (the same blur-to-focus as the hover mist). No line. */
 .grain-hero .hero-next {
-  position: absolute; z-index: 4; left: var(--gutter); right: var(--gutter); bottom: 42%;
+  position: absolute; z-index: 4; left: var(--gutter); right: var(--gutter); top: 50%;
   display: grid; justify-items: center; text-align: center; color: var(--dark-ink); pointer-events: none;
-  opacity: var(--next-in); transform: translateY(calc((1 - var(--next-in)) * 28px));
+  opacity: var(--next-in);
+  filter: blur(calc((1 - var(--next-in)) * 4px));   /* the mist has already brought it into focus */
+  transform: translateY(-50%);
+  will-change: opacity, filter, transform;   /* its own layer: the blur redraws without repainting the stage */
 }
+.grain-hero .hero-next .next-lead { opacity: var(--lead-in); filter: blur(calc((1 - var(--lead-in)) * 6px)); will-change: opacity, filter; }
+/* the layout the mist aims at: the heading in its final place, never shown */
+.grain-hero .hero-next.hero-next-ghost { visibility: hidden; opacity: 0; filter: none; will-change: auto; }
 .grain-hero .hero-next h2 { margin: 0; font-size: clamp(40px, 5.6vw, 104px); font-weight: 500; letter-spacing: -0.05em; line-height: .95; text-wrap: balance; max-width: 12ch; }
 .grain-hero .next-lead { margin-top: 20px; max-width: 520px; font-size: clamp(15px, 1.2vw, 19px); line-height: 1.45; color: color-mix(in srgb, var(--dark-ink) 68%, transparent); }
 
@@ -257,8 +259,6 @@
   /* clears the palette picker (a review tool, bottom-left) */
   .grain-hero .hero-pills { bottom: 88px; flex-wrap: nowrap; gap: 8px; }
   .grain-hero .pill { padding: 11px 16px; font-size: 14.5px; }
-  .grain-hero .hero-thread { top: 66%; height: 24%; }
-  .grain-hero .hero-next { bottom: 34%; }
   .grain-hero .scroll-arrow { bottom: 26px; }
 }
 @media (max-width: 400px) {
@@ -373,21 +373,23 @@
 }
 /* paper → dark with the scroll (--dim runs 0 → 1 as the headline leaves and before the hand-off text arrives) */
 /* 2026-11-23: the vapour stage (VapourHero) is dark in both themes, so the light-theme paper opening is off */
-/* the hand-off text and the line of light are on the dark stage, as before */
-.grain-hero:not([data-theme="dark"]) .hero-next,
-.grain-hero:not([data-theme="dark"]) .hero-thread { --dark-ink: var(--page-dark-ink); --dark-bg: var(--page-dark); --dark-accent: var(--o3); }
+/* the hand-off text sits on How it runs' surface */
+.grain-hero:not([data-theme="dark"]) .hero-next { --dark-ink: var(--page-dark-ink); --dark-bg: var(--page-dark); --dark-accent: var(--o3); }
 
 /* ───── Vapour stage (VapourHero.tsx, 2026-11-23): a port of the dry-ice vapour demo. The GL canvas paints the
-   dark warm atmosphere itself (logo colours); the CSS gradient under it is the same look for no-WebGL2. The canvases fade out
-   with the scroll (--dim), revealing the dark stage the hand-off sits on. ───── */
-.grain-hero .vapour-hero {
+   dark warm atmosphere itself (logo colours); the CSS gradient under it (::before) is the same look for no-WebGL2.
+   On scroll both fade out (--stage-out) onto the hero's own background, which is How it runs' surface, so the
+   hand-off has no seam. ───── */
+.grain-hero .vapour-hero::before {
+  content: ""; position: absolute; inset: 0; opacity: calc(1 - var(--stage-out));
   background:
     radial-gradient(120% 90% at 92% 18%, rgba(120, 51, 32, .7), rgba(42, 20, 13, .6) 45%, transparent 75%),
     linear-gradient(to top right, #0d0907 30%, #2a140d);
 }
-.grain-hero .vapour-hero canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; opacity: calc(1 - var(--dim)); }
+.grain-hero .vapour-hero canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; opacity: calc(1 - var(--canvas-out)); }
 .grain-hero .vapour-hero.no-gl canvas { display: none; }
-.grain-hero .hero:has(.vapour-hero) { --dark-bg: #0d0907; --dark-ink: #fff; }
+/* the stage under the vapour is How it runs' surface (--page-dark = the palette's dark surface, which .hw uses) */
+.grain-hero .hero:has(.vapour-hero) { --dark-bg: var(--page-dark); --dark-ink: #fff; }
 /* the mark owns the stage; one short line of small text sits under it (Shiva, 2026-11-23). No pills. */
 .grain-hero .hero:has(.vapour-hero) .hero-center { top: auto; bottom: clamp(56px, 9vh, 96px); transform: translateX(-50%); }
 .grain-hero .hero:has(.vapour-hero) h1.hero-line {

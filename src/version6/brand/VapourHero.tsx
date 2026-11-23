@@ -10,13 +10,23 @@
 //     soft circular patch under it boils (domain-warped noise, edges spilling out in soft lumps), follows the pointer
 //     smoothly and fades out when it leaves the mark. No trails: no smoke sprays, no smears left along the path. The
 //     blob is drawn straight from the pointer each frame (no disturbance field), so nothing lingers behind it.
+//   · scroll hand-off into How it runs (`progress`, 0 → 1 through the pinned hero): the whole mark takes the hover's
+//     fog (blur + wisps), the mist turns to rise and the mark thins away; meanwhile its smoke puffs lift off and fly,
+//     staggered, along arcs onto the letters of the How it runs heading, and the heading condenses out of the mist
+//     (a text mask drawn word by word where the real heading lands, `textRef`, going from heavy wispy fog to sharp).
+//     The atmosphere turns into How it runs' surface in the shader; the real heading then takes over (CSS) and the
+//     canvas fades. Drawing stops once it's gone.
 //   · it pauses while off screen; reduced motion gets a still frame
 //   · no WebGL2: the host's CSS gradient (the same atmosphere) stays visible
 // Layers inside the host: the GL canvas (backdrop + vapour glyph + anchor puffs), then the micro-glyph 2D canvas.
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type RefObject } from "react";
 import { CORE, RINGS, rectPath } from "./grainMark";
 
 type Props = {
+  /** scroll progress through the pinned hero, 0 → 1: the mark dissolves into rising mist */
+  progress?: RefObject<number>;
+  /** the heading the mist condenses into: an invisible copy laid out where the real one lands (measured word by word) */
+  textRef?: RefObject<HTMLElement | null>;
   className?: string;
   /** radius of the hover mist blob, in stage heights (the palette picker's "Mist" slider) */
   blobSize?: number;
@@ -33,6 +43,9 @@ const MARK_CY = 0.46, MARK_SIZE = 0.71, BLOB_R = 0.2;
 // the hover mist's flow, in noise units per second: its normal drift, and the sink it turns into when the hover
 // gets heavy (dwelling long or stirring a lot). The mist pattern moves opposite to these offsets, so +y = falls.
 const DRIFT: [number, number] = [1.0, -0.67], SINK: [number, number] = [0.15, 2.4];
+// while the mark dissolves on scroll the mist rises instead (pattern moves up)
+const RISE: [number, number] = [0.2, -2.6];
+const smoothstep = (a: number, b: number, x: number) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 
 /** the Grain mark centred on (cx, cy), `size` px square. `colors` gives the outer, middle and inner ring (the core
  *  takes the outer ring's); left out, the mark draws in its own logo colours. */
@@ -71,7 +84,9 @@ const BASE_FRAG = `#version 300 es
 precision highp float;
 in vec2 vUv; out vec4 fragColor;
 uniform sampler2D uMask; uniform vec2 uAspect, uMaskScale; uniform float uTime;
-uniform vec2 uBlobPt, uFlow; uniform float uBlob, uBlobR, uHeavy;
+uniform vec2 uBlobPt, uFlow; uniform float uBlob, uBlobR, uHeavy, uDissolve, uFade;
+// hand-off: the heading's mask, how far it has condensed, and the surface it lands on
+uniform sampler2D uText; uniform float uTextIn, uTextForm, uTextOut, uTextH, uStageOut; uniform vec3 uInk, uSurface;
 float hash12(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
 float vnoise(vec2 p) { vec2 i = floor(p); vec2 f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);
   return mix(mix(hash12(i), hash12(i + vec2(1.0, 0.0)), u.x), mix(hash12(i + vec2(0.0, 1.0)), hash12(i + vec2(1.0, 1.0)), u.x), u.y); }
@@ -99,6 +114,8 @@ void main() {
   float floorVig = smoothstep(0.0, 0.28, vUv.y) * 0.76 + 0.24;
   float leftDepth = smoothstep(-0.18, 0.72, vUv.x + vUv.y * 0.36) * 0.34 + 0.66;
   bg *= floorVig * leftDepth;
+  // hand-off: the atmosphere turns into How it runs' surface
+  bg = mix(bg, uSurface, uStageOut);
 
   // the hover blob (after the DeepMind recording): the mark is never moved or warped. Under the pointer it is seen
   // through fog instead: a real gaussian blur whose radius is largest at the pointer and falls off smoothly to nothing
@@ -108,55 +125,93 @@ void main() {
   if (bd.y < 0.0) bd.y /= 1.0 + uHeavy * 1.2;
   float bd2 = dot(bd, bd), br2 = uBlobR * uBlobR;
   float f = exp(-bd2 / br2) * uBlob;                       // blob strength here, 0–1, gaussian falloff
+  // on scroll the whole mark takes the fog (fd), not just the patch under the pointer
+  float fd = max(f, uDissolve);
   vec3 mist3 = sampleMaskLod(vUv, 0.0);
-  if (f > 0.004) {
-    // blur radius in stage heights; the mask is mipmapped, so each tap reads an already-softened level. 32 taps on a
-    // golden-angle spiral, gaussian-weighted, turned per pixel so coarse texels never line up into blocks
-    float R = 0.045 * f;   // enough to melt edges, little enough that the mist texture over it still reads
-    float rPx = R * uMaskScale.y / uAspect.y * 768.0;
-    float lod = log2(max(1.0, rPx / 12.0));
-    float spin = hash12(gl_FragCoord.xy) * 6.2831853;
-    vec3 acc = mist3; float wsum = 1.0;
-    for (int i = 0; i < 32; i++) {
-      float fi = float(i) + 0.5;
-      float rr = sqrt(fi / 32.0);
-      float a = fi * 2.39996323 + spin;
-      float w = exp(-rr * rr * 2.0);
-      acc += sampleMaskLod(vUv + vec2(cos(a), sin(a)) * rr * R / uAspect, lod) * w;
-      wsum += w;
+  float sum0 = mist3.r + mist3.g + mist3.b;
+  // the costly parts (blur, mist noise) only run within reach of the mark: a very coarse mask level (64px texels,
+  // bilinear) says whether any of it is close enough to matter
+  vec3 nearM = sampleMaskLod(vUv, 6.0);
+  bool nearMark = nearM.r + nearM.g + nearM.b > 0.002;
+  float fog = 0.0, wisps = 0.0;
+  float cloudTex = 0.5;
+  if (nearMark) {
+    if (fd > 0.004) {
+      // blur radius in stage heights; the mask is mipmapped, so each tap reads an already-softened level. Taps on a
+      // golden-angle spiral, gaussian-weighted, turned per pixel so coarse texels never line up into blocks. The
+      // hover needs 32 to stay smooth; the scroll dissolve is broad and soft, so 12 coarser taps do.
+      float R = 0.045 * fd + 0.03 * uDissolve;   // enough to melt edges, little enough that the mist still reads
+      float rPx = R * uMaskScale.y / uAspect.y * 768.0;
+      bool fine = f > 0.02;
+      float taps = fine ? 32.0 : 12.0;
+      float lod = log2(max(1.0, rPx / (fine ? 12.0 : 6.0)));
+      float spin = hash12(gl_FragCoord.xy) * 6.2831853;
+      vec3 acc = mist3; float wsum = 1.0;
+      for (int i = 0; i < 32; i++) {
+        if (float(i) >= taps) break;
+        float fi = float(i) + 0.5;
+        float rr = sqrt(fi / taps);
+        float a = fi * 2.39996323 + spin;
+        float w = exp(-rr * rr * 2.0);
+        acc += sampleMaskLod(vUv + vec2(cos(a), sin(a)) * rr * R / uAspect, lod) * w;
+        wsum += w;
+      }
+      mist3 = mix(mist3, acc / wsum, smoothstep(0.0, 0.35, fd));
+      // mist over the fog: big slow patches of thicker and thinner fog, and through them finer wisps that drift and
+      // curl (domain-warped noise). They only change how dense the mist is, never where the mark is. uFlow is the
+      // flow offset integrated on the CPU (drift → sink when the hover is heavy → rise on scroll), so changing
+      // direction never makes the pattern jump. Sinking wisps stretch into vertical streaks, which reads as falling.
+      fog = smoothstep(0.2, 0.8, fbm(vUv * uAspect * 2.2 + uFlow * 0.06));
+      vec2 wp = vUv * uAspect * 7.0;
+      wp.y *= mix(1.0, 0.6, uHeavy);
+      vec2 wq = vec2(fbm(wp * 0.5 + uFlow * 0.08), fbm(wp * 0.5 + vec2(3.1, 0.0) + uFlow * 0.07 + uTime * 0.02));
+      wisps = smoothstep(0.38, 0.86, fbm(wp + wq * 1.8 + uFlow * 0.15));
     }
-    mist3 = mix(mist3, acc / wsum, smoothstep(0.0, 0.35, f));
+    // the vapour's own slow breathing (from the demo); only where the mark is
+    if (sum0 > 0.002 || fd > 0.004) cloudTex = fbm(vUv * uAspect * 3.8 + vec2(uTime * 0.035, -uTime * 0.028));
   }
   float sum = mist3.r + mist3.g + mist3.b;
   // which ring this patch belongs to decides its colour; where rings blur into each other the colours blend
   vec3 tint = (mist3.r * colRust + mist3.g * colCoral + mist3.b * colPeach) / max(sum, 1e-4);
   float baseMist = clamp(sum, 0.0, 1.0);
-  // the vapour's own slow breathing (from the demo)
-  float cloudTex = fbm(vUv * uAspect * 3.8 + vec2(uTime * 0.035, -uTime * 0.028));
   baseMist *= 0.92 + cloudTex * 0.16;
-  // mist over the blob: big slow patches of thicker and thinner fog, and through them finer wisps that drift and
-  // curl (domain-warped noise). They only change how dense the mist is, never where the mark is.
-  // uFlow is the flow offset integrated on the CPU (drift, turning into a sink when the hover is heavy), so changing
-  // direction never makes the pattern jump. Sinking wisps also stretch into vertical streaks, which reads as falling.
-  float fog = smoothstep(0.2, 0.8, fbm(vUv * uAspect * 2.2 + uFlow * 0.06));
-  vec2 wp = vUv * uAspect * 7.0;
-  wp.y *= mix(1.0, 0.6, uHeavy);
-  vec2 wq = vec2(fbm(wp * 0.5 + uFlow * 0.08), fbm(wp * 0.5 + vec2(3.1, 0.0) + uFlow * 0.07 + uTime * 0.02));
-  float wisps = smoothstep(0.38, 0.86, fbm(wp + wq * 1.8 + uFlow * 0.15));
-  baseMist *= mix(1.0, (0.8 + fog * 0.3) * (0.62 + wisps * 0.85), f);
+  baseMist *= mix(1.0, (0.8 + fog * 0.3) * (0.62 + wisps * 0.85), fd);
   // a slight thinning right at the pointer, as the reference does
   baseMist *= 1.0 - 0.26 * exp(-bd2 / (br2 * 0.3)) * uBlob;
   baseMist *= smoothstep(0.0, 0.14, vUv.y) * 0.70 + 0.30;   // gentler than the demo: the big mark reaches low
+  // scroll hand-off: the mark thins away into the mist (thinnest wisps last)
+  baseMist *= clamp(1.0 - uFade * (1.25 - wisps * 0.5), 0.0, 1.0) * (1.0 - smoothstep(0.7, 1.0, uFade));   // fully gone at the end
 
   // shadow side a little deeper, the side facing the light lifted a touch toward white
   float lightTerm = clamp(azureGlow * 0.82 + vUv.y * 0.24, 0.0, 1.0);
   vec3 mistColor  = mix(tint * 0.84, mix(tint, vec3(1.0), 0.18), lightTerm);
   // the thicker fog patches catch a touch more light
   // the wisps and thicker fog catch a touch more light, so they read as vapour in front of the mark
-  mistColor = mix(mistColor, mix(tint, vec3(1.0), 0.3), clamp(fog * 0.3 + wisps * 0.45, 0.0, 1.0) * f);
+  mistColor = mix(mistColor, mix(tint, vec3(1.0), 0.3), clamp(fog * 0.3 + wisps * 0.45, 0.0, 1.0) * fd);
   // the colours need more body than the demo's white mist to read on the dark stage
   vec3 color = mix(bg, mistColor, clamp(baseMist * 0.66, 0.0, 0.8));
   color += colBloom * baseMist * azureGlow * 0.04;
+  // the heading condensing out of the mist: its mask, blurred heavily at first and tightening to sharp, broken up by
+  // drifting wisps early on, tinted from peach mist to the heading's ink as it forms
+  if (uTextIn > 0.001) {
+    float tR = mix(0.05, 0.0015, uTextForm);             // blur radius, stage heights
+    float tl = log2(max(1.0, tR * uTextH / 4.0));
+    float ts = textureLod(uText, vUv, tl).r;
+    if (tR > 0.004) {
+      float spin = hash12(gl_FragCoord.yx) * 6.2831853;
+      float tacc = ts, twsum = 1.0;
+      for (int i = 0; i < 8; i++) {
+        float fi = float(i) + 0.5, rr = sqrt(fi / 8.0), a = fi * 2.39996323 + spin, w = exp(-rr * rr * 2.0);
+        tacc += textureLod(uText, vUv + vec2(cos(a), sin(a)) * rr * tR / uAspect, tl).r * w;
+        twsum += w;
+      }
+      ts = tacc / twsum;
+    }
+    float tw = smoothstep(0.3, 0.85, fbm(vUv * uAspect * 7.0 + uFlow * 0.15));
+    float td = ts * uTextIn * mix(0.3 + tw * 1.4, 1.0, uTextForm) * (1.0 - uTextOut);
+    vec3 tc = mix(mix(colPeach, uInk, 0.45), uInk, uTextForm);
+    color = mix(color, tc, clamp(td, 0.0, 1.0) * 0.95);
+  }
   float n1 = hash12(gl_FragCoord.xy + fract(uTime * 0.37) * 71.0);
   float n2 = hash12(gl_FragCoord.xy + vec2(17.3, 41.9) + fract(uTime * 0.59) * 53.0);
   color = clamp(color + (n1 + n2 - 1.0) * (1.5 / 255.0), 0.0, 1.0);
@@ -283,13 +338,16 @@ function smokeAtlas() {
   return canvas;
 }
 
-type Anchor = { homeMx: number; homeMy: number; x: number; y: number; vx: number; vy: number; rot: number; baseSpin: number; spin: number;
+type Anchor = {
+  /** its spot on the heading (screen uv), when the stagger lets it leave (0–1), and how high its flight arcs */
+  tx: number; ty: number; stag: number; arc: number;
+  homeMx: number; homeMy: number; x: number; y: number; vx: number; vy: number; rot: number; baseSpin: number; spin: number;
   baseSize: number; sizeBoost: number; baseAlpha: number; excite: number; tile: number; phase: number; col: [number, number, number] };
 type Micro = { x: number; y: number; size: number; opacity: number; depth: number; vy: number; vx: number; phase: number; twinkleFreq: number; swayFreq: number;
   /** nudge away from the pointer, px (eased) */
   ox: number; oy: number };
 
-export default function VapourHero({ className = "vapour-hero", blobSize = BLOB_R }: Props) {
+export default function VapourHero({ className = "vapour-hero", blobSize = BLOB_R, progress, textRef }: Props) {
   const root = useRef<HTMLDivElement>(null);
   // read every frame, so the slider changes the blob without rebuilding the GL scene
   const blobR = useRef(blobSize);
@@ -303,6 +361,7 @@ export default function VapourHero({ className = "vapour-hero", blobSize = BLOB_
     const gl = glCanvas.getContext("webgl2", { alpha: false, antialias: false, depth: false, stencil: false, powerPreference: "high-performance", preserveDrawingBuffer: false });
     if (!gl) { host.classList.add("no-gl"); return; }
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let alive = true;
 
     /* ── programs ── */
     const compile = (type: number, src: string) => {
@@ -322,7 +381,8 @@ export default function VapourHero({ className = "vapour-hero", blobSize = BLOB_
     };
     let baseProg: ReturnType<typeof program>, puffProg: ReturnType<typeof program>;
     try {
-      baseProg = program(QUAD_VERT, BASE_FRAG, ["uMask", "uAspect", "uMaskScale", "uTime", "uBlobPt", "uBlob", "uBlobR", "uFlow", "uHeavy"]);
+      baseProg = program(QUAD_VERT, BASE_FRAG, ["uMask", "uAspect", "uMaskScale", "uTime", "uBlobPt", "uBlob", "uBlobR", "uFlow", "uHeavy", "uDissolve", "uFade",
+        "uText", "uTextIn", "uTextForm", "uTextOut", "uTextH", "uStageOut", "uInk", "uSurface"]);
       puffProg = program(PUFF_VERT, PUFF_FRAG, ["uAtlas", "uAspect"]);
     } catch (e) {
       console.error(e); host.classList.add("no-gl"); return;
@@ -384,6 +444,76 @@ export default function VapourHero({ className = "vapour-hero", blobSize = BLOB_
     const maskGrid = new Float32Array(MASK_GRID * MASK_GRID);        // density (rings summed)
     const maskRGB = new Float32Array(MASK_GRID * MASK_GRID * 3);     // per-ring weights: rust, coral, peach
     const supportsFilter = (() => { try { maskCtx.filter = "blur(2px)"; const ok = maskCtx.filter === "blur(2px)"; maskCtx.filter = "none"; return ok; } catch { return false; } })();
+    // the heading's mask (screen-aligned, host px, mipmapped for the blur) and the spots on it the puffs fly to
+    const textCanvas = document.createElement("canvas");
+    const tctx = textCanvas.getContext("2d", { willReadFrequently: true })!;
+    const textTex = gl.createTexture()!;
+    gl.bindTexture(gl.TEXTURE_2D, textTex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(4));
+    texParams();
+    let textPts: number[] = [], textH = 1;
+    let ink: [number, number, number] = [0.97, 0.95, 0.93], surface: [number, number, number] = [0.12, 0.1, 0.09];
+    const parseRgb = (c: string): [number, number, number] | null => {
+      const m = c.match(/rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)/);
+      return m ? [+m[1] / 255, +m[2] / 255, +m[3] / 255] : null;
+    };
+    // the heading's ink and How it runs' surface follow the theme and palette, so they're re-read now and then
+    const readColours = () => {
+      const el = textRef?.current;
+      if (el) ink = parseRgb(getComputedStyle(el).color) ?? ink;
+      const stage = host.closest<HTMLElement>(".hero");
+      if (stage) surface = parseRgb(getComputedStyle(stage).backgroundColor) ?? surface;
+    };
+    const pickTextSpot = (p: Anchor) => {
+      if (!textPts.length) return;
+      const k = Math.floor(Math.random() * (textPts.length / 2)) * 2;
+      p.tx = textPts[k]; p.ty = textPts[k + 1];
+    };
+    /** draw the heading word by word exactly where the (invisible) copy lays it out, then find spots on its letters */
+    const buildText = () => {
+      const el = textRef?.current;
+      if (!el) return;
+      const hr = host.getBoundingClientRect();
+      const W = Math.max(1, Math.round(hr.width)), H = Math.max(1, Math.round(hr.height));
+      textCanvas.width = W; textCanvas.height = H; textH = H;
+      tctx.clearRect(0, 0, W, H);
+      const cs = getComputedStyle(el);
+      tctx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+      tctx.fillStyle = "#fff";
+      tctx.textBaseline = "alphabetic";
+      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+      const range = document.createRange();
+      for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+        const txt = n.textContent ?? "", re = /\S+/g;
+        let m: RegExpExecArray | null;
+        while ((m = re.exec(txt))) {
+          range.setStart(n, m.index); range.setEnd(n, m.index + m[0].length);
+          const r = range.getBoundingClientRect();
+          if (!r.width) continue;
+          const mt = tctx.measureText(m[0]);
+          const asc = mt.fontBoundingBoxAscent || r.height * 0.8, desc = mt.fontBoundingBoxDescent || r.height * 0.2;
+          // the word's box is the font's ascent + descent: centre the drawn font box in it, and squeeze it to the
+          // box's width (the heading's negative letter-spacing)
+          const baseline = r.top - hr.top + (r.height - (asc + desc)) / 2 + asc;
+          tctx.save();
+          tctx.translate(r.left - hr.left, baseline);
+          tctx.scale(r.width / Math.max(1, mt.width), 1);
+          tctx.fillText(m[0], 0, 0);
+          tctx.restore();
+        }
+      }
+      gl.bindTexture(gl.TEXTURE_2D, textTex);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, textCanvas);
+      gl.generateMipmap(gl.TEXTURE_2D);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+      texParams(true);
+      const d = tctx.getImageData(0, 0, W, H).data, step = Math.max(2, Math.round(W / 260));
+      textPts = [];
+      for (let y = 0; y < H; y += step) for (let x = 0; x < W; x += step) if (d[(y * W + x) * 4 + 3] > 128) textPts.push(x / W, 1 - y / H);
+      for (const p of anchorPuffs) pickTextSpot(p);
+      readColours();
+    };
     const maskTex = gl.createTexture()!;
     gl.bindTexture(gl.TEXTURE_2D, maskTex);
     texParams(true);   // mipmapped: the hover blur reads softer levels as its radius grows
@@ -420,6 +550,7 @@ export default function VapourHero({ className = "vapour-hero", blobSize = BLOB_
         const cell = cells[Math.floor(Math.random() * cells.length)];
         const homeMx = cell.mx + (Math.random() - 0.5) * 0.018, homeMy = cell.my + (Math.random() - 0.5) * 0.018;
         anchorPuffs.push({
+          tx: 0.5, ty: 0.5, stag: Math.random(), arc: 0.04 + Math.random() * 0.1,
           homeMx, homeMy,
           x: (homeMx - 0.5) / maskScaleVec[0] + 0.5, y: (homeMy - 0.5) / maskScaleVec[1] + 0.5,
           vx: 0, vy: 0, rot: Math.random() * Math.PI * 2, baseSpin: (Math.random() - 0.5) * 0.22, spin: 0,
@@ -428,6 +559,7 @@ export default function VapourHero({ className = "vapour-hero", blobSize = BLOB_
           excite: 0, tile: Math.floor(Math.random() * 4), phase: Math.random() * Math.PI * 2, col: tintOf(cell.i),
         });
       }
+      for (const p of anchorPuffs) pickTextSpot(p);
     };
 
     const updateGlyphMask = () => {
@@ -517,7 +649,7 @@ export default function VapourHero({ className = "vapour-hero", blobSize = BLOB_
         p.ox += (tx - p.ox) * ease; p.oy += (ty - p.oy) * ease;
         x += p.ox; y += p.oy;
         const floorFade = Math.min(1, Math.max(0.22, (viewH - y) / (viewH * 0.2)));
-        glyphCtx.globalAlpha = p.opacity * (0.78 + 0.22 * Math.sin(t * p.twinkleFreq + p.phase)) * floorFade;
+        glyphCtx.globalAlpha = p.opacity * (0.78 + 0.22 * Math.sin(t * p.twinkleFreq + p.phase)) * floorFade * (1 - stageOut);
         // a "4" at this font size is about 0.7× as tall as its size: the mark matches it
         const s = p.size * 0.72;
         glyphCtx.drawImage(sprite, x - s / 2, y - s / 2, s, s);
@@ -550,6 +682,8 @@ export default function VapourHero({ className = "vapour-hero", blobSize = BLOB_
     // how much hover the mark has had: dwell builds while over it (faster while stirring), heavy (0–1) follows it and
     // turns the mist's drift into a sink; flow is the integrated offset the shader reads
     let dwell = 0, heavy = 0, moved = 0;
+    let dissolve = 0, fade = 0;   // scroll hand-off: the fog over the whole mark, and how far it has thinned away
+    let morph = 0, puffOut = 0, stageOut = 0;   // puffs flying to the heading, fading once it's formed; atmosphere → surface
     const flow = [0, 0];
     /** is the pointer over the mark (its whole square, gaps between rings included, so the blob doesn't flicker)? */
     const overMark = (u: number, v: number) => {
@@ -582,13 +716,23 @@ export default function VapourHero({ className = "vapour-hero", blobSize = BLOB_
         if (count >= MAX_PUFFS) break;
         const homeX = (p.homeMx - 0.5) / maskScaleVec[0] + 0.5, homeY = (p.homeMy - 0.5) / maskScaleVec[1] + 0.5;
         const bx = (Math.sin(t * 0.42 + p.phase) * 0.008) / aspectVec[0], by = (Math.cos(t * 0.36 + p.phase * 1.3) * 0.008) / aspectVec[1];
-        p.vx += (homeX + bx - p.x) * aspectVec[0] * springK * dt60 * 0.14;
-        p.vy += (homeY + by - p.y) * aspectVec[1] * springK * dt60 * 0.14;
-        const dr = airDrift(p.x * aspectVec[0], p.y * aspectVec[1], t);
-        p.vx += dr.vx * p.excite * 0.25 * S.turbulence * dt;
-        p.vy += dr.vy * p.excite * 0.25 * S.turbulence * dt;
-        p.vx *= dampAnchor; p.vy *= dampAnchor;
-        p.x += (p.vx * dt) / aspectVec[0]; p.y += (p.vy * dt) / aspectVec[1];
+        // hand-off: once its turn comes (staggered), the puff flies from its spot on the mark to its spot on the
+        // heading along a rising arc; scrolling back flies it home the same way
+        const mv = smoothstep(0, 1, (morph - p.stag * 0.35) / 0.65);
+        if (mv > 0.001) {
+          const ease = mv * mv * (3 - 2 * mv);
+          p.x = homeX + (p.tx - homeX) * ease + bx * (1 - mv);
+          p.y = homeY + (p.ty - homeY) * ease + Math.sin(mv * Math.PI) * p.arc + by * (1 - mv);
+          p.vx = 0; p.vy = 0;
+        } else {
+          p.vx += (homeX + bx - p.x) * aspectVec[0] * springK * dt60 * 0.14;
+          p.vy += (homeY + by - p.y) * aspectVec[1] * springK * dt60 * 0.14;
+          const dr = airDrift(p.x * aspectVec[0], p.y * aspectVec[1], t);
+          p.vx += dr.vx * p.excite * 0.25 * S.turbulence * dt;
+          p.vy += dr.vy * p.excite * 0.25 * S.turbulence * dt;
+          p.vx *= dampAnchor; p.vy *= dampAnchor;
+          p.x += (p.vx * dt) / aspectVec[0]; p.y += (p.vy * dt) / aspectVec[1];
+        }
         p.spin *= Math.pow(0.95, dt60);
         p.rot += (p.baseSpin * S.turbulence + p.spin) * dt;
         p.excite *= exciteDecay;
@@ -597,15 +741,22 @@ export default function VapourHero({ className = "vapour-hero", blobSize = BLOB_
         // their spring home, so they churn in place); at rest they stay faint so the mark reads clean
         const ox = (p.x - blob.x) * aspectVec[0], oy = (p.y - blob.y) * aspectVec[1];
         const w = Math.exp(-(ox * ox + oy * oy) / (blobR.current * blobR.current)) * blob.a;
-        p.excite = Math.max(p.excite, w);
+        p.excite = Math.max(p.excite, w, dissolve);
+        if (mv <= 0.001) p.vy += dissolve * 0.06 * dt60;   // the puffs lift with the rising mist (their spring keeps them near)
         p.sizeBoost = Math.max(p.sizeBoost, w * 0.5);
         const o = count * FPI;
         instanceData[o] = p.x; instanceData[o + 1] = p.y;
-        instanceData[o + 2] = p.baseSize * (1.0 + p.sizeBoost * 0.95 * S.expansion);
+        // in flight they shrink toward the size of a letter stroke and brighten; once the heading has formed they go
+        const travel = mv * (1 - mv) * 4;
+        instanceData[o + 2] = p.baseSize * (1.0 + p.sizeBoost * 0.95 * S.expansion) * (1 - mv * 0.7);
         instanceData[o + 3] = p.rot;
-        instanceData[o + 4] = p.baseAlpha * S.density * (0.35 + p.excite * 0.6 + w * 1.6);
+        instanceData[o + 4] = p.baseAlpha * S.density * (0.35 + p.excite * 0.6 + w * 1.6 + travel * 1.4) * Math.max(1 - fade, mv) * (1 - puffOut);
         instanceData[o + 5] = p.tile; instanceData[o + 6] = p.excite * 0.55; instanceData[o + 7] = 0.25 + p.sizeBoost * 0.45;
-        instanceData[o + 8] = p.col[0]; instanceData[o + 9] = p.col[1]; instanceData[o + 10] = p.col[2];
+        // and they take on the heading's ink as they land
+        const ci = mv * 0.85;
+        instanceData[o + 8] = p.col[0] + (ink[0] - p.col[0]) * ci;
+        instanceData[o + 9] = p.col[1] + (ink[1] - p.col[1]) * ci;
+        instanceData[o + 10] = p.col[2] + (ink[2] - p.col[2]) * ci;
         count++;
       }
       return count;
@@ -613,7 +764,18 @@ export default function VapourHero({ className = "vapour-hero", blobSize = BLOB_
 
     const bindTex = (unit: number, tex: WebGLTexture) => { gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, tex); };
 
+    let colourTick = 0;
     const frame = (dt: number, t: number) => {
+      const sp = progress?.current ?? 0;
+      dissolve = smoothstep(0.02, 0.35, sp);
+      fade = smoothstep(0.18, 0.48, sp);
+      morph = smoothstep(0.22, 0.6, sp);
+      puffOut = smoothstep(0.6, 0.8, sp);
+      stageOut = smoothstep(0.3, 0.6, sp);
+      const textIn = smoothstep(0.34, 0.56, sp), textForm = smoothstep(0.42, 0.8, sp), textOut = smoothstep(0.78, 0.9, sp);
+      // past the hand-off the real heading has taken over and the canvas is faded (CSS): nothing to draw
+      if (sp > 0.97) return;
+      if (++colourTick % 30 === 0) readColours();
       // the hover blob: shows only over the mark, follows the pointer with a little ease, fades in and out
       const over = pointer.has && overMark(pointer.x, pointer.y);
       if (blob.a < 0.01) { blob.x = pointer.x; blob.y = pointer.y; }   // it appears where the pointer is
@@ -626,8 +788,9 @@ export default function VapourHero({ className = "vapour-hero", blobSize = BLOB_
       moved = 0;
       const ht = Math.min(1, Math.max(0, (dwell - 1.5) / 1.7)), heavyT = ht * ht * (3 - 2 * ht);
       heavy += (heavyT - heavy) * (1 - Math.pow(0.96, dt * 60));
-      flow[0] += (DRIFT[0] + (SINK[0] - DRIFT[0]) * heavy) * dt;
-      flow[1] += (DRIFT[1] + (SINK[1] - DRIFT[1]) * heavy) * dt;
+      const fx = DRIFT[0] + (SINK[0] - DRIFT[0]) * heavy, fy = DRIFT[1] + (SINK[1] - DRIFT[1]) * heavy;
+      flow[0] += (fx + (RISE[0] - fx) * dissolve) * dt;
+      flow[1] += (fy + (RISE[1] - fy) * dissolve) * dt;
 
       // pass 2: atmosphere + vapour glyph
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -642,6 +805,17 @@ export default function VapourHero({ className = "vapour-hero", blobSize = BLOB_
       gl.uniform1f(baseProg.u.uBlobR, blobR.current);
       gl.uniform2f(baseProg.u.uFlow, flow[0], flow[1]);
       gl.uniform1f(baseProg.u.uHeavy, heavy);
+      gl.uniform1f(baseProg.u.uDissolve, dissolve);
+      gl.uniform1f(baseProg.u.uFade, fade);
+      bindTex(1, textTex);
+      gl.uniform1i(baseProg.u.uText, 1);
+      gl.uniform1f(baseProg.u.uTextIn, textIn);
+      gl.uniform1f(baseProg.u.uTextForm, textForm);
+      gl.uniform1f(baseProg.u.uTextOut, textOut);
+      gl.uniform1f(baseProg.u.uTextH, textH);
+      gl.uniform1f(baseProg.u.uStageOut, stageOut);
+      gl.uniform3f(baseProg.u.uInk, ink[0], ink[1], ink[2]);
+      gl.uniform3f(baseProg.u.uSurface, surface[0], surface[1], surface[2]);
       gl.uniform2f(baseProg.u.uAspect, aspectVec[0], aspectVec[1]);
       gl.uniform2f(baseProg.u.uMaskScale, maskScaleVec[0], maskScaleVec[1]);
       gl.uniform1f(baseProg.u.uTime, t);
@@ -683,12 +857,15 @@ export default function VapourHero({ className = "vapour-hero", blobSize = BLOB_
     let resizeTimer = 0;
     const ro = new ResizeObserver(() => {
       clearTimeout(resizeTimer);
-      resizeTimer = window.setTimeout(() => { resizeAll(); if (reduce) kick(); }, 90);
+      resizeTimer = window.setTimeout(() => { resizeAll(); buildText(); if (reduce) kick(); }, 90);
     });
     ro.observe(host);
 
     resizeAll();
     updateGlyphMask();
+    buildText();
+    // the heading's font may still be loading: redraw its mask once it's in
+    document.fonts?.ready.then(() => { if (alive) buildText(); });
     kick();
 
     return () => {
@@ -699,7 +876,8 @@ export default function VapourHero({ className = "vapour-hero", blobSize = BLOB_
       window.removeEventListener("pointermove", onPointer);
       document.documentElement.removeEventListener("pointerleave", onLeave);
       gl.deleteProgram(baseProg.prog); gl.deleteProgram(puffProg.prog);
-      for (const t of [atlasTex, maskTex]) gl.deleteTexture(t);
+      alive = false;
+      for (const t of [atlasTex, maskTex, textTex]) gl.deleteTexture(t);
       for (const b of [screenVbo, cornerVbo, instanceVbo]) gl.deleteBuffer(b);
       gl.deleteVertexArray(screenVao); gl.deleteVertexArray(puffVao);
     };
